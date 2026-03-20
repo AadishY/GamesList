@@ -10,8 +10,7 @@ export default function Footer() {
         </div>
         <p className="flex items-center gap-1 text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium tracking-wide">
           Made with <Heart className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-red-500 fill-red-500 animate-pulse" /> by
-          <strong className="text-indigo-600 dark:text-indigo-400">Aadish</strong> &
-          <strong className="text-orange-600 dark:text-orange-400">Aditya</strong>
+          <strong className="text-indigo-600 dark:text-indigo-400">Aadish</strong>
         </p>
       </div>
     </footer>
