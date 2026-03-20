@@ -1,5 +1,18 @@
 [
   {
+    "appId": "resident-evil-4",
+    "name": "Resident Evil 4 (2005)",
+    "imageUrl": "https://media.rawg.io/media/games/fee/fee0100afd87b52bfbd33e26689fa26c.jpg",
+    "steamUrl": "https://store.steampowered.com/search/?term=Resident%20Evil%204%20(2005)",
+    "status": "Played",
+    "mode": "Singleplayer",
+    "id": "34ef8aec-7270-49bc-ad86-c579b6cc624a",
+    "addedAt": 1774018513404,
+    "addedBy": [
+      "Aditya"
+    ]
+  },
+  {
     "appId": "catherine",
     "name": "Catherine",
     "imageUrl": "https://media.rawg.io/media/games/a91/a917f41bb87e4b9e7a762ac87d97a9dc.jpg",
