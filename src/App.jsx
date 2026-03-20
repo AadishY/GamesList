@@ -1,3 +1,12 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Fixed Steam Backlog</title>
+  <!-- Your existing Tailwind + Lucide imports remain exactly the same -->
+</head>
+<body>
+<script type="text/babel">
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { 
   Gamepad2, 
@@ -19,7 +28,7 @@ import {
 } from 'lucide-react';
 
 export default function App() {
-  // App State
+  // App State (unchanged)
   const [games, setGames] = useState(() => {
     const saved = localStorage.getItem('steam-tracker-local');
     return saved ? JSON.parse(saved) : [];
@@ -28,33 +37,33 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
-  // Real-Time Search State
+  // Real-Time Search State (unchanged)
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const searchTimeoutRef = useRef(null);
   const dropdownRef = useRef(null);
   
-  // Modals
+  // Modals (unchanged)
   const [pendingGame, setPendingGame] = useState(null);
   const [editingGame, setEditingGame] = useState(null);
   const [gameToDelete, setGameToDelete] = useState(null); 
   
-  // Filters & Sorting
+  // Filters & Sorting (unchanged)
   const [statusFilter, setStatusFilter] = useState('All');
   const [modeFilter, setModeFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [playerFilter, setPlayerFilter] = useState('All');
   const [sortOption, setSortOption] = useState('Newest');
 
-  // Sync State
+  // Sync State (unchanged)
   const [syncStatus, setSyncStatus] = useState(''); 
   const isReadyForSync = useRef(false);
 
-  // Profile State
+  // Profile State (unchanged)
   const [activeProfile, setActiveProfile] = useState(null);
 
-  // 1. Metadata Injection
+  // 1. Metadata Injection (unchanged)
   useEffect(() => {
     document.title = "Steam Backlog";
     
@@ -75,12 +84,12 @@ export default function App() {
     themeColor.content = "#020617";
   }, []);
 
-  // Save to local storage automatically
+  // Save to local storage (unchanged)
   useEffect(() => {
     localStorage.setItem('steam-tracker-local', JSON.stringify(games));
   }, [games]);
 
-  // Click outside listener for Dropdown
+  // Click outside listener for Dropdown (unchanged)
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -91,7 +100,7 @@ export default function App() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // --- Profile Switching Helper ---
+  // --- Profile Switching Helper --- (unchanged)
   const loginAs = useCallback((profile) => {
     setActiveProfile(profile);
     if (profile !== 'Combined') {
@@ -101,7 +110,7 @@ export default function App() {
     }
   }, []);
 
-  // --- GitHub Auto-Sync Functions ---
+  // --- GitHub Auto-Sync Functions --- (unchanged)
   const GITHUB_OWNER = 'AadishY';
   const GITHUB_REPO = 'GamesList';
   const FILE_PATH = 'games.json';
@@ -205,7 +214,7 @@ export default function App() {
     }
   }, [games, pushToGithub]);
 
-  // --- Game Parsing & Fetching Utilities ---
+  // --- Game Parsing & Fetching Utilities --- (unchanged)
   const extractGameInfo = (url) => {
     const match = url.match(/\/app\/(\d+)(?:\/([^\/?#]+))?/);
     if (!match) return null;
@@ -224,8 +233,14 @@ export default function App() {
     return response;
   };
 
+  // --- Duplicate Prevention (IMPROVED) ---
+  // Now checks BOTH appId AND name (case-insensitive) to prevent duplicates
+  // whether added via RAWG dropdown, RAWG manual search, or Steam URL.
   const checkAndHandleExisting = useCallback((appId, name) => {
-    const existingGame = games.find(g => String(g.appId) === String(appId) || (name && g.name.toLowerCase() === name.toLowerCase()));
+    const existingGame = games.find(g => 
+      String(g.appId) === String(appId) || 
+      (name && g.name.toLowerCase().trim() === name.toLowerCase().trim())
+    );
     if (existingGame) {
       const addedBy = existingGame.addedBy || [];
       if (addedBy.includes(activeProfile)) {
@@ -240,7 +255,7 @@ export default function App() {
     return false;
   }, [games, activeProfile]);
 
-  // --- Real-time Search Logic ---
+  // --- Real-time Search Logic --- (unchanged)
   const searchRawg = async (query) => {
     const rawgKey = getRawgKey();
     if (!rawgKey) return;
@@ -277,7 +292,7 @@ export default function App() {
     setIsSearching(true);
     searchTimeoutRef.current = setTimeout(() => {
       searchRawg(val);
-    }, 500); // 500ms debounce
+    }, 500);
   };
 
   const handleSelectSearchResult = (game) => {
@@ -300,7 +315,7 @@ export default function App() {
     });
   };
 
-  // --- Manual Fetch Submit ---
+  // --- Manual Fetch Submit (FIXED DUPLICATE LOGIC) ---
   const handleFetchGameDetails = async (e) => {
     e.preventDefault();
     setError('');
@@ -322,6 +337,7 @@ export default function App() {
         if (!info) throw new Error('Invalid Steam URL.');
         const { appId, slugName } = info;
 
+        // Early check by Steam numeric appId (catches Steam-URL → Steam-URL duplicates)
         if (checkAndHandleExisting(appId, null)) {
           setLoading(false);
           return;
@@ -346,6 +362,13 @@ export default function App() {
             c.description.toLowerCase().includes('co-op')
           );
 
+          // CRITICAL FIX: Second check using real Steam name
+          // This catches duplicates when the game was previously added via RAWG (different appId)
+          if (checkAndHandleExisting(appId, details.name)) {
+            setLoading(false);
+            return;
+          }
+
           finalGameData = {
             appId: String(appId),
             name: details.name,
@@ -358,6 +381,13 @@ export default function App() {
           console.warn('API fetch timed out or failed. Utilizing bulletproof fallback.', err.message);
           const fallbackName = slugName || `Steam Game ${appId}`;
           const fallbackImage = `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${appId}/header.jpg`;
+
+          // CRITICAL FIX: Second check using fallback name
+          if (checkAndHandleExisting(appId, fallbackName)) {
+            setLoading(false);
+            return;
+          }
+
           finalGameData = {
             appId: String(appId),
             name: fallbackName,
@@ -368,7 +398,7 @@ export default function App() {
           };
         }
       } else {
-        // Fallback Manual RAWG API Search if user didn't click dropdown
+        // RAWG manual fallback (unchanged - already had proper check)
         const rawgKey = getRawgKey();
         if (!rawgKey) throw new Error('VITE_RAWG_API_KEY is missing from your environment variables.');
 
@@ -421,7 +451,7 @@ export default function App() {
     setUrlInput('');
   }, [pendingGame, activeProfile]);
 
-  // --- Edit Actions ---
+  // --- Edit Actions --- (unchanged)
   const saveEditedGame = useCallback(() => {
     if (activeProfile === 'Combined' || !editingGame) return;
     setGames(prevGames => prevGames.map(g => g.id === editingGame.id ? { ...editingGame } : g));
@@ -444,7 +474,7 @@ export default function App() {
     setGameToDelete(null);
   }, [activeProfile, gameToDelete]);
 
-  // --- Highly Optimized Filtering & Sorting via useMemo ---
+  // --- Highly Optimized Filtering & Sorting via useMemo --- (unchanged)
   const filteredGames = useMemo(() => {
     let result = games.filter(game => {
       if (activeProfile === 'Combined') return true;
@@ -458,7 +488,6 @@ export default function App() {
     .filter(game => modeFilter === 'All' || game.mode === modeFilter)
     .filter(game => game.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    // Apply Sorting
     result.sort((a, b) => {
       switch (sortOption) {
         case 'Newest': return b.addedAt - a.addedAt;
@@ -479,9 +508,9 @@ export default function App() {
     };
   }, [filteredGames]);
 
-  // --- Renders ---
+  // --- Renders --- (unchanged except the two fixes)
 
-  // Initial Profile Selector Render
+  // Initial Profile Selector Render (unchanged)
   if (!activeProfile) {
     return (
       <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-[#020617] to-[#020617] flex flex-col items-center justify-center p-4 selection:bg-indigo-500/30 font-sans text-slate-200">
@@ -530,7 +559,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#020617] text-slate-200 font-sans selection:bg-indigo-500/30 pb-12 animate-in fade-in duration-500">
       
-      {/* Delete Confirmation Modal */}
+      {/* Delete Confirmation Modal (unchanged) */}
       {gameToDelete && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md transition-all">
           <div className="bg-slate-900 border border-red-500/20 rounded-3xl w-full max-w-sm p-6 shadow-[0_0_50px_rgba(239,68,68,0.2)] animate-in fade-in zoom-in-95 duration-300 text-center relative overflow-hidden">
@@ -560,7 +589,7 @@ export default function App() {
         </div>
       )}
 
-      {/* Pending / Add Game Modal */}
+      {/* Pending / Add Game Modal (unchanged) */}
       {pendingGame && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md transition-all">
           <div className="bg-slate-900 border border-white/10 rounded-3xl w-full max-w-md overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] animate-in fade-in zoom-in-95 duration-300">
@@ -638,7 +667,7 @@ export default function App() {
         </div>
       )}
 
-      {/* Edit Game Modal */}
+      {/* Edit Game Modal (unchanged) */}
       {editingGame && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md transition-all">
           <div className="bg-slate-900 border border-white/10 rounded-3xl w-full max-w-md overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] animate-in fade-in zoom-in-95 duration-300">
@@ -727,12 +756,12 @@ export default function App() {
         </div>
       )}
 
-      {/* Modern Fully-Rounded Pill Header */}
+      {/* Modern Fully-Rounded Pill Header (unchanged) */}
       <header className="bg-slate-900/80 backdrop-blur-xl border-b border-white/5 sticky top-0 z-10 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
             
-            {/* Left Area: Logo, Title & Stats */}
+            {/* Left Area: Logo, Title & Stats (unchanged) */}
             <div className="flex items-start sm:items-center gap-3 sm:gap-4 flex-shrink-0 w-full md:w-auto">
               <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-2.5 rounded-2xl shadow-lg shadow-indigo-500/20 flex-shrink-0 mt-1 sm:mt-0">
                 <Gamepad2 className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
@@ -743,7 +772,6 @@ export default function App() {
                   Steam Backlog
                 </h1>
                 
-                {/* Stats Row - Moved here to save space for profile buttons on mobile */}
                 <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                   <div className="flex items-center text-[11px] sm:text-xs font-semibold tracking-wide">
                     {syncStatus === 'syncing' ? (
@@ -755,7 +783,6 @@ export default function App() {
                     ) : null}
                   </div>
                   
-                  {/* Pill Counters */}
                   <div className="flex items-center gap-1.5">
                     <div className="flex items-center gap-1.5 text-slate-300 bg-[#111827] px-2.5 py-1 rounded-full border border-white/5 shadow-inner">
                       <Circle className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
@@ -770,10 +797,9 @@ export default function App() {
               </div>
             </div>
             
-            {/* Right Area: Profile Buttons */}
+            {/* Right Area: Profile Buttons (unchanged) */}
             <div className="flex items-center justify-start md:justify-end gap-2 sm:gap-3 w-full md:w-auto mt-1 md:mt-0 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
               
-              {/* Combined View Button */}
               {activeProfile !== 'Combined' && (
                 <button 
                   onClick={() => loginAs('Combined')}
@@ -785,7 +811,6 @@ export default function App() {
                 </button>
               )}
 
-              {/* Active Profile Pill / Switcher */}
               <button 
                 onClick={() => loginAs(null)}
                 className="flex flex-1 md:flex-none justify-center items-center gap-2 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-400 hover:to-rose-400 text-white px-4 py-2.5 sm:px-6 sm:py-2.5 rounded-full text-sm font-bold transition-all shadow-[0_0_15px_rgba(244,63,94,0.4)] hover:shadow-[0_0_25px_rgba(244,63,94,0.6)] active:scale-95 flex-shrink-0"
@@ -801,9 +826,9 @@ export default function App() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         
-        {/* Add Game Section */}
+        {/* Add Game Section - FIXED: overflow-visible + higher z-index on dropdown */}
         {activeProfile !== 'Combined' && (
-          <section className="bg-slate-900/50 backdrop-blur-sm rounded-3xl p-5 sm:p-8 border border-white/5 shadow-xl relative overflow-hidden">
+          <section className="bg-slate-900/50 backdrop-blur-sm rounded-3xl p-5 sm:p-8 border border-white/5 shadow-xl relative overflow-visible">
             <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none"></div>
             
             <h2 className="text-xl font-bold mb-5 flex items-center gap-2 text-white tracking-tight">
@@ -831,9 +856,9 @@ export default function App() {
                   )}
                 </div>
 
-                {/* Real-Time Search Dropdown */}
+                {/* Real-Time Search Dropdown - FIXED: z-[60] + overflow-visible on parent */}
                 {showDropdown && searchResults.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-slate-800/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 max-h-72 overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-thumb]:rounded-full animate-in fade-in slide-in-from-top-2">
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-slate-800/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-[60] max-h-72 overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-thumb]:rounded-full animate-in fade-in slide-in-from-top-2">
                     {searchResults.map((game, idx) => (
                       <div 
                         key={game.id} 
@@ -880,9 +905,8 @@ export default function App() {
           </section>
         )}
 
-        {/* Filters and Search */}
+        {/* Filters and Search (unchanged) */}
         <section className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center w-full">
-          {/* Scrollable container for mobile filters */}
           <div className="flex w-full overflow-x-auto pb-2 -mb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] gap-3 items-center">
             <div className="bg-slate-900/50 backdrop-blur-sm rounded-2xl p-1.5 border border-white/5 flex gap-1 flex-shrink-0">
               {['All', 'Wanted', 'Played'].map(status => (
@@ -917,7 +941,6 @@ export default function App() {
           </div>
           
           <div className="flex flex-col sm:flex-row w-full lg:w-auto gap-3 flex-shrink-0">
-            {/* Sorting Dropdown */}
             <div className="relative flex items-center gap-2 group">
               <ArrowUpDown className="absolute left-4 w-4 h-4 text-slate-500 pointer-events-none" />
               <select
@@ -932,7 +955,6 @@ export default function App() {
               </select>
             </div>
 
-            {/* Search Input */}
             <div className="relative w-full lg:w-64">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
               <input
@@ -946,7 +968,7 @@ export default function App() {
           </div>
         </section>
 
-        {/* Games Grid */}
+        {/* Games Grid (unchanged) */}
         {filteredGames.length === 0 ? (
           <div className="text-center py-24 bg-slate-900/30 backdrop-blur-sm rounded-3xl border border-white/5 border-dashed">
             <Gamepad2 className="w-16 h-16 mx-auto text-slate-600 mb-5" />
@@ -1057,3 +1079,6 @@ export default function App() {
     </div>
   );
 }
+</script>
+</body>
+</html>
