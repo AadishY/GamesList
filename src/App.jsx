@@ -11,7 +11,6 @@ import {
   ExternalLink,
   AlertCircle,
   Loader2,
-  Sparkles,
   ShieldAlert,
   Pencil,
   Cloud,
@@ -31,7 +30,7 @@ export default function App() {
   // Modals
   const [pendingGame, setPendingGame] = useState(null);
   const [editingGame, setEditingGame] = useState(null);
-  const [gameToDelete, setGameToDelete] = useState(null); // Delete confirmation state
+  const [gameToDelete, setGameToDelete] = useState(null); 
   
   // Filters & Sorting
   const [statusFilter, setStatusFilter] = useState('All');
@@ -47,10 +46,41 @@ export default function App() {
   // Profile State
   const [activeProfile, setActiveProfile] = useState(null);
 
+  // 1. Metadata Injection
+  useEffect(() => {
+    document.title = "Steam Backlog";
+    
+    let metaDescription = document.querySelector('meta[name="description"]');
+    if (!metaDescription) {
+      metaDescription = document.createElement('meta');
+      metaDescription.name = 'description';
+      document.head.appendChild(metaDescription);
+    }
+    metaDescription.content = "Track and manage your shared Steam game backlog seamlessly.";
+
+    let themeColor = document.querySelector('meta[name="theme-color"]');
+    if (!themeColor) {
+      themeColor = document.createElement('meta');
+      themeColor.name = 'theme-color';
+      document.head.appendChild(themeColor);
+    }
+    themeColor.content = "#020617";
+  }, []);
+
   // Save to local storage automatically
   useEffect(() => {
     localStorage.setItem('steam-tracker-local', JSON.stringify(games));
   }, [games]);
+
+  // --- Profile Switching Helper ---
+  const loginAs = (profile) => {
+    setActiveProfile(profile);
+    if (profile !== 'Combined') {
+      setPlayerFilter(profile); 
+    } else {
+      setPlayerFilter('All');
+    }
+  };
 
   // --- GitHub Auto-Sync Functions ---
   const GITHUB_OWNER = 'AadishY';
@@ -277,18 +307,15 @@ export default function App() {
   // --- Highly Optimized Filtering & Sorting via useMemo ---
   const filteredGames = useMemo(() => {
     let result = games.filter(game => {
-      const addedBy = game.addedBy || [];
       if (activeProfile === 'Combined') return true;
-      return addedBy.includes(activeProfile);
+      const addedBy = game.addedBy || [];
+      if (playerFilter === 'Aadish') return addedBy.includes('Aadish');
+      if (playerFilter === 'Aditya') return addedBy.includes('Aditya');
+      if (playerFilter === 'Both') return addedBy.length === 2;
+      return true;
     })
     .filter(game => statusFilter === 'All' || game.status === statusFilter)
     .filter(game => modeFilter === 'All' || game.mode === modeFilter)
-    .filter(game => {
-      if (activeProfile !== 'Combined') return true;
-      if (playerFilter === 'All') return true;
-      if (playerFilter === 'Both') return game.addedBy?.length === 2;
-      return game.addedBy?.includes(playerFilter);
-    })
     .filter(game => game.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
     // Apply Sorting
@@ -331,14 +358,14 @@ export default function App() {
           
           <div className="space-y-4 relative z-10">
             <button 
-              onClick={() => setActiveProfile('Aadish')}
+              onClick={() => loginAs('Aadish')}
               className="w-full py-4 bg-white/5 hover:bg-blue-600/20 border border-white/5 hover:border-blue-500/50 text-white rounded-2xl font-medium transition-all duration-300 flex items-center gap-3 justify-center group hover:shadow-[0_0_20px_rgba(59,130,246,0.2)] active:scale-95"
             >
               <User className="w-5 h-5 text-blue-400 group-hover:scale-110 transition-transform duration-300" />
               Aadish
             </button>
             <button 
-              onClick={() => setActiveProfile('Aditya')}
+              onClick={() => loginAs('Aditya')}
               className="w-full py-4 bg-white/5 hover:bg-orange-600/20 border border-white/5 hover:border-orange-500/50 text-white rounded-2xl font-medium transition-all duration-300 flex items-center gap-3 justify-center group hover:shadow-[0_0_20px_rgba(249,115,22,0.2)] active:scale-95"
             >
               <User className="w-5 h-5 text-orange-400 group-hover:scale-110 transition-transform duration-300" />
@@ -346,11 +373,11 @@ export default function App() {
             </button>
             <div className="pt-6 mt-6 border-t border-white/5">
               <button 
-                onClick={() => setActiveProfile('Combined')}
+                onClick={() => loginAs('Combined')}
                 className="w-full py-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-400 hover:via-purple-400 hover:to-pink-400 text-white rounded-2xl font-bold text-lg transition-all duration-300 flex items-center gap-3 justify-center group shadow-[0_0_20px_rgba(168,85,247,0.4)] hover:shadow-[0_0_30px_rgba(168,85,247,0.6)] active:scale-95"
               >
                 <Users className="w-6 h-6 group-hover:scale-110 transition-transform duration-300 text-white" />
-                Combined Library View
+                Combined Library
               </button>
             </div>
           </div>
@@ -547,8 +574,8 @@ export default function App() {
                 </div>
                 <button
                   onClick={() => {
-                    setGameToDelete(editingGame); // Trigger confirm modal
-                    setEditingGame(null); // Close edit modal
+                    setGameToDelete(editingGame);
+                    setEditingGame(null); 
                   }}
                   className="w-full py-3 mt-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 rounded-xl font-medium transition-all duration-300 flex items-center justify-center gap-2 active:scale-95"
                 >
@@ -560,61 +587,70 @@ export default function App() {
         </div>
       )}
 
-      {/* Header */}
+      {/* Header UI Implementation based on Image */}
       <header className="bg-slate-900/80 backdrop-blur-xl border-b border-white/5 sticky top-0 z-10 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-2.5 rounded-xl shadow-lg shadow-indigo-500/20">
-                <Gamepad2 className="w-6 h-6 text-white" />
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
+            
+            {/* Left Area: Logo & Titles */}
+            <div className="flex items-center gap-4 flex-shrink-0">
+              <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-2.5 rounded-2xl shadow-lg shadow-indigo-500/20">
+                <Gamepad2 className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
               </div>
-              <div className="flex flex-col">
-                <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-indigo-300 via-indigo-400 to-purple-400 bg-clip-text text-transparent tracking-tight leading-none">
+              <div className="flex flex-col justify-center">
+                <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-300 via-indigo-400 to-purple-400 bg-clip-text text-transparent tracking-tight leading-none mb-1">
                   Steam Backlog
                 </h1>
-                <div className="flex items-center gap-1.5 mt-1 text-xs font-medium h-4">
+                <div className="flex items-center text-xs font-semibold tracking-wide h-4">
                   {syncStatus === 'syncing' ? (
-                    <span className="text-indigo-400 flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin" /> Auto-saving...</span>
+                    <span className="text-indigo-400 flex items-center gap-1.5"><Loader2 className="w-3.5 h-3.5 animate-spin" /> Saving...</span>
                   ) : syncStatus === 'saved' ? (
-                    <span className="text-emerald-500 flex items-center gap-1 animate-in fade-in"><Cloud className="w-3 h-3" /> Auto-saved</span>
+                    <span className="text-emerald-500 flex items-center gap-1.5 animate-in fade-in"><Cloud className="w-3.5 h-3.5" /> Auto-saved</span>
                   ) : syncStatus === 'error' ? (
-                    <span className="text-red-400 flex items-center gap-1 animate-in fade-in"><AlertCircle className="w-3 h-3" /> Sync Error</span>
+                    <span className="text-red-400 flex items-center gap-1.5 animate-in fade-in"><AlertCircle className="w-3.5 h-3.5" /> Sync Error</span>
                   ) : null}
                 </div>
               </div>
             </div>
             
-            <div className="flex items-center gap-3 sm:gap-5 text-sm font-medium w-full md:w-auto justify-between md:justify-end">
-              <div className="flex items-center gap-3 sm:gap-5 border-r border-white/10 pr-3 sm:pr-5">
-                <div className="flex items-center gap-1.5 sm:gap-2 text-slate-400 bg-white/5 px-2 sm:px-3 py-1.5 rounded-lg border border-white/5">
-                  <Circle className="w-4 h-4 text-amber-400" />
-                  <span className="hidden sm:inline">Wanted:</span> <strong className="text-white sm:ml-1">{stats.wanted}</strong>
+            {/* Right Area: Badges & Switch Button */}
+            <div className="flex flex-wrap items-center justify-start sm:justify-end gap-3 sm:gap-4 w-full overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+              {/* Counters */}
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <div className="flex items-center gap-2 text-slate-400 bg-[#111827] px-3 py-1.5 rounded-xl border border-white/5">
+                  <Circle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <strong className="text-white text-[15px] leading-none">{stats.wanted}</strong>
                 </div>
-                <div className="flex items-center gap-1.5 sm:gap-2 text-slate-400 bg-white/5 px-2 sm:px-3 py-1.5 rounded-lg border border-white/5">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                  <span className="hidden sm:inline">Played:</span> <strong className="text-white sm:ml-1">{stats.played}</strong>
+                <div className="flex items-center gap-2 text-slate-400 bg-[#111827] px-3 py-1.5 rounded-xl border border-white/5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  <strong className="text-white text-[15px] leading-none">{stats.played}</strong>
                 </div>
               </div>
               
-              <div className="flex items-center gap-3 sm:gap-4">
-                <span className={`hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-xl border font-bold text-xs uppercase tracking-wider ${
-                  activeProfile === 'Aadish' ? 'bg-blue-500/10 text-blue-300 border-blue-500/20' :
-                  activeProfile === 'Aditya' ? 'bg-orange-500/10 text-orange-300 border-orange-500/20' :
-                  'bg-indigo-500/10 text-indigo-300 border-indigo-500/20'
-                }`}>
-                  <Sparkles className="w-3.5 h-3.5" />
-                  {activeProfile}
-                </span>
-                
+              {/* Desktop Divider */}
+              <div className="hidden sm:block w-px h-6 bg-white/10 mx-1 flex-shrink-0"></div>
+              
+              {/* Combined Shortcut Button (Only if not already Combined) */}
+              {activeProfile !== 'Combined' && (
                 <button 
-                  onClick={() => setActiveProfile(null)}
-                  className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-400 hover:to-rose-400 text-white px-4 sm:px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-[0_0_15px_rgba(244,63,94,0.4)] hover:shadow-[0_0_25px_rgba(244,63,94,0.6)] active:scale-95"
-                  title="Switch Profile"
+                  onClick={() => loginAs('Combined')}
+                  className="flex items-center gap-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold transition-all border border-indigo-500/20 active:scale-95 flex-shrink-0"
+                  title="Combined View"
                 >
-                  <Users className="w-4 h-4 text-white" />
-                  <span className="hidden sm:inline">Switch Profile</span>
+                  <Users className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                  <span className="hidden sm:inline">Combined</span>
                 </button>
-              </div>
+              )}
+
+              {/* Switch Profile Button (Shows current profile name on pink bg as requested) */}
+              <button 
+                onClick={() => loginAs(null)}
+                className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-400 hover:to-rose-400 text-white px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold transition-all shadow-[0_0_15px_rgba(244,63,94,0.4)] hover:shadow-[0_0_25px_rgba(244,63,94,0.6)] active:scale-95 flex-shrink-0"
+                title="Switch Profile"
+              >
+                {activeProfile === 'Combined' ? <Users className="w-4 h-4 sm:w-5 sm:h-5 text-white flex-shrink-0" /> : <User className="w-4 h-4 sm:w-5 sm:h-5 text-white flex-shrink-0" />}
+                <span className="truncate max-w-[120px] sm:max-w-none">{activeProfile}</span>
+              </button>
             </div>
           </div>
         </div>
@@ -697,7 +733,8 @@ export default function App() {
               ))}
             </div>
 
-            {activeProfile === 'Combined' && (
+            {/* Profile filtering removed from Combined view as requested */}
+            {activeProfile !== 'Combined' && (
               <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl p-1.5 border border-white/5 flex gap-1 flex-shrink-0">
                 {['All', 'Aadish', 'Aditya', 'Both'].map(player => (
                   <button
@@ -764,6 +801,8 @@ export default function App() {
               const isBoth = addedBy.length === 2;
               const hasAadish = addedBy.includes('Aadish');
               const hasAditya = addedBy.includes('Aditya');
+              
+              const isMyGame = activeProfile !== 'Combined' && addedBy.includes(activeProfile);
 
               return (
                 <div 
@@ -818,41 +857,33 @@ export default function App() {
 
                     <div className="mt-auto pt-5 space-y-3">
                       
-                      {activeProfile !== 'Combined' ? (
-                        <>
-                          <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 bg-black/20 w-fit px-3 py-1.5 rounded-lg border border-white/5">
-                            {game.mode === 'Multiplayer' 
-                              ? <><Users className="w-3.5 h-3.5 text-cyan-400" /> Multiplayer</>
-                              : <><User className="w-3.5 h-3.5 text-indigo-400" /> Singleplayer</>
-                            }
-                          </div>
+                      {/* Universal Game Mode Display */}
+                      <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 bg-black/20 w-fit px-3 py-1.5 rounded-lg border border-white/5">
+                        {game.mode === 'Multiplayer' 
+                          ? <><Users className="w-3.5 h-3.5 text-cyan-400" /> Multiplayer</>
+                          : <><User className="w-3.5 h-3.5 text-indigo-400" /> Singleplayer</>
+                        }
+                      </div>
 
-                          <div className="flex items-center gap-2 pt-3 border-t border-white/5">
-                            <button
-                              onClick={() => setEditingGame(game)}
-                              className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm font-semibold transition-all bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5 hover:border-white/10 active:scale-95"
-                            >
-                              <Pencil className="w-4 h-4" /> Edit Details
-                            </button>
+                      <div className="flex items-center gap-2 pt-3 border-t border-white/5">
+                        {activeProfile === 'Combined' ? (
+                          <div className="flex items-center justify-center gap-1.5 py-2.5 w-full rounded-xl bg-white/5 border border-white/5 text-slate-500 text-xs font-semibold uppercase tracking-wider">
+                            <ShieldAlert className="w-3.5 h-3.5" /> Read Only View
                           </div>
-                        </>
-                      ) : (
-                        <>
-                           <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 bg-black/20 w-fit px-3 py-1.5 rounded-lg border border-white/5">
-                            {game.mode === 'Multiplayer' 
-                              ? <><Users className="w-3.5 h-3.5 text-cyan-400" /> Multiplayer</>
-                              : <><User className="w-3.5 h-3.5 text-indigo-400" /> Singleplayer</>
-                            }
-                          </div>
-
-                          <div className="flex items-center justify-center gap-2 pt-3 border-t border-white/5">
-                             <div className="flex items-center justify-center gap-1.5 py-2 w-full rounded-xl bg-white/5 border border-white/5 text-slate-500 text-xs font-semibold uppercase tracking-wider">
-                               <ShieldAlert className="w-3.5 h-3.5" /> Read Only View
-                             </div>
-                          </div>
-                        </>
-                      )}
-
+                        ) : isMyGame ? (
+                          <button
+                            onClick={() => setEditingGame(game)}
+                            className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm font-semibold transition-all bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5 hover:border-white/10 active:scale-95"
+                          >
+                            <Pencil className="w-4 h-4" /> Edit Details
+                          </button>
+                        ) : (
+                           <div className="flex items-center justify-center gap-1.5 py-2.5 w-full rounded-xl bg-white/5 border border-white/5 text-slate-500 text-xs font-semibold uppercase tracking-wider">
+                             <ShieldAlert className="w-3.5 h-3.5" /> View Only
+                           </div>
+                        )}
+                      </div>
+                      
                     </div>
                   </div>
                 </div>
