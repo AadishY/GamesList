@@ -3,23 +3,31 @@ import { Gamepad2, Github } from 'lucide-react';
 
 export default function Footer() {
   return (
-    <footer className="mt-auto border-t border-slate-200 dark:border-white/5 py-5 sm:py-6 transition-colors relative z-10 w-full mt-12 bg-white/30 dark:bg-slate-900/30 backdrop-blur-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+    <footer className="mt-auto border-t border-slate-200 dark:border-white/5 py-8 transition-colors relative z-10 w-full bg-slate-100 dark:bg-slate-900 overflow-hidden">
+      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5 pointer-events-none"></div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-6 relative z-10">
         
-        <div className="flex items-center gap-2.5">
-          <div className="bg-indigo-500/10 p-1.5 rounded-lg border border-indigo-500/20">
-            <Gamepad2 className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
+        <div className="flex flex-col items-center sm:items-start gap-1">
+          <div className="flex items-center gap-2.5">
+            <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-1.5 rounded-lg shadow-lg shadow-indigo-500/20">
+              <Gamepad2 className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-base font-black bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent tracking-tight">Steam Backlog</span>
           </div>
-          <span className="text-sm font-bold bg-gradient-to-r from-indigo-500 to-purple-500 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">Steam Backlog</span>
+          <span className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium ml-1">v2.0 • Cloud Sync Enabled</span>
         </div>
         
-        <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium transition-colors text-center uppercase tracking-wider">
-          Curated by <strong className="text-indigo-600 dark:text-indigo-400">Aadish</strong> & <strong className="text-orange-600 dark:text-orange-400">Aditya</strong>
-        </p>
+        <div className="flex flex-col items-center gap-1.5">
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-medium transition-colors text-center tracking-wide">
+            Engineered by <strong className="text-indigo-600 dark:text-indigo-400">Aadish</strong> & <strong className="text-orange-600 dark:text-orange-400">Aditya</strong>
+          </p>
+          <div className="h-0.5 w-16 bg-gradient-to-r from-indigo-500 to-orange-500 rounded-full"></div>
+        </div>
         
-        <div className="flex items-center gap-3">
-          <a href="https://github.com/AadishY/GamesList" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-400 hover:text-slate-700 dark:text-slate-500 dark:hover:text-white transition-colors">
+        <div className="flex items-center gap-4">
+          <a href="https://github.com/AadishY/GamesList" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 dark:bg-white/10 dark:hover:bg-white/20 text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-all active:scale-95 shadow-sm font-semibold text-sm">
             <Github className="w-4 h-4" />
+            <span>GitHub</span>
           </a>
         </div>
         

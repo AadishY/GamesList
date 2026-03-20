@@ -1,7 +1,7 @@
 import React from 'react';
 import { Gamepad2, Loader2, Cloud, AlertCircle, Circle, CheckCircle2, Users, User, Sun, Moon } from 'lucide-react';
 
-export default function Header({ syncStatus, stats, activeProfile, loginAs, theme, toggleTheme }) {
+export default function Header({ syncStatus, stats, activeProfile, loginAs, theme, toggleTheme, currentView }) {
   return (
     <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200 dark:border-white/5 sticky top-0 z-10 shadow-lg transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -15,9 +15,13 @@ export default function Header({ syncStatus, stats, activeProfile, loginAs, them
             
             <div className="flex flex-col justify-center min-w-0 gap-1.5 sm:gap-1">
               <div className="flex items-center gap-2">
-                <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-500 via-indigo-600 to-purple-600 dark:from-indigo-300 dark:via-indigo-400 dark:to-purple-400 bg-clip-text text-transparent tracking-tight leading-none truncate">
+                <button 
+                  onClick={() => window.location.reload()} 
+                  className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-500 via-indigo-600 to-purple-600 dark:from-indigo-300 dark:via-indigo-400 dark:to-purple-400 bg-clip-text text-transparent tracking-tight leading-none truncate hover:opacity-80 transition-opacity text-left outline-none"
+                  title="Return to profile selection"
+                >
                   Steam Backlog
-                </h1>
+                </button>
                 
                 {/* Theme Toggle (Mobile inline next to title) */}
                 <button 
@@ -69,7 +73,7 @@ export default function Header({ syncStatus, stats, activeProfile, loginAs, them
             </button>
 
             {/* Combined View Button */}
-            {activeProfile !== 'Combined' && (
+            {currentView !== 'sharedList' && activeProfile !== 'Combined' && (
               <button 
                 onClick={() => loginAs('Combined')}
                 className="flex justify-center items-center gap-2 bg-indigo-50 dark:bg-[#1e1b4b]/60 hover:bg-indigo-100 dark:hover:bg-[#1e1b4b] text-indigo-700 dark:text-indigo-200 px-4 py-2.5 sm:px-5 sm:py-2.5 rounded-full text-sm font-semibold transition-all border border-indigo-200 dark:border-indigo-500/20 active:scale-95 flex-shrink-0 shadow-sm"
@@ -81,14 +85,16 @@ export default function Header({ syncStatus, stats, activeProfile, loginAs, them
             )}
 
             {/* Active Profile Pill / Switcher */}
-            <button 
-              onClick={() => loginAs(null)}
-              className="flex flex-1 md:flex-none justify-center items-center gap-2 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-400 hover:to-rose-400 text-white px-4 py-2.5 sm:px-6 sm:py-2.5 rounded-full text-sm font-bold transition-all shadow-[0_0_15px_rgba(244,63,94,0.3)] hover:shadow-[0_0_20px_rgba(244,63,94,0.5)] active:scale-95 flex-shrink-0"
-              title="Switch Profile"
-            >
-              {activeProfile === 'Combined' ? <Users className="w-[16px] h-[16px] sm:w-[18px] sm:h-[18px] text-white flex-shrink-0" /> : <User className="w-[16px] h-[16px] sm:w-[18px] sm:h-[18px] text-white flex-shrink-0" />}
-              <span className="truncate max-w-[120px] sm:max-w-none tracking-wide">{activeProfile}</span>
-            </button>
+            {currentView !== 'sharedList' && (
+              <button 
+                onClick={() => loginAs(null)}
+                className="flex flex-1 md:flex-none justify-center items-center gap-2 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-400 hover:to-rose-400 text-white px-4 py-2.5 sm:px-6 sm:py-2.5 rounded-full text-sm font-bold transition-all shadow-[0_0_15px_rgba(244,63,94,0.3)] hover:shadow-[0_0_20px_rgba(244,63,94,0.5)] active:scale-95 flex-shrink-0"
+                title="Switch Profile"
+              >
+                {activeProfile === 'Combined' ? <Users className="w-[16px] h-[16px] sm:w-[18px] sm:h-[18px] text-white flex-shrink-0" /> : <User className="w-[16px] h-[16px] sm:w-[18px] sm:h-[18px] text-white flex-shrink-0" />}
+                <span className="truncate max-w-[120px] sm:max-w-none tracking-wide">{activeProfile}</span>
+              </button>
+            )}
           </div>
         </div>
       </div>

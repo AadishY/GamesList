@@ -29,6 +29,7 @@ import AddGameSection from './components/AddGameSection';
 import FilterSection from './components/FilterSection';
 import GameCard from './components/GameCard';
 import Footer from './components/Footer';
+import SharedList from './components/SharedList';
 
 export default function App() {
   // App State
@@ -63,6 +64,9 @@ export default function App() {
 
   // Profile State
   const [activeProfile, setActiveProfile] = useState(null);
+
+  // App View State
+  const [currentView, setCurrentView] = useState('home'); // 'home' | 'sharedList'
 
   // Theme State
   const [theme, setTheme] = useState(() => {
@@ -102,8 +106,6 @@ export default function App() {
     }
     themeColor.content = theme === 'dark' ? "#020617" : "#f8fafc";
   }, [theme]);
-
-
 
   // Click outside listener for Dropdown
   useEffect(() => {
@@ -586,58 +588,78 @@ export default function App() {
         loginAs={loginAs}
         theme={theme}
         toggleTheme={toggleTheme}
+        currentView={currentView}
       />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        
-        <AddGameSection 
-          activeProfile={activeProfile}
-          urlInput={urlInput}
-          handleInputChange={handleInputChange}
-          handleFetchGameDetails={handleFetchGameDetails}
-          loading={loading}
-          isSearching={isSearching}
-          showDropdown={showDropdown}
-          setShowDropdown={setShowDropdown}
-          setUrlInput={setUrlInput}
-          searchResults={searchResults}
-          handleSelectSearchResult={handleSelectSearchResult}
-          getExistingGame={getExistingGame}
-          error={error}
-          dropdownRef={dropdownRef}
-        />
+      {currentView === 'home' ? (
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 flex-1 w-full relative">
+          
+          <AddGameSection 
+            activeProfile={activeProfile}
+            urlInput={urlInput}
+            handleInputChange={handleInputChange}
+            handleFetchGameDetails={handleFetchGameDetails}
+            loading={loading}
+            isSearching={isSearching}
+            showDropdown={showDropdown}
+            setShowDropdown={setShowDropdown}
+            setUrlInput={setUrlInput}
+            searchResults={searchResults}
+            handleSelectSearchResult={handleSelectSearchResult}
+            getExistingGame={getExistingGame}
+            error={error}
+            dropdownRef={dropdownRef}
+          />
 
-        <FilterSection 
-          statusFilter={statusFilter} setStatusFilter={setStatusFilter}
-          modeFilter={modeFilter} setModeFilter={setModeFilter}
-          sortOption={sortOption} setSortOption={setSortOption}
-          searchQuery={searchQuery} setSearchQuery={setSearchQuery}
-        />
+          <FilterSection 
+            statusFilter={statusFilter} setStatusFilter={setStatusFilter}
+            modeFilter={modeFilter} setModeFilter={setModeFilter}
+            sortOption={sortOption} setSortOption={setSortOption}
+            searchQuery={searchQuery} setSearchQuery={setSearchQuery}
+          />
 
-        {/* Games Grid */}
-        {filteredGames.length === 0 ? (
-          <div className="text-center py-24 bg-white/60 dark:bg-slate-900/30 backdrop-blur-sm rounded-3xl border border-slate-300 dark:border-white/5 border-dashed transition-colors">
-            <Gamepad2 className="w-16 h-16 mx-auto text-slate-400 dark:text-slate-600 mb-5" />
-            <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-300 tracking-tight">No games found</h3>
-            <p className="text-slate-500 mt-2 max-w-sm mx-auto">
-              {games.length === 0 
-                ? "Your library is empty. Paste a Steam URL or search a game above to start building your collection!" 
-                : "No games match your current filters or search query."}
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredGames.map((game, idx) => (
-              <GameCard 
-                key={game.id}
-                game={game}
-                activeProfile={activeProfile}
-                setEditingGame={setEditingGame}
-              />
-            ))}
-          </div>
-        )}
-      </main>
+          {/* Games Grid */}
+          {filteredGames.length === 0 ? (
+            <div className="text-center py-24 bg-white/60 dark:bg-slate-900/30 backdrop-blur-sm rounded-3xl border border-slate-300 dark:border-white/5 border-dashed transition-colors">
+              <Gamepad2 className="w-16 h-16 mx-auto text-slate-400 dark:text-slate-600 mb-5" />
+              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-300 tracking-tight">No games found</h3>
+              <p className="text-slate-500 mt-2 max-w-sm mx-auto">
+                {games.length === 0 
+                  ? "Your library is empty. Paste a Steam URL or search a game above to start building your collection!" 
+                  : "No games match your current filters or search query."}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredGames.map((game, idx) => (
+                <GameCard 
+                  key={game.id}
+                  game={game}
+                  activeProfile={activeProfile}
+                  setEditingGame={setEditingGame}
+                />
+              ))}
+            </div>
+          )}
+        </main>
+      ) : (
+        <SharedList 
+          games={games} 
+          setGames={setGames} 
+          activeProfile={activeProfile} 
+          goBack={() => setCurrentView('home')} 
+        />
+      )}
+
+      {currentView === 'home' && (
+        <button 
+          onClick={() => setCurrentView('sharedList')}
+          className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-4 rounded-full shadow-[0_10px_30px_rgba(79,70,229,0.4)] hover:shadow-[0_15px_40px_rgba(79,70,229,0.6)] font-bold tracking-widest uppercase transition-all flex items-center gap-3 z-50 active:scale-95 border border-indigo-400"
+        >
+          <ListPlus className="w-6 h-6" />
+          <span className="hidden sm:inline-block">List</span>
+        </button>
+      )}
 
       <Footer />
     </div>
