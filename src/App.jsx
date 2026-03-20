@@ -377,7 +377,7 @@ export default function App() {
                 className="w-full py-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-400 hover:via-purple-400 hover:to-pink-400 text-white rounded-2xl font-bold text-lg transition-all duration-300 flex items-center gap-3 justify-center group shadow-[0_0_20px_rgba(168,85,247,0.4)] hover:shadow-[0_0_30px_rgba(168,85,247,0.6)] active:scale-95"
               >
                 <Users className="w-6 h-6 group-hover:scale-110 transition-transform duration-300 text-white" />
-                Combined Library
+                Combined Library View
               </button>
             </div>
           </div>
@@ -587,7 +587,7 @@ export default function App() {
         </div>
       )}
 
-      {/* Header UI Implementation based on Image */}
+      {/* Modern Fully-Rounded Pill Header */}
       <header className="bg-slate-900/80 backdrop-blur-xl border-b border-white/5 sticky top-0 z-10 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
@@ -614,42 +614,42 @@ export default function App() {
             </div>
             
             {/* Right Area: Badges & Switch Button */}
-            <div className="flex flex-wrap items-center justify-start sm:justify-end gap-3 sm:gap-4 w-full overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-              {/* Counters */}
+            <div className="flex items-center justify-start sm:justify-end gap-3 sm:gap-4 w-full overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+              {/* Pill Counters */}
               <div className="flex items-center gap-2 flex-shrink-0">
-                <div className="flex items-center gap-2 text-slate-400 bg-[#111827] px-3 py-1.5 rounded-xl border border-white/5">
+                <div className="flex items-center gap-2.5 text-slate-300 bg-slate-900/80 px-4 py-1.5 rounded-full border border-white/5 shadow-inner">
                   <Circle className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                  <strong className="text-white text-[15px] leading-none">{stats.wanted}</strong>
+                  <strong className="text-white text-[15px] leading-none font-bold">{stats.wanted}</strong>
                 </div>
-                <div className="flex items-center gap-2 text-slate-400 bg-[#111827] px-3 py-1.5 rounded-xl border border-white/5">
+                <div className="flex items-center gap-2.5 text-slate-300 bg-slate-900/80 px-4 py-1.5 rounded-full border border-white/5 shadow-inner">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  <strong className="text-white text-[15px] leading-none">{stats.played}</strong>
+                  <strong className="text-white text-[15px] leading-none font-bold">{stats.played}</strong>
                 </div>
               </div>
               
               {/* Desktop Divider */}
               <div className="hidden sm:block w-px h-6 bg-white/10 mx-1 flex-shrink-0"></div>
               
-              {/* Combined Shortcut Button (Only if not already Combined) */}
+              {/* Combined View Button */}
               {activeProfile !== 'Combined' && (
                 <button 
                   onClick={() => loginAs('Combined')}
-                  className="flex items-center gap-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold transition-all border border-indigo-500/20 active:scale-95 flex-shrink-0"
+                  className="flex items-center gap-2.5 bg-[#1e1b4b]/60 hover:bg-[#1e1b4b] text-indigo-200 px-5 py-2 rounded-full text-sm font-semibold transition-all border border-indigo-500/20 active:scale-95 flex-shrink-0 shadow-sm"
                   title="Combined View"
                 >
-                  <Users className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-                  <span className="hidden sm:inline">Combined</span>
+                  <Users className="w-[18px] h-[18px] flex-shrink-0" />
+                  <span className="tracking-wide">Combined</span>
                 </button>
               )}
 
-              {/* Switch Profile Button (Shows current profile name on pink bg as requested) */}
+              {/* Active Profile Pill / Switcher */}
               <button 
                 onClick={() => loginAs(null)}
-                className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-400 hover:to-rose-400 text-white px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold transition-all shadow-[0_0_15px_rgba(244,63,94,0.4)] hover:shadow-[0_0_25px_rgba(244,63,94,0.6)] active:scale-95 flex-shrink-0"
+                className="flex items-center gap-2.5 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-400 hover:to-rose-400 text-white px-6 py-2 rounded-full text-sm font-bold transition-all shadow-[0_0_15px_rgba(244,63,94,0.4)] hover:shadow-[0_0_25px_rgba(244,63,94,0.6)] active:scale-95 flex-shrink-0"
                 title="Switch Profile"
               >
-                {activeProfile === 'Combined' ? <Users className="w-4 h-4 sm:w-5 sm:h-5 text-white flex-shrink-0" /> : <User className="w-4 h-4 sm:w-5 sm:h-5 text-white flex-shrink-0" />}
-                <span className="truncate max-w-[120px] sm:max-w-none">{activeProfile}</span>
+                {activeProfile === 'Combined' ? <Users className="w-[18px] h-[18px] text-white flex-shrink-0" /> : <User className="w-[18px] h-[18px] text-white flex-shrink-0" />}
+                <span className="truncate max-w-[120px] sm:max-w-none tracking-wide">{activeProfile}</span>
               </button>
             </div>
           </div>
@@ -702,12 +702,12 @@ export default function App() {
         <section className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center w-full">
           {/* Scrollable container for mobile filters */}
           <div className="flex w-full overflow-x-auto pb-2 -mb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] gap-3 items-center">
-            <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl p-1.5 border border-white/5 flex gap-1 flex-shrink-0">
+            <div className="bg-slate-900/50 backdrop-blur-sm rounded-2xl p-1.5 border border-white/5 flex gap-1 flex-shrink-0">
               {['All', 'Wanted', 'Played'].map(status => (
                 <button
                   key={status}
                   onClick={() => setStatusFilter(status)}
-                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                  className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ${
                     statusFilter === status 
                       ? 'bg-indigo-500/20 text-indigo-300 shadow-sm border border-indigo-500/30' 
                       : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent'
@@ -717,12 +717,12 @@ export default function App() {
                 </button>
               ))}
             </div>
-            <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl p-1.5 border border-white/5 flex gap-1 flex-shrink-0">
+            <div className="bg-slate-900/50 backdrop-blur-sm rounded-2xl p-1.5 border border-white/5 flex gap-1 flex-shrink-0">
               {['All', 'Singleplayer', 'Multiplayer'].map(mode => (
                 <button
                   key={mode}
                   onClick={() => setModeFilter(mode)}
-                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                  className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ${
                     modeFilter === mode 
                       ? 'bg-indigo-500/20 text-indigo-300 shadow-sm border border-indigo-500/30' 
                       : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent'
@@ -735,12 +735,12 @@ export default function App() {
 
             {/* Profile filtering removed from Combined view as requested */}
             {activeProfile !== 'Combined' && (
-              <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl p-1.5 border border-white/5 flex gap-1 flex-shrink-0">
+              <div className="bg-slate-900/50 backdrop-blur-sm rounded-2xl p-1.5 border border-white/5 flex gap-1 flex-shrink-0">
                 {['All', 'Aadish', 'Aditya', 'Both'].map(player => (
                   <button
                     key={player}
                     onClick={() => setPlayerFilter(player)}
-                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                    className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ${
                       playerFilter === player 
                         ? 'bg-indigo-500/20 text-indigo-300 shadow-sm border border-indigo-500/30' 
                         : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent'
@@ -756,11 +756,11 @@ export default function App() {
           <div className="flex flex-col sm:flex-row w-full lg:w-auto gap-3 flex-shrink-0">
             {/* Sorting Dropdown */}
             <div className="relative flex items-center gap-2 group">
-              <ArrowUpDown className="absolute left-3 w-4 h-4 text-slate-500 pointer-events-none" />
+              <ArrowUpDown className="absolute left-4 w-4 h-4 text-slate-500 pointer-events-none" />
               <select
                 value={sortOption}
                 onChange={(e) => setSortOption(e.target.value)}
-                className="w-full sm:w-auto bg-slate-900/50 backdrop-blur-sm border border-white/5 rounded-xl pl-10 pr-8 py-3 text-sm text-slate-300 font-medium outline-none focus:border-indigo-500/50 focus:bg-slate-900 transition-all shadow-inner appearance-none cursor-pointer hover:bg-slate-800"
+                className="w-full sm:w-auto bg-slate-900/50 backdrop-blur-sm border border-white/5 rounded-2xl pl-11 pr-8 py-3 text-sm text-slate-300 font-medium outline-none focus:border-indigo-500/50 focus:bg-slate-900 transition-all shadow-inner appearance-none cursor-pointer hover:bg-slate-800"
               >
                 <option value="Newest">Newest First</option>
                 <option value="Oldest">Oldest First</option>
@@ -777,7 +777,7 @@ export default function App() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search games..."
-                className="w-full bg-slate-900/50 backdrop-blur-sm border border-white/5 rounded-xl pl-11 pr-4 py-3 text-sm outline-none focus:border-indigo-500/50 focus:bg-slate-900 transition-all shadow-inner placeholder-slate-500"
+                className="w-full bg-slate-900/50 backdrop-blur-sm border border-white/5 rounded-2xl pl-11 pr-4 py-3 text-sm outline-none focus:border-indigo-500/50 focus:bg-slate-900 transition-all shadow-inner placeholder-slate-500"
               />
             </div>
           </div>
@@ -807,7 +807,7 @@ export default function App() {
               return (
                 <div 
                   key={game.id} 
-                  className="group flex flex-col bg-slate-900/60 backdrop-blur-md rounded-2xl overflow-hidden border border-white/5 hover:border-indigo-500/30 shadow-lg hover:shadow-[0_10px_30px_rgba(79,70,229,0.15)] hover:-translate-y-1 transition-all duration-300 animate-in fade-in slide-in-from-bottom-4"
+                  className="group flex flex-col bg-slate-900/60 backdrop-blur-md rounded-[1.25rem] overflow-hidden border border-white/5 hover:border-indigo-500/30 shadow-lg hover:shadow-[0_10px_30px_rgba(79,70,229,0.15)] hover:-translate-y-1 transition-all duration-300 animate-in fade-in slide-in-from-bottom-4"
                   style={{ animationFillMode: "both", animationDelay: `${idx * 50}ms` }}
                 >
                   <div className="relative aspect-[460/215] bg-slate-950 overflow-hidden">
@@ -820,7 +820,7 @@ export default function App() {
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-80"></div>
                     
                     <div className="absolute top-3 left-3 flex flex-col gap-2">
-                      <span className={`w-fit px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-lg backdrop-blur-md shadow-sm border ${
+                      <span className={`w-fit px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-lg backdrop-blur-md shadow-sm border ${
                         game.status === 'Played' 
                           ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' 
                           : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
@@ -828,7 +828,7 @@ export default function App() {
                         {game.status}
                       </span>
                       {(isBoth || hasAadish || hasAditya) && (
-                        <span className={`w-fit px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-lg backdrop-blur-md shadow-sm border ${
+                        <span className={`w-fit px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-lg backdrop-blur-md shadow-sm border ${
                           isBoth ? 'bg-purple-500/20 text-purple-300 border-purple-500/30' :
                           hasAadish ? 'bg-blue-500/20 text-blue-300 border-blue-500/30' :
                           'bg-orange-500/20 text-orange-300 border-orange-500/30'
@@ -848,7 +848,7 @@ export default function App() {
                         href={game.steamUrl} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="text-slate-500 hover:text-indigo-400 bg-white/5 hover:bg-white/10 p-1.5 rounded-lg transition-colors flex-shrink-0 active:scale-95"
+                        className="text-slate-500 hover:text-indigo-400 bg-white/5 hover:bg-white/10 p-2 rounded-xl transition-colors flex-shrink-0 active:scale-95"
                         title="Open in Steam"
                       >
                         <ExternalLink className="w-4 h-4" />
@@ -857,7 +857,6 @@ export default function App() {
 
                     <div className="mt-auto pt-5 space-y-3">
                       
-                      {/* Universal Game Mode Display */}
                       <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 bg-black/20 w-fit px-3 py-1.5 rounded-lg border border-white/5">
                         {game.mode === 'Multiplayer' 
                           ? <><Users className="w-3.5 h-3.5 text-cyan-400" /> Multiplayer</>
