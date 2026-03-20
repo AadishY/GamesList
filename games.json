@@ -1,5 +1,18 @@
 [
   {
+    "appId": "elden-ring",
+    "name": "Elden Ring",
+    "imageUrl": "https://media.rawg.io/media/games/b29/b294fdd866dcdb643e7bab370a552855.jpg",
+    "steamUrl": "https://store.steampowered.com/search/?term=Elden%20Ring",
+    "status": "Played",
+    "mode": "Multiplayer",
+    "id": "5792f327-4e94-45a9-a580-50e2eddd6eef",
+    "addedAt": 1774014212791,
+    "addedBy": [
+      "Aadish"
+    ]
+  },
+  {
     "appId": "2157110",
     "name": "FUCK HITLER",
     "imageUrl": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2157110/header.jpg?t=1764533954",
