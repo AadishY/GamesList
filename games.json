@@ -1,5 +1,18 @@
 [
   {
+    "appId": "red-dead-redemption-2",
+    "name": "Red Dead Redemption 2",
+    "imageUrl": "https://media.rawg.io/media/games/511/5118aff5091cb3efec399c808f8c598f.jpg",
+    "steamUrl": "https://store.steampowered.com/search/?term=Red%20Dead%20Redemption%202",
+    "status": "Played",
+    "mode": "Singleplayer",
+    "id": "cda62ce8-6bf9-4a27-99eb-91fe2e5ae0e5",
+    "addedAt": 1774018035786,
+    "addedBy": [
+      "Aditya"
+    ]
+  },
+  {
     "appId": "elden-ring-nightreign",
     "name": "Elden Ring Nightreign",
     "imageUrl": "https://media.rawg.io/media/games/a14/a143ef815d323a3000840fc774d834c7.jpg",
