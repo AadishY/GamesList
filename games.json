@@ -1,5 +1,18 @@
 [
   {
+    "appId": "grand-theft-auto-v",
+    "name": "Grand Theft Auto V",
+    "imageUrl": "https://media.rawg.io/media/games/20a/20aa03a10cda45239fe22d035c0ebe64.jpg",
+    "steamUrl": "https://store.steampowered.com/search/?term=Grand%20Theft%20Auto%20V",
+    "status": "Played",
+    "mode": "Singleplayer",
+    "id": "1c3a6bcf-bb3b-42bd-90db-87a88e0a84a6",
+    "addedAt": 1774019061795,
+    "addedBy": [
+      "Aadish"
+    ]
+  },
+  {
     "appId": "resident-evil-4",
     "name": "Resident Evil 4 (2005)",
     "imageUrl": "https://media.rawg.io/media/games/fee/fee0100afd87b52bfbd33e26689fa26c.jpg",
