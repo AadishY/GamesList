@@ -95,6 +95,14 @@ export default function App() {
     }
   };
 
+  const getRawgKey = () => {
+    try {
+      return import.meta.env.VITE_RAWG_API_KEY || '';
+    } catch (e) {
+      return '';
+    }
+  };
+
   const pullFromGithub = async () => {
     const token = getGithubToken();
     if (!token) {
@@ -202,68 +210,117 @@ export default function App() {
     setError('');
     
     if (activeProfile === 'Combined') return;
-    if (!urlInput.trim()) { setError('Please enter a Steam URL'); return; }
+    if (!urlInput.trim()) { setError('Please enter a game name or Steam URL'); return; }
 
-    const info = extractGameInfo(urlInput);
-    if (!info) { setError('Invalid Steam URL.'); return; }
-
-    const { appId, slugName } = info;
-
-    const existingGame = games.find(g => g.appId === appId);
-    if (existingGame) {
-      const addedBy = existingGame.addedBy || [];
-      if (addedBy.includes(activeProfile)) {
-        setError('This game is already in your list!');
-        return;
-      } else {
-        setGames(games.map(g => g.appId === appId ? { ...g, addedBy: [...addedBy, activeProfile] } : g));
-        setUrlInput('');
-        return;
-      }
-    }
+    const input = urlInput.trim();
+    const isSteamUrl = input.includes('steampowered.com/app/');
 
     setLoading(true);
 
+    const handleExisting = (existingGame) => {
+      const addedBy = existingGame.addedBy || [];
+      if (addedBy.includes(activeProfile)) {
+        setError('This game is already in your list!');
+      } else {
+        setGames(games.map(g => g.appId === existingGame.appId ? { ...g, addedBy: [...addedBy, activeProfile] } : g));
+        setUrlInput('');
+      }
+    };
+
     try {
-      const apiUrl = `https://store.steampowered.com/api/appdetails?appids=${appId}`;
-      const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(apiUrl)}`;
-      
-      const response = await fetchWithTimeout(proxyUrl, { timeout: 4000 });
-      if (!response.ok) throw new Error('Proxy error');
-      
-      const steamData = await response.json();
-      
-      if (!steamData || !steamData[appId] || !steamData[appId].success) {
-        throw new Error('Game not found or is age-restricted');
+      let finalGameData = null;
+
+      if (isSteamUrl) {
+        const info = extractGameInfo(input);
+        if (!info) throw new Error('Invalid Steam URL.');
+        const { appId, slugName } = info;
+
+        const existingGame = games.find(g => g.appId === appId);
+        if (existingGame) {
+          handleExisting(existingGame);
+          return;
+        }
+
+        try {
+          const apiUrl = `https://store.steampowered.com/api/appdetails?appids=${appId}`;
+          const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(apiUrl)}`;
+          
+          const response = await fetchWithTimeout(proxyUrl, { timeout: 4000 });
+          if (!response.ok) throw new Error('Proxy error');
+          
+          const steamData = await response.json();
+          
+          if (!steamData || !steamData[appId] || !steamData[appId].success) {
+            throw new Error('Game not found or is age-restricted');
+          }
+
+          const details = steamData[appId].data;
+          const isMultiplayer = details.categories?.some(c => 
+            c.description.toLowerCase().includes('multi-player') || 
+            c.description.toLowerCase().includes('co-op')
+          );
+
+          finalGameData = {
+            appId: appId,
+            name: details.name,
+            imageUrl: details.header_image,
+            steamUrl: input,
+            status: 'Wanted',
+            mode: isMultiplayer ? 'Multiplayer' : 'Singleplayer'
+          };
+        } catch (err) {
+          console.warn('API fetch timed out or failed. Utilizing bulletproof fallback.', err.message);
+          
+          const fallbackName = slugName || `Steam Game ${appId}`;
+          const fallbackImage = `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${appId}/header.jpg`;
+          
+          finalGameData = {
+            appId: appId,
+            name: fallbackName,
+            imageUrl: fallbackImage,
+            steamUrl: input,
+            status: 'Wanted',
+            mode: 'Singleplayer'
+          };
+        }
+      } else {
+        // RAWG API Search
+        const rawgKey = getRawgKey();
+        if (!rawgKey) throw new Error('VITE_RAWG_API_KEY is missing from your environment variables.');
+
+        const response = await fetchWithTimeout(`https://api.rawg.io/api/games?search=${encodeURIComponent(input)}&key=${rawgKey}&page_size=1`, { timeout: 4000 });
+        if (!response.ok) throw new Error('Failed to fetch from RAWG API');
+
+        const data = await response.json();
+        if (!data.results || data.results.length === 0) {
+           throw new Error('No game found with that name.');
+        }
+
+        const game = data.results[0];
+        
+        const existingGame = games.find(g => g.appId === game.slug || g.name.toLowerCase() === game.name.toLowerCase());
+        if (existingGame) {
+           handleExisting(existingGame);
+           return;
+        }
+
+        const isMultiplayer = game.tags?.some(t => t.slug.includes('multiplayer') || t.slug.includes('co-op'));
+        const steamStoreSearchLink = `https://store.steampowered.com/search/?term=${encodeURIComponent(game.name)}`;
+
+        finalGameData = {
+            appId: game.slug,
+            name: game.name,
+            imageUrl: game.background_image || `https://placehold.co/460x215/1e293b/4f46e5?text=${encodeURIComponent(game.name)}`,
+            steamUrl: steamStoreSearchLink,
+            status: 'Wanted',
+            mode: isMultiplayer ? 'Multiplayer' : 'Singleplayer'
+        };
       }
 
-      const details = steamData[appId].data;
-      const isMultiplayer = details.categories?.some(c => 
-        c.description.toLowerCase().includes('multi-player') || 
-        c.description.toLowerCase().includes('co-op')
-      );
-
-      setPendingGame({
-        appId: appId,
-        name: details.name,
-        imageUrl: details.header_image,
-        steamUrl: urlInput,
-        status: 'Wanted',
-        mode: isMultiplayer ? 'Multiplayer' : 'Singleplayer'
-      });
+      setPendingGame(finalGameData);
       
     } catch (err) {
-      const fallbackName = slugName || `Steam Game ${appId}`;
-      const fallbackImage = `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${appId}/header.jpg`;
-      
-      setPendingGame({
-        appId: appId,
-        name: fallbackName,
-        imageUrl: fallbackImage,
-        steamUrl: urlInput,
-        status: 'Wanted',
-        mode: 'Singleplayer'
-      });
+      setError(err.message || 'Error finding game.');
     } finally {
       setLoading(false);
     }
@@ -590,54 +647,57 @@ export default function App() {
       {/* Modern Fully-Rounded Pill Header */}
       <header className="bg-slate-900/80 backdrop-blur-xl border-b border-white/5 sticky top-0 z-10 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
             
-            {/* Left Area: Logo & Titles */}
-            <div className="flex items-center gap-4 flex-shrink-0">
-              <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-2.5 rounded-2xl shadow-lg shadow-indigo-500/20">
+            {/* Left Area: Logo, Title & Stats */}
+            <div className="flex items-start sm:items-center gap-3 sm:gap-4 flex-shrink-0 w-full md:w-auto">
+              <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-2.5 rounded-2xl shadow-lg shadow-indigo-500/20 flex-shrink-0 mt-1 sm:mt-0">
                 <Gamepad2 className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
               </div>
-              <div className="flex flex-col justify-center">
-                <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-300 via-indigo-400 to-purple-400 bg-clip-text text-transparent tracking-tight leading-none mb-1">
+              
+              <div className="flex flex-col justify-center min-w-0 gap-1.5 sm:gap-1">
+                <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-300 via-indigo-400 to-purple-400 bg-clip-text text-transparent tracking-tight leading-none truncate">
                   Steam Backlog
                 </h1>
-                <div className="flex items-center text-xs font-semibold tracking-wide h-4">
-                  {syncStatus === 'syncing' ? (
-                    <span className="text-indigo-400 flex items-center gap-1.5"><Loader2 className="w-3.5 h-3.5 animate-spin" /> Saving...</span>
-                  ) : syncStatus === 'saved' ? (
-                    <span className="text-emerald-500 flex items-center gap-1.5 animate-in fade-in"><Cloud className="w-3.5 h-3.5" /> Auto-saved</span>
-                  ) : syncStatus === 'error' ? (
-                    <span className="text-red-400 flex items-center gap-1.5 animate-in fade-in"><AlertCircle className="w-3.5 h-3.5" /> Sync Error</span>
-                  ) : null}
+                
+                {/* Stats Row - Moved here to save space for profile buttons on mobile */}
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                  <div className="flex items-center text-[11px] sm:text-xs font-semibold tracking-wide">
+                    {syncStatus === 'syncing' ? (
+                      <span className="text-indigo-400 flex items-center gap-1.5"><Loader2 className="w-3.5 h-3.5 animate-spin" /> Saving...</span>
+                    ) : syncStatus === 'saved' ? (
+                      <span className="text-emerald-500 flex items-center gap-1.5 animate-in fade-in"><Cloud className="w-3.5 h-3.5" /> Auto-saved</span>
+                    ) : syncStatus === 'error' ? (
+                      <span className="text-red-400 flex items-center gap-1.5 animate-in fade-in"><AlertCircle className="w-3.5 h-3.5" /> Sync Error</span>
+                    ) : null}
+                  </div>
+                  
+                  {/* Pill Counters */}
+                  <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 text-slate-300 bg-[#111827] px-2.5 py-1 rounded-full border border-white/5 shadow-inner">
+                      <Circle className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
+                      <strong className="text-white text-xs leading-none font-bold">{stats.wanted}</strong>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-slate-300 bg-[#111827] px-2.5 py-1 rounded-full border border-white/5 shadow-inner">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                      <strong className="text-white text-xs leading-none font-bold">{stats.played}</strong>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
             
-            {/* Right Area: Badges & Switch Button */}
-            <div className="flex items-center justify-start sm:justify-end gap-3 sm:gap-4 w-full overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-              {/* Pill Counters */}
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <div className="flex items-center gap-2.5 text-slate-300 bg-slate-900/80 px-4 py-1.5 rounded-full border border-white/5 shadow-inner">
-                  <Circle className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                  <strong className="text-white text-[15px] leading-none font-bold">{stats.wanted}</strong>
-                </div>
-                <div className="flex items-center gap-2.5 text-slate-300 bg-slate-900/80 px-4 py-1.5 rounded-full border border-white/5 shadow-inner">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  <strong className="text-white text-[15px] leading-none font-bold">{stats.played}</strong>
-                </div>
-              </div>
-              
-              {/* Desktop Divider */}
-              <div className="hidden sm:block w-px h-6 bg-white/10 mx-1 flex-shrink-0"></div>
+            {/* Right Area: Profile Buttons */}
+            <div className="flex items-center justify-start md:justify-end gap-2 sm:gap-3 w-full md:w-auto mt-1 md:mt-0">
               
               {/* Combined View Button */}
               {activeProfile !== 'Combined' && (
                 <button 
                   onClick={() => loginAs('Combined')}
-                  className="flex items-center gap-2.5 bg-[#1e1b4b]/60 hover:bg-[#1e1b4b] text-indigo-200 px-5 py-2 rounded-full text-sm font-semibold transition-all border border-indigo-500/20 active:scale-95 flex-shrink-0 shadow-sm"
+                  className="flex flex-1 md:flex-none justify-center items-center gap-2 bg-[#1e1b4b]/60 hover:bg-[#1e1b4b] text-indigo-200 px-4 py-2.5 sm:px-5 sm:py-2.5 rounded-full text-sm font-semibold transition-all border border-indigo-500/20 active:scale-95 flex-shrink-0 shadow-sm"
                   title="Combined View"
                 >
-                  <Users className="w-[18px] h-[18px] flex-shrink-0" />
+                  <Users className="w-[16px] h-[16px] sm:w-[18px] sm:h-[18px] flex-shrink-0" />
                   <span className="tracking-wide">Combined</span>
                 </button>
               )}
@@ -645,10 +705,10 @@ export default function App() {
               {/* Active Profile Pill / Switcher */}
               <button 
                 onClick={() => loginAs(null)}
-                className="flex items-center gap-2.5 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-400 hover:to-rose-400 text-white px-6 py-2 rounded-full text-sm font-bold transition-all shadow-[0_0_15px_rgba(244,63,94,0.4)] hover:shadow-[0_0_25px_rgba(244,63,94,0.6)] active:scale-95 flex-shrink-0"
+                className="flex flex-1 md:flex-none justify-center items-center gap-2 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-400 hover:to-rose-400 text-white px-4 py-2.5 sm:px-6 sm:py-2.5 rounded-full text-sm font-bold transition-all shadow-[0_0_15px_rgba(244,63,94,0.4)] hover:shadow-[0_0_25px_rgba(244,63,94,0.6)] active:scale-95 flex-shrink-0"
                 title="Switch Profile"
               >
-                {activeProfile === 'Combined' ? <Users className="w-[18px] h-[18px] text-white flex-shrink-0" /> : <User className="w-[18px] h-[18px] text-white flex-shrink-0" />}
+                {activeProfile === 'Combined' ? <Users className="w-[16px] h-[16px] sm:w-[18px] sm:h-[18px] text-white flex-shrink-0" /> : <User className="w-[16px] h-[16px] sm:w-[18px] sm:h-[18px] text-white flex-shrink-0" />}
                 <span className="truncate max-w-[120px] sm:max-w-none tracking-wide">{activeProfile}</span>
               </button>
             </div>
@@ -674,7 +734,7 @@ export default function App() {
                   type="text"
                   value={urlInput}
                   onChange={(e) => setUrlInput(e.target.value)}
-                  placeholder="Paste Steam game URL here (e.g., store.steampowered.com/app/...)"
+                  placeholder="Search game name or paste Steam URL..."
                   className="w-full bg-slate-950/50 border border-white/10 rounded-2xl px-5 py-3.5 sm:py-4 text-sm sm:text-base outline-none focus:border-indigo-500/50 focus:bg-slate-900 transition-all placeholder-slate-500 shadow-inner"
                   disabled={loading}
                 />
@@ -732,25 +792,6 @@ export default function App() {
                 </button>
               ))}
             </div>
-
-            {/* Profile filtering removed from Combined view as requested */}
-            {activeProfile !== 'Combined' && (
-              <div className="bg-slate-900/50 backdrop-blur-sm rounded-2xl p-1.5 border border-white/5 flex gap-1 flex-shrink-0">
-                {['All', 'Aadish', 'Aditya', 'Both'].map(player => (
-                  <button
-                    key={player}
-                    onClick={() => setPlayerFilter(player)}
-                    className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ${
-                      playerFilter === player 
-                        ? 'bg-indigo-500/20 text-indigo-300 shadow-sm border border-indigo-500/30' 
-                        : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent'
-                    }`}
-                  >
-                    {player}
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
           
           <div className="flex flex-col sm:flex-row w-full lg:w-auto gap-3 flex-shrink-0">
