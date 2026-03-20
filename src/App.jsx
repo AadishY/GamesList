@@ -12,8 +12,8 @@ import {
   AlertCircle,
   Loader2,
   Github,
-  CloudUpload,
-  CloudDownload
+  Upload,
+  Download
 } from 'lucide-react';
 
 export default function App() {
@@ -488,7 +488,7 @@ export default function App() {
                   disabled={githubLoading}
                   className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                 >
-                  {githubLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CloudDownload className="w-4 h-4" />}
+                  {githubLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                   Load
                 </button>
                 <button 
@@ -496,7 +496,7 @@ export default function App() {
                   disabled={githubLoading}
                   className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                 >
-                  {githubLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CloudUpload className="w-4 h-4" />}
+                  {githubLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                   Save
                 </button>
               </div>
