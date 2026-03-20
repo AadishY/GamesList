@@ -2,17 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom scrollbar for a darker, sleeker look */
+/* Smooth transitions everywhere */
+* {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar — adapts to theme */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #020617; /* slate-950 */
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e293b; /* slate-800 */
-  border-radius: 4px;
+  background: #cbd5e1; /* slate-300 */
+  border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8; /* slate-400 */
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #1e293b; /* slate-800 */
+}
+.dark ::-webkit-scrollbar-thumb:hover {
   background: #334155; /* slate-700 */
+}
+
+/* Image rendering optimization */
+img {
+  content-visibility: auto;
 }

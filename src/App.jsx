@@ -1,24 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { 
-  Gamepad2, 
-  ListPlus, 
-  CheckCircle2, 
-  Circle, 
-  Trash2, 
-  Users, 
-  User, 
-  Search,
-  ExternalLink,
-  AlertCircle,
-  Loader2,
-  ShieldAlert,
-  Pencil,
-  Cloud,
-  ArrowUpDown,
-  X,
-  Sun,
-  Moon
-} from 'lucide-react';
+import { Gamepad2, ListPlus } from 'lucide-react';
 
 // Extracted Components
 import ProfileSelector from './components/ProfileSelector';
@@ -45,6 +26,7 @@ export default function App() {
   const searchTimeoutRef = useRef(null);
   const dropdownRef = useRef(null);
   const searchCache = useRef({});
+  const searchAbortRef = useRef(null);
   
   // Modals
   const [pendingGame, setPendingGame] = useState(null);
@@ -57,6 +39,16 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [playerFilter, setPlayerFilter] = useState('All');
   const [sortOption, setSortOption] = useState('Newest');
+
+  // View Mode State (persisted)
+  const [viewMode, setViewMode] = useState(() => {
+    return localStorage.getItem('steam-tracker-viewMode') || 'grid';
+  });
+
+  const handleSetViewMode = useCallback((mode) => {
+    setViewMode(mode);
+    localStorage.setItem('steam-tracker-viewMode', mode);
+  }, []);
 
   // Sync State
   const [syncStatus, setSyncStatus] = useState(''); 
@@ -227,7 +219,7 @@ export default function App() {
     if (isReadyForSync.current) {
       const debounceTimer = setTimeout(() => {
         pushToGithub(games);
-      }, 1000);
+      }, 1500);
       return () => clearTimeout(debounceTimer);
     }
   }, [games, pushToGithub]);
@@ -284,21 +276,33 @@ export default function App() {
     if (searchCache.current[query]) {
       setSearchResults(searchCache.current[query]);
       setShowDropdown(true);
+      setIsSearching(false);
       return;
     }
 
+    // Abort any in-flight search request
+    if (searchAbortRef.current) searchAbortRef.current.abort();
+    const controller = new AbortController();
+    searchAbortRef.current = controller;
+
     setIsSearching(true);
     try {
-      const response = await fetchWithTimeout(`https://api.rawg.io/api/games?search=${encodeURIComponent(query)}&key=${rawgKey}&page_size=5`, { timeout: 3000 });
+      const response = await fetch(
+        `https://api.rawg.io/api/games?search=${encodeURIComponent(query)}&key=${rawgKey}&page_size=3`,
+        { signal: controller.signal }
+      );
       if (response.ok) {
         const data = await response.json();
         const results = data.results || [];
+        // Cap cache at 50 entries to prevent memory bloat
+        const keys = Object.keys(searchCache.current);
+        if (keys.length > 50) delete searchCache.current[keys[0]];
         searchCache.current[query] = results;
         setSearchResults(results);
         setShowDropdown(true);
       }
     } catch (err) {
-      console.error("RAWG Dropdown Search Error:", err);
+      if (err.name !== 'AbortError') console.error("RAWG Search Error:", err);
     } finally {
       setIsSearching(false);
     }
@@ -616,6 +620,7 @@ export default function App() {
             modeFilter={modeFilter} setModeFilter={setModeFilter}
             sortOption={sortOption} setSortOption={setSortOption}
             searchQuery={searchQuery} setSearchQuery={setSearchQuery}
+            viewMode={viewMode} setViewMode={handleSetViewMode}
           />
 
           {/* Games Grid */}
@@ -630,13 +635,18 @@ export default function App() {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className={
+              viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6' :
+              viewMode === 'compact' ? 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4' :
+              'flex flex-col gap-3'
+            }>
               {filteredGames.map((game, idx) => (
                 <GameCard 
                   key={game.id}
                   game={game}
                   activeProfile={activeProfile}
                   setEditingGame={setEditingGame}
+                  viewMode={viewMode}
                 />
               ))}
             </div>
@@ -651,7 +661,7 @@ export default function App() {
         />
       )}
 
-      {currentView === 'home' && (
+      {currentView === 'home' && activeProfile !== 'Combined' && (
         <button 
           onClick={() => setCurrentView('sharedList')}
           className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-4 rounded-full shadow-[0_10px_30px_rgba(79,70,229,0.4)] hover:shadow-[0_15px_40px_rgba(79,70,229,0.6)] font-bold tracking-widest uppercase transition-all flex items-center gap-3 z-50 active:scale-95 border border-indigo-400"

@@ -1,12 +1,19 @@
 import React from 'react';
-import { ArrowUpDown, Search } from 'lucide-react';
+import { ArrowUpDown, Search, LayoutGrid, Grid2x2, List } from 'lucide-react';
 
 export default function FilterSection({
   statusFilter, setStatusFilter,
   modeFilter, setModeFilter,
   sortOption, setSortOption,
-  searchQuery, setSearchQuery
+  searchQuery, setSearchQuery,
+  viewMode, setViewMode
 }) {
+  const viewModes = [
+    { key: 'grid', icon: LayoutGrid, title: 'Large Grid' },
+    { key: 'compact', icon: Grid2x2, title: 'Compact Grid' },
+    { key: 'table', icon: List, title: 'Table View' }
+  ];
+
   return (
     <section className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center w-full">
       {/* Scrollable container for mobile filters */}
@@ -57,6 +64,24 @@ export default function FilterSection({
             <option value="A-Z">Name (A-Z)</option>
             <option value="Z-A">Name (Z-A)</option>
           </select>
+        </div>
+
+        {/* View Mode Toggle */}
+        <div className="bg-white/60 dark:bg-slate-900/50 backdrop-blur-sm rounded-2xl p-1.5 border border-slate-200 dark:border-white/5 flex gap-1 flex-shrink-0 transition-colors">
+          {viewModes.map(({ key, icon: Icon, title }) => (
+            <button
+              key={key}
+              onClick={() => setViewMode(key)}
+              className={`p-2.5 rounded-xl transition-all duration-300 ${
+                viewMode === key 
+                  ? 'bg-indigo-100/60 text-indigo-700 border border-indigo-200 dark:bg-indigo-500/20 dark:text-indigo-300 shadow-sm dark:border-indigo-500/30' 
+                  : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-500 dark:hover:text-slate-200 dark:hover:bg-white/5 border border-transparent'
+              }`}
+              title={title}
+            >
+              <Icon className="w-4 h-4" />
+            </button>
+          ))}
         </div>
 
         {/* Search Input */}

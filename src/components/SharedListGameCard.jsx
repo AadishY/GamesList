@@ -56,7 +56,7 @@ export default function SharedListGameCard({
 
   return (
     <div 
-      className={`relative flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-white/80 dark:bg-slate-900/60 backdrop-blur-sm border border-slate-200 dark:border-white/5 rounded-2xl shadow-sm hover:shadow-md transition-all group ${draggable ? 'cursor-grab active:cursor-grabbing hover:border-indigo-300 dark:hover:border-indigo-500/50' : ''}`}
+      className={`relative flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-white/80 dark:bg-slate-900/60 backdrop-blur-sm border border-slate-200 dark:border-white/5 rounded-2xl shadow-sm hover:shadow-md transition-all group overflow-visible ${draggable ? 'cursor-grab active:cursor-grabbing hover:border-indigo-300 dark:hover:border-indigo-500/50' : ''}`}
       draggable={draggable}
       onDragStart={onDragStart}
       onDragEnter={onDragEnter}
@@ -112,7 +112,7 @@ export default function SharedListGameCard({
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-1 sm:gap-2 relative">
+      <div className="flex items-center gap-1 sm:gap-2">
         {canVote && (
           <button 
             onClick={handleVote}
@@ -138,8 +138,8 @@ export default function SharedListGameCard({
             
             {showMenu && (
               <>
-                <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)}></div>
-                <div className="absolute right-0 top-12 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                <div className="fixed inset-0 z-[60]" onClick={() => setShowMenu(false)}></div>
+                <div className="absolute right-0 bottom-full mb-2 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl z-[70] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                   <div className="p-1">
                     <button 
                       onClick={toggleType}
