@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { 
   Gamepad2, 
   ListPlus, 
@@ -14,7 +14,8 @@ import {
   ShieldAlert,
   Pencil,
   Cloud,
-  ArrowUpDown
+  ArrowUpDown,
+  X
 } from 'lucide-react';
 
 export default function App() {
@@ -26,6 +27,13 @@ export default function App() {
   const [urlInput, setUrlInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  
+  // Real-Time Search State
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const searchTimeoutRef = useRef(null);
+  const dropdownRef = useRef(null);
   
   // Modals
   const [pendingGame, setPendingGame] = useState(null);
@@ -72,15 +80,26 @@ export default function App() {
     localStorage.setItem('steam-tracker-local', JSON.stringify(games));
   }, [games]);
 
+  // Click outside listener for Dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   // --- Profile Switching Helper ---
-  const loginAs = (profile) => {
+  const loginAs = useCallback((profile) => {
     setActiveProfile(profile);
     if (profile !== 'Combined') {
       setPlayerFilter(profile); 
     } else {
       setPlayerFilter('All');
     }
-  };
+  }, []);
 
   // --- GitHub Auto-Sync Functions ---
   const GITHUB_OWNER = 'AadishY';
@@ -103,7 +122,7 @@ export default function App() {
     }
   };
 
-  const pullFromGithub = async () => {
+  const pullFromGithub = useCallback(async () => {
     const token = getGithubToken();
     if (!token) {
       setTimeout(() => { isReadyForSync.current = true; }, 500);
@@ -129,9 +148,9 @@ export default function App() {
     } finally {
       setTimeout(() => { isReadyForSync.current = true; }, 1000);
     }
-  };
+  }, []);
 
-  const pushToGithub = async (currentGames) => {
+  const pushToGithub = useCallback(async (currentGames) => {
     const token = getGithubToken();
     if (!token) return;
 
@@ -171,11 +190,11 @@ export default function App() {
       console.error("GitHub Push Error:", err);
       setSyncStatus('error');
     }
-  };
+  }, []);
 
   useEffect(() => {
     pullFromGithub();
-  }, []);
+  }, [pullFromGithub]);
 
   useEffect(() => {
     if (isReadyForSync.current) {
@@ -184,9 +203,9 @@ export default function App() {
       }, 1000);
       return () => clearTimeout(debounceTimer);
     }
-  }, [games]);
+  }, [games, pushToGithub]);
 
-  // --- Game Parsing & Adding ---
+  // --- Game Parsing & Fetching Utilities ---
   const extractGameInfo = (url) => {
     const match = url.match(/\/app\/(\d+)(?:\/([^\/?#]+))?/);
     if (!match) return null;
@@ -205,6 +224,83 @@ export default function App() {
     return response;
   };
 
+  const checkAndHandleExisting = useCallback((appId, name) => {
+    const existingGame = games.find(g => String(g.appId) === String(appId) || (name && g.name.toLowerCase() === name.toLowerCase()));
+    if (existingGame) {
+      const addedBy = existingGame.addedBy || [];
+      if (addedBy.includes(activeProfile)) {
+        setError('This game is already in your list!');
+      } else {
+        setGames(games.map(g => g.id === existingGame.id ? { ...g, addedBy: [...addedBy, activeProfile] } : g));
+        setUrlInput('');
+        setShowDropdown(false);
+      }
+      return true;
+    }
+    return false;
+  }, [games, activeProfile]);
+
+  // --- Real-time Search Logic ---
+  const searchRawg = async (query) => {
+    const rawgKey = getRawgKey();
+    if (!rawgKey) return;
+    
+    setIsSearching(true);
+    try {
+      const response = await fetchWithTimeout(`https://api.rawg.io/api/games?search=${encodeURIComponent(query)}&key=${rawgKey}&page_size=5`, { timeout: 3000 });
+      if (response.ok) {
+        const data = await response.json();
+        setSearchResults(data.results || []);
+        setShowDropdown(true);
+      }
+    } catch (err) {
+      console.error("RAWG Dropdown Search Error:", err);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const val = e.target.value;
+    setUrlInput(val);
+    setError('');
+
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+
+    if (!val.trim() || val.includes('steampowered.com')) {
+      setSearchResults([]);
+      setShowDropdown(false);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    searchTimeoutRef.current = setTimeout(() => {
+      searchRawg(val);
+    }, 500); // 500ms debounce
+  };
+
+  const handleSelectSearchResult = (game) => {
+    setShowDropdown(false);
+    setUrlInput('');
+    setError('');
+
+    if (checkAndHandleExisting(game.slug, game.name)) return;
+
+    const isMultiplayer = game.tags?.some(t => t.slug.includes('multiplayer') || t.slug.includes('co-op'));
+    const steamStoreSearchLink = `https://store.steampowered.com/search/?term=${encodeURIComponent(game.name)}`;
+
+    setPendingGame({
+      appId: String(game.slug),
+      name: game.name,
+      imageUrl: game.background_image || `https://placehold.co/460x215/1e293b/4f46e5?text=${encodeURIComponent(game.name)}`,
+      steamUrl: steamStoreSearchLink,
+      status: 'Wanted',
+      mode: isMultiplayer ? 'Multiplayer' : 'Singleplayer'
+    });
+  };
+
+  // --- Manual Fetch Submit ---
   const handleFetchGameDetails = async (e) => {
     e.preventDefault();
     setError('');
@@ -216,16 +312,7 @@ export default function App() {
     const isSteamUrl = input.includes('steampowered.com/app/');
 
     setLoading(true);
-
-    const handleExisting = (existingGame) => {
-      const addedBy = existingGame.addedBy || [];
-      if (addedBy.includes(activeProfile)) {
-        setError('This game is already in your list!');
-      } else {
-        setGames(games.map(g => g.appId === existingGame.appId ? { ...g, addedBy: [...addedBy, activeProfile] } : g));
-        setUrlInput('');
-      }
-    };
+    setShowDropdown(false);
 
     try {
       let finalGameData = null;
@@ -235,9 +322,8 @@ export default function App() {
         if (!info) throw new Error('Invalid Steam URL.');
         const { appId, slugName } = info;
 
-        const existingGame = games.find(g => g.appId === appId);
-        if (existingGame) {
-          handleExisting(existingGame);
+        if (checkAndHandleExisting(appId, null)) {
+          setLoading(false);
           return;
         }
 
@@ -261,7 +347,7 @@ export default function App() {
           );
 
           finalGameData = {
-            appId: appId,
+            appId: String(appId),
             name: details.name,
             imageUrl: details.header_image,
             steamUrl: input,
@@ -270,12 +356,10 @@ export default function App() {
           };
         } catch (err) {
           console.warn('API fetch timed out or failed. Utilizing bulletproof fallback.', err.message);
-          
           const fallbackName = slugName || `Steam Game ${appId}`;
           const fallbackImage = `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${appId}/header.jpg`;
-          
           finalGameData = {
-            appId: appId,
+            appId: String(appId),
             name: fallbackName,
             imageUrl: fallbackImage,
             steamUrl: input,
@@ -284,7 +368,7 @@ export default function App() {
           };
         }
       } else {
-        // RAWG API Search
+        // Fallback Manual RAWG API Search if user didn't click dropdown
         const rawgKey = getRawgKey();
         if (!rawgKey) throw new Error('VITE_RAWG_API_KEY is missing from your environment variables.');
 
@@ -298,17 +382,16 @@ export default function App() {
 
         const game = data.results[0];
         
-        const existingGame = games.find(g => g.appId === game.slug || g.name.toLowerCase() === game.name.toLowerCase());
-        if (existingGame) {
-           handleExisting(existingGame);
-           return;
+        if (checkAndHandleExisting(game.slug, game.name)) {
+          setLoading(false);
+          return;
         }
 
         const isMultiplayer = game.tags?.some(t => t.slug.includes('multiplayer') || t.slug.includes('co-op'));
         const steamStoreSearchLink = `https://store.steampowered.com/search/?term=${encodeURIComponent(game.name)}`;
 
         finalGameData = {
-            appId: game.slug,
+            appId: String(game.slug),
             name: game.name,
             imageUrl: game.background_image || `https://placehold.co/460x215/1e293b/4f46e5?text=${encodeURIComponent(game.name)}`,
             steamUrl: steamStoreSearchLink,
@@ -326,7 +409,7 @@ export default function App() {
     }
   };
 
-  const confirmAddGame = () => {
+  const confirmAddGame = useCallback(() => {
     if (!pendingGame) return;
     setGames(prev => [{ 
       ...pendingGame, 
@@ -336,16 +419,16 @@ export default function App() {
     }, ...prev]);
     setPendingGame(null);
     setUrlInput('');
-  };
+  }, [pendingGame, activeProfile]);
 
   // --- Edit Actions ---
-  const saveEditedGame = () => {
+  const saveEditedGame = useCallback(() => {
     if (activeProfile === 'Combined' || !editingGame) return;
-    setGames(games.map(g => g.id === editingGame.id ? { ...editingGame } : g));
+    setGames(prevGames => prevGames.map(g => g.id === editingGame.id ? { ...editingGame } : g));
     setEditingGame(null);
-  };
+  }, [activeProfile, editingGame]);
 
-  const confirmDeleteGame = () => {
+  const confirmDeleteGame = useCallback(() => {
     if (activeProfile === 'Combined' || !gameToDelete) return; 
 
     setGames(prevGames => {
@@ -359,7 +442,7 @@ export default function App() {
     });
 
     setGameToDelete(null);
-  };
+  }, [activeProfile, gameToDelete]);
 
   // --- Highly Optimized Filtering & Sorting via useMemo ---
   const filteredGames = useMemo(() => {
@@ -688,13 +771,13 @@ export default function App() {
             </div>
             
             {/* Right Area: Profile Buttons */}
-            <div className="flex items-center justify-start md:justify-end gap-2 sm:gap-3 w-full md:w-auto mt-1 md:mt-0">
+            <div className="flex items-center justify-start md:justify-end gap-2 sm:gap-3 w-full md:w-auto mt-1 md:mt-0 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
               
               {/* Combined View Button */}
               {activeProfile !== 'Combined' && (
                 <button 
                   onClick={() => loginAs('Combined')}
-                  className="flex flex-1 md:flex-none justify-center items-center gap-2 bg-[#1e1b4b]/60 hover:bg-[#1e1b4b] text-indigo-200 px-4 py-2.5 sm:px-5 sm:py-2.5 rounded-full text-sm font-semibold transition-all border border-indigo-500/20 active:scale-95 flex-shrink-0 shadow-sm"
+                  className="flex justify-center items-center gap-2 bg-[#1e1b4b]/60 hover:bg-[#1e1b4b] text-indigo-200 px-4 py-2.5 sm:px-5 sm:py-2.5 rounded-full text-sm font-semibold transition-all border border-indigo-500/20 active:scale-95 flex-shrink-0 shadow-sm"
                   title="Combined View"
                 >
                   <Users className="w-[16px] h-[16px] sm:w-[18px] sm:h-[18px] flex-shrink-0" />
@@ -728,24 +811,63 @@ export default function App() {
               Add to {activeProfile}'s List
             </h2>
             
-            <form onSubmit={handleFetchGameDetails} className="flex flex-col sm:flex-row gap-3 relative z-10">
+            <form onSubmit={handleFetchGameDetails} className="flex flex-col sm:flex-row gap-3 relative z-10" ref={dropdownRef}>
               <div className="relative flex-1">
-                <input
-                  type="text"
-                  value={urlInput}
-                  onChange={(e) => setUrlInput(e.target.value)}
-                  placeholder="Search game name or paste Steam URL..."
-                  className="w-full bg-slate-950/50 border border-white/10 rounded-2xl px-5 py-3.5 sm:py-4 text-sm sm:text-base outline-none focus:border-indigo-500/50 focus:bg-slate-900 transition-all placeholder-slate-500 shadow-inner"
-                  disabled={loading}
-                />
+                <div className="relative">
+                  <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 ${isSearching ? 'text-indigo-400 animate-pulse' : 'text-slate-500'}`} />
+                  <input
+                    type="text"
+                    value={urlInput}
+                    onChange={handleInputChange}
+                    placeholder="Search game name or paste Steam URL..."
+                    className="w-full bg-slate-950/50 border border-white/10 rounded-2xl pl-12 pr-5 py-3.5 sm:py-4 text-sm sm:text-base outline-none focus:border-indigo-500/50 focus:bg-slate-900 transition-all placeholder-slate-500 shadow-inner"
+                    disabled={loading}
+                    autoComplete="off"
+                  />
+                  {urlInput && (
+                    <button type="button" onClick={() => { setUrlInput(''); setShowDropdown(false); setIsSearching(false); }} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Real-Time Search Dropdown */}
+                {showDropdown && searchResults.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-slate-800/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 max-h-72 overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-thumb]:rounded-full animate-in fade-in slide-in-from-top-2">
+                    {searchResults.map((game, idx) => (
+                      <div 
+                        key={game.id} 
+                        onClick={() => handleSelectSearchResult(game)} 
+                        className="flex items-center gap-4 p-3.5 hover:bg-white/10 cursor-pointer transition-colors border-b border-white/5 last:border-0"
+                      >
+                        <img 
+                          src={game.background_image || `https://placehold.co/100x100/1e293b/4f46e5?text=${encodeURIComponent(game.name)}`} 
+                          alt={game.name} 
+                          className="w-14 h-14 rounded-xl object-cover border border-white/10 shadow-sm flex-shrink-0"
+                        />
+                        <div className="flex flex-col min-w-0">
+                          <span className="font-bold text-white text-sm sm:text-base truncate">{game.name}</span>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-xs font-semibold text-slate-400 bg-black/20 px-2 py-0.5 rounded-md">
+                              {game.released ? game.released.substring(0, 4) : 'TBA'}
+                            </span>
+                            <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider truncate">
+                              {game.genres?.map(g => g.name).slice(0, 2).join(', ')}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || isSearching}
                 className="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3.5 sm:py-4 rounded-2xl font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50 whitespace-nowrap shadow-[0_0_15px_rgba(79,70,229,0.2)] hover:shadow-[0_0_25px_rgba(79,70,229,0.4)] active:scale-95"
               >
-                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
-                {loading ? 'Fetching...' : 'Fetch'}
+                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <ListPlus className="w-5 h-5" />}
+                {loading ? 'Fetching...' : 'Add Manual URL'}
               </button>
             </form>
             
@@ -831,7 +953,7 @@ export default function App() {
             <h3 className="text-2xl font-bold text-slate-300 tracking-tight">No games found</h3>
             <p className="text-slate-500 mt-2 max-w-sm mx-auto">
               {games.length === 0 
-                ? "Your library is empty. Paste a Steam URL above to start building your collection!" 
+                ? "Your library is empty. Paste a Steam URL or search a game above to start building your collection!" 
                 : "No games match your current filters or search query."}
             </p>
           </div>
