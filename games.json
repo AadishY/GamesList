@@ -1,5 +1,18 @@
 [
   {
+    "appId": "elden-ring-nightreign",
+    "name": "Elden Ring Nightreign",
+    "imageUrl": "https://media.rawg.io/media/games/a14/a143ef815d323a3000840fc774d834c7.jpg",
+    "steamUrl": "https://store.steampowered.com/search/?term=Elden%20Ring%20Nightreign",
+    "status": "Played",
+    "mode": "Multiplayer",
+    "id": "0536a411-1446-4be3-bda4-20d837de67b2",
+    "addedAt": 1774014349508,
+    "addedBy": [
+      "Aadish"
+    ]
+  },
+  {
     "appId": "elden-ring",
     "name": "Elden Ring",
     "imageUrl": "https://media.rawg.io/media/games/b29/b294fdd866dcdb643e7bab370a552855.jpg",
