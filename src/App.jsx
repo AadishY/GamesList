@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   Gamepad2, 
   ListPlus, 
@@ -11,11 +11,11 @@ import {
   ExternalLink,
   AlertCircle,
   Loader2,
-  Github,
-  Upload,
-  Download,
   Sparkles,
-  ShieldAlert
+  ShieldAlert,
+  Pencil,
+  Cloud,
+  ArrowUpDown
 } from 'lucide-react';
 
 export default function App() {
@@ -27,45 +27,38 @@ export default function App() {
   const [urlInput, setUrlInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [pendingGame, setPendingGame] = useState(null);
   
-  // Filters
+  // Modals
+  const [pendingGame, setPendingGame] = useState(null);
+  const [editingGame, setEditingGame] = useState(null);
+  const [gameToDelete, setGameToDelete] = useState(null); // Delete confirmation state
+  
+  // Filters & Sorting
   const [statusFilter, setStatusFilter] = useState('All');
   const [modeFilter, setModeFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [playerFilter, setPlayerFilter] = useState('All');
+  const [sortOption, setSortOption] = useState('Newest');
 
-  // GitHub Sync State
-  const [showGithubModal, setShowGithubModal] = useState(false);
-  const [githubLoading, setGithubLoading] = useState(false);
-  const [githubMessage, setGithubMessage] = useState({ type: '', text: '' });
+  // Sync State
+  const [syncStatus, setSyncStatus] = useState(''); 
+  const isReadyForSync = useRef(false);
 
   // Profile State
-  const [activeProfile, setActiveProfile] = useState(() => {
-    return localStorage.getItem('steam-tracker-profile') || null;
-  });
+  const [activeProfile, setActiveProfile] = useState(null);
 
-  // Save to local storage automatically for the current device
+  // Save to local storage automatically
   useEffect(() => {
     localStorage.setItem('steam-tracker-local', JSON.stringify(games));
   }, [games]);
 
-  useEffect(() => {
-    if (activeProfile) {
-      localStorage.setItem('steam-tracker-profile', activeProfile);
-    } else {
-      localStorage.removeItem('steam-tracker-profile');
-    }
-  }, [activeProfile]);
-
-  // --- GitHub Sync Functions ---
+  // --- GitHub Auto-Sync Functions ---
   const GITHUB_OWNER = 'AadishY';
   const GITHUB_REPO = 'GamesList';
   const FILE_PATH = 'games.json';
 
   const getGithubToken = () => {
     try {
-      // Direct access for Vite environments
       return import.meta.env.VITE_GITHUB_TOKEN || '';
     } catch (e) {
       return '';
@@ -75,53 +68,39 @@ export default function App() {
   const pullFromGithub = async () => {
     const token = getGithubToken();
     if (!token) {
-      setGithubMessage({ type: 'error', text: 'VITE_GITHUB_TOKEN is missing from your environment variables.' });
+      setTimeout(() => { isReadyForSync.current = true; }, 500);
       return;
     }
     
-    setGithubLoading(true);
-    setGithubMessage({ type: '', text: '' });
-    
+    setSyncStatus('syncing');
     try {
       const response = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${FILE_PATH}`, {
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          Accept: 'application/vnd.github.v3+json'
-        }
+        headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github.v3+json' }
       });
       
-      if (response.status === 404) {
-         setGithubMessage({ type: 'error', text: 'No games.json found in repository yet. Push your list first!' });
-         return;
+      if (response.ok) {
+        const data = await response.json();
+        const decodedContent = decodeURIComponent(escape(atob(data.content)));
+        const parsedGames = JSON.parse(decodedContent);
+        setGames(parsedGames);
       }
-      if (!response.ok) throw new Error(`GitHub API Error: ${response.statusText}`);
-      
-      const data = await response.json();
-      const decodedContent = decodeURIComponent(escape(atob(data.content)));
-      const parsedGames = JSON.parse(decodedContent);
-      
-      setGames(parsedGames);
-      setGithubMessage({ type: 'success', text: `Successfully loaded ${parsedGames.length} games from GitHub!` });
+      setSyncStatus('saved');
     } catch (err) {
-      setGithubMessage({ type: 'error', text: err.message || 'Error pulling data from GitHub.' });
+      console.error("GitHub Pull Error:", err);
+      setSyncStatus('error');
     } finally {
-      setGithubLoading(false);
+      setTimeout(() => { isReadyForSync.current = true; }, 1000);
     }
   };
 
-  const pushToGithub = async () => {
+  const pushToGithub = async (currentGames) => {
     const token = getGithubToken();
-    if (!token) {
-      setGithubMessage({ type: 'error', text: 'VITE_GITHUB_TOKEN is missing from your environment variables.' });
-      return;
-    }
+    if (!token) return;
 
-    setGithubLoading(true);
-    setGithubMessage({ type: '', text: '' });
+    setSyncStatus('syncing');
 
     try {
       let sha = null;
-      // 1. Check if file exists to get the SHA (Required by GitHub to update files)
       const getResponse = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${FILE_PATH}`, {
         headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github.v3+json' }
       });
@@ -129,12 +108,9 @@ export default function App() {
       if (getResponse.ok) {
         const data = await getResponse.json();
         sha = data.sha;
-      } else if (getResponse.status !== 404) {
-        throw new Error('Failed to verify existing file on GitHub.');
       }
 
-      // 2. Upload file
-      const contentStr = JSON.stringify(games, null, 2);
+      const contentStr = JSON.stringify(currentGames, null, 2);
       const encodedContent = btoa(unescape(encodeURIComponent(contentStr)));
 
       const putResponse = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${FILE_PATH}`, {
@@ -145,21 +121,32 @@ export default function App() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          message: `Sync games list (${games.length} games)`,
+          message: `Auto-sync games list (${currentGames.length} games)`,
           content: encodedContent,
           ...(sha && { sha })
         })
       });
 
-      if (!putResponse.ok) throw new Error('Failed to push to GitHub. Verify your token has repo write permissions.');
-      
-      setGithubMessage({ type: 'success', text: 'Successfully backed up list to GitHub repository!' });
+      if (!putResponse.ok) throw new Error('Failed to push to GitHub.');
+      setSyncStatus('saved');
     } catch (err) {
-      setGithubMessage({ type: 'error', text: err.message || 'Error pushing data to GitHub.' });
-    } finally {
-      setGithubLoading(false);
+      console.error("GitHub Push Error:", err);
+      setSyncStatus('error');
     }
   };
+
+  useEffect(() => {
+    pullFromGithub();
+  }, []);
+
+  useEffect(() => {
+    if (isReadyForSync.current) {
+      const debounceTimer = setTimeout(() => {
+        pushToGithub(games);
+      }, 1000);
+      return () => clearTimeout(debounceTimer);
+    }
+  }, [games]);
 
   // --- Game Parsing & Adding ---
   const extractGameInfo = (url) => {
@@ -171,15 +158,11 @@ export default function App() {
     };
   };
 
-  // Helper fetch with timeout to prevent endless hanging on slow proxies
   const fetchWithTimeout = async (resource, options = {}) => {
     const { timeout = 4000 } = options;
     const controller = new AbortController();
     const id = setTimeout(() => controller.abort(), timeout);
-    const response = await fetch(resource, {
-      ...options,
-      signal: controller.signal  
-    });
+    const response = await fetch(resource, { ...options, signal: controller.signal });
     clearTimeout(id);
     return response;
   };
@@ -188,21 +171,11 @@ export default function App() {
     e.preventDefault();
     setError('');
     
-    if (activeProfile === 'Combined') {
-      setError('Please switch to a specific player profile (Aadish or Aditya) to add a game.');
-      return;
-    }
-
-    if (!urlInput.trim()) {
-      setError('Please enter a Steam URL');
-      return;
-    }
+    if (activeProfile === 'Combined') return;
+    if (!urlInput.trim()) { setError('Please enter a Steam URL'); return; }
 
     const info = extractGameInfo(urlInput);
-    if (!info) {
-      setError('Invalid Steam URL. Make sure it looks like: https://store.steampowered.com/app/12345/...');
-      return;
-    }
+    if (!info) { setError('Invalid Steam URL.'); return; }
 
     const { appId, slugName } = info;
 
@@ -213,12 +186,7 @@ export default function App() {
         setError('This game is already in your list!');
         return;
       } else {
-        // Automatically add current user to existing game seamlessly
-        setGames(games.map(g => 
-          g.appId === appId 
-            ? { ...g, addedBy: [...addedBy, activeProfile] } 
-            : g
-        ));
+        setGames(games.map(g => g.appId === appId ? { ...g, addedBy: [...addedBy, activeProfile] } : g));
         setUrlInput('');
         return;
       }
@@ -227,18 +195,16 @@ export default function App() {
     setLoading(true);
 
     try {
-      // Using a faster, more reliable proxy.
       const apiUrl = `https://store.steampowered.com/api/appdetails?appids=${appId}`;
       const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(apiUrl)}`;
       
-      // Attempt to fetch with a strict 4-second limit
       const response = await fetchWithTimeout(proxyUrl, { timeout: 4000 });
       if (!response.ok) throw new Error('Proxy error');
       
       const steamData = await response.json();
       
       if (!steamData || !steamData[appId] || !steamData[appId].success) {
-        throw new Error('Game not found on Steam API or is age-restricted');
+        throw new Error('Game not found or is age-restricted');
       }
 
       const details = steamData[appId].data;
@@ -257,8 +223,6 @@ export default function App() {
       });
       
     } catch (err) {
-      console.warn('API fetch timed out or failed. Utilizing bulletproof fallback.', err.message);
-      
       const fallbackName = slugName || `Steam Game ${appId}`;
       const fallbackImage = `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${appId}/header.jpg`;
       
@@ -287,36 +251,36 @@ export default function App() {
     setUrlInput('');
   };
 
-  // --- Game Actions ---
-  const updateGame = (id, updates) => {
-    if (activeProfile === 'Combined') return; // Read-only protection
-    setGames(games.map(g => g.id === id ? { ...g, ...updates } : g));
+  // --- Edit Actions ---
+  const saveEditedGame = () => {
+    if (activeProfile === 'Combined' || !editingGame) return;
+    setGames(games.map(g => g.id === editingGame.id ? { ...editingGame } : g));
+    setEditingGame(null);
   };
 
-  const deleteGame = (id) => {
-    if (activeProfile === 'Combined') return; // Read-only protection
+  const confirmDeleteGame = () => {
+    if (activeProfile === 'Combined' || !gameToDelete) return; 
 
     setGames(prevGames => {
       return prevGames.map(g => {
-        if (g.id === id) {
-          // Remove ONLY the active profile's tag from the game
+        if (g.id === gameToDelete.id) {
           const newAddedBy = (g.addedBy || []).filter(p => p !== activeProfile);
           return { ...g, addedBy: newAddedBy };
         }
         return g;
       }).filter(g => g.addedBy && g.addedBy.length > 0); 
-      // The filter at the end officially deletes the game ONLY if no tags remain
     });
+
+    setGameToDelete(null);
   };
 
-  // Filter and Sort
-  const profileFilteredGames = games.filter(game => {
-    const addedBy = game.addedBy || [];
-    if (activeProfile === 'Combined') return true;
-    return addedBy.includes(activeProfile);
-  });
-
-  const filteredGames = profileFilteredGames
+  // --- Highly Optimized Filtering & Sorting via useMemo ---
+  const filteredGames = useMemo(() => {
+    let result = games.filter(game => {
+      const addedBy = game.addedBy || [];
+      if (activeProfile === 'Combined') return true;
+      return addedBy.includes(activeProfile);
+    })
     .filter(game => statusFilter === 'All' || game.status === statusFilter)
     .filter(game => modeFilter === 'All' || game.mode === modeFilter)
     .filter(game => {
@@ -325,15 +289,37 @@ export default function App() {
       if (playerFilter === 'Both') return game.addedBy?.length === 2;
       return game.addedBy?.includes(playerFilter);
     })
-    .filter(game => game.name.toLowerCase().includes(searchQuery.toLowerCase()))
-    .sort((a, b) => b.addedAt - a.addedAt);
+    .filter(game => game.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
+    // Apply Sorting
+    result.sort((a, b) => {
+      switch (sortOption) {
+        case 'Newest': return b.addedAt - a.addedAt;
+        case 'Oldest': return a.addedAt - b.addedAt;
+        case 'A-Z': return a.name.localeCompare(b.name);
+        case 'Z-A': return b.name.localeCompare(a.name);
+        default: return b.addedAt - a.addedAt;
+      }
+    });
+
+    return result;
+  }, [games, activeProfile, statusFilter, modeFilter, playerFilter, searchQuery, sortOption]);
+
+  const stats = useMemo(() => {
+    return {
+      wanted: filteredGames.filter(g => g.status === 'Wanted').length,
+      played: filteredGames.filter(g => g.status === 'Played').length
+    };
+  }, [filteredGames]);
+
+  // --- Renders ---
+
+  // Initial Profile Selector Render
   if (!activeProfile) {
     return (
       <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-[#020617] to-[#020617] flex flex-col items-center justify-center p-4 selection:bg-indigo-500/30 font-sans text-slate-200">
-        <div className="max-w-md w-full bg-slate-900/50 backdrop-blur-xl p-8 rounded-3xl border border-white/5 shadow-2xl relative overflow-hidden">
-          {/* Decorative Glow */}
-          <div className="absolute -top-24 -right-24 w-48 h-48 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="max-w-md w-full bg-slate-900/60 backdrop-blur-2xl p-8 rounded-[2rem] border border-white/5 shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95 duration-500">
+          <div className="absolute -top-24 -right-24 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
           
           <div className="flex justify-center mb-6 relative">
             <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-3.5 rounded-2xl shadow-lg shadow-indigo-500/25">
@@ -341,30 +327,30 @@ export default function App() {
             </div>
           </div>
           <h1 className="text-3xl font-bold text-center mb-2 text-white tracking-tight">Who is playing?</h1>
-          <p className="text-slate-400 text-center mb-8">Select your profile to continue</p>
+          <p className="text-slate-400 text-center mb-10">Select your profile to continue</p>
           
-          <div className="space-y-4 relative">
+          <div className="space-y-4 relative z-10">
             <button 
               onClick={() => setActiveProfile('Aadish')}
-              className="w-full py-4 bg-white/5 hover:bg-blue-600/20 border border-white/5 hover:border-blue-500/50 text-white rounded-2xl font-medium transition-all duration-300 flex items-center gap-3 justify-center group hover:shadow-[0_0_20px_rgba(59,130,246,0.2)] hover:-translate-y-0.5"
+              className="w-full py-4 bg-white/5 hover:bg-blue-600/20 border border-white/5 hover:border-blue-500/50 text-white rounded-2xl font-medium transition-all duration-300 flex items-center gap-3 justify-center group hover:shadow-[0_0_20px_rgba(59,130,246,0.2)] active:scale-95"
             >
               <User className="w-5 h-5 text-blue-400 group-hover:scale-110 transition-transform duration-300" />
               Aadish
             </button>
             <button 
               onClick={() => setActiveProfile('Aditya')}
-              className="w-full py-4 bg-white/5 hover:bg-orange-600/20 border border-white/5 hover:border-orange-500/50 text-white rounded-2xl font-medium transition-all duration-300 flex items-center gap-3 justify-center group hover:shadow-[0_0_20px_rgba(249,115,22,0.2)] hover:-translate-y-0.5"
+              className="w-full py-4 bg-white/5 hover:bg-orange-600/20 border border-white/5 hover:border-orange-500/50 text-white rounded-2xl font-medium transition-all duration-300 flex items-center gap-3 justify-center group hover:shadow-[0_0_20px_rgba(249,115,22,0.2)] active:scale-95"
             >
               <User className="w-5 h-5 text-orange-400 group-hover:scale-110 transition-transform duration-300" />
               Aditya
             </button>
-            <div className="pt-5 mt-5 border-t border-white/5">
+            <div className="pt-6 mt-6 border-t border-white/5">
               <button 
                 onClick={() => setActiveProfile('Combined')}
-                className="w-full py-4 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 hover:border-indigo-500/50 text-indigo-300 rounded-2xl font-medium transition-all duration-300 flex items-center gap-3 justify-center group hover:-translate-y-0.5"
+                className="w-full py-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-400 hover:via-purple-400 hover:to-pink-400 text-white rounded-2xl font-bold text-lg transition-all duration-300 flex items-center gap-3 justify-center group shadow-[0_0_20px_rgba(168,85,247,0.4)] hover:shadow-[0_0_30px_rgba(168,85,247,0.6)] active:scale-95"
               >
-                <Users className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" />
-                Combined View
+                <Users className="w-6 h-6 group-hover:scale-110 transition-transform duration-300 text-white" />
+                Combined Library View
               </button>
             </div>
           </div>
@@ -373,10 +359,41 @@ export default function App() {
     );
   }
 
+  // Main App Render
   return (
-    <div className="min-h-screen bg-[#020617] text-slate-200 font-sans selection:bg-indigo-500/30 pb-12">
+    <div className="min-h-screen bg-[#020617] text-slate-200 font-sans selection:bg-indigo-500/30 pb-12 animate-in fade-in duration-500">
       
-      {/* Pending Game Modal */}
+      {/* Delete Confirmation Modal */}
+      {gameToDelete && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md transition-all">
+          <div className="bg-slate-900 border border-red-500/20 rounded-3xl w-full max-w-sm p-6 shadow-[0_0_50px_rgba(239,68,68,0.2)] animate-in fade-in zoom-in-95 duration-300 text-center relative overflow-hidden">
+            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-red-500/0 via-red-500 to-red-500/0"></div>
+            <div className="mx-auto w-16 h-16 bg-red-500/10 flex items-center justify-center rounded-full mb-4">
+              <Trash2 className="w-8 h-8 text-red-400" />
+            </div>
+            <h3 className="text-xl font-bold text-white mb-2">Remove Game?</h3>
+            <p className="text-sm text-slate-400 mb-6 leading-relaxed">
+              Are you sure you want to remove <strong className="text-white">{gameToDelete.name}</strong> from your list?
+            </p>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setGameToDelete(null)}
+                className="flex-1 py-3 bg-white/5 hover:bg-white/10 border border-white/5 text-white rounded-xl font-medium transition-all active:scale-95"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={confirmDeleteGame}
+                className="flex-1 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-xl font-medium transition-all flex items-center justify-center gap-2 active:scale-95"
+              >
+                Yes, Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Pending / Add Game Modal */}
       {pendingGame && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md transition-all">
           <div className="bg-slate-900 border border-white/10 rounded-3xl w-full max-w-md overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] animate-in fade-in zoom-in-95 duration-300">
@@ -394,57 +411,47 @@ export default function App() {
               <h3 className="text-2xl font-bold text-white leading-tight drop-shadow-md">{pendingGame.name}</h3>
               
               <div className="space-y-5">
-                {/* Tag Selection: Status */}
                 <div>
                   <label className="block text-sm font-semibold text-slate-400 mb-2.5 uppercase tracking-wider text-xs">Progress Category</label>
                   <div className="flex gap-2">
                     <button
                       onClick={() => setPendingGame({...pendingGame, status: 'Wanted'})}
-                      className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all duration-300 ${
+                      className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all duration-300 active:scale-95 ${
                         pendingGame.status === 'Wanted' 
                           ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.15)]' 
                           : 'bg-white/5 border-white/5 text-slate-400 hover:bg-white/10'
                       }`}
-                    >
-                      Wanted to Play
-                    </button>
+                    >Wanted to Play</button>
                     <button
                       onClick={() => setPendingGame({...pendingGame, status: 'Played'})}
-                      className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all duration-300 ${
+                      className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all duration-300 active:scale-95 ${
                         pendingGame.status === 'Played' 
                           ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.15)]' 
                           : 'bg-white/5 border-white/5 text-slate-400 hover:bg-white/10'
                       }`}
-                    >
-                      Already Played
-                    </button>
+                    >Already Played</button>
                   </div>
                 </div>
 
-                {/* Tag Selection: Mode */}
                 <div>
                   <label className="block text-sm font-semibold text-slate-400 mb-2.5 uppercase tracking-wider text-xs">Game Mode</label>
                   <div className="flex gap-2">
                     <button
                       onClick={() => setPendingGame({...pendingGame, mode: 'Singleplayer'})}
-                      className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all duration-300 ${
+                      className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all duration-300 active:scale-95 ${
                         pendingGame.mode === 'Singleplayer' 
                           ? 'bg-indigo-500/20 border-indigo-500/50 text-indigo-300 shadow-[0_0_15px_rgba(99,102,241,0.15)]' 
                           : 'bg-white/5 border-white/5 text-slate-400 hover:bg-white/10'
                       }`}
-                    >
-                      Singleplayer
-                    </button>
+                    >Singleplayer</button>
                     <button
                       onClick={() => setPendingGame({...pendingGame, mode: 'Multiplayer'})}
-                      className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all duration-300 ${
+                      className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all duration-300 active:scale-95 ${
                         pendingGame.mode === 'Multiplayer' 
                           ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.15)]' 
                           : 'bg-white/5 border-white/5 text-slate-400 hover:bg-white/10'
                       }`}
-                    >
-                      Multiplayer
-                    </button>
+                    >Multiplayer</button>
                   </div>
                 </div>
               </div>
@@ -452,70 +459,102 @@ export default function App() {
               <div className="flex gap-3 pt-3">
                 <button 
                   onClick={() => setPendingGame(null)}
-                  className="flex-1 py-3 bg-white/5 hover:bg-white/10 border border-white/5 text-white rounded-xl font-medium transition-all duration-300"
-                >
-                  Cancel
-                </button>
+                  className="flex-1 py-3 bg-white/5 hover:bg-white/10 border border-white/5 text-white rounded-xl font-medium transition-all duration-300 active:scale-95"
+                >Cancel</button>
                 <button 
                   onClick={confirmAddGame}
-                  className="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white rounded-xl font-medium transition-all duration-300 flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(79,70,229,0.3)] hover:shadow-[0_0_25px_rgba(79,70,229,0.5)]"
-                >
-                  <ListPlus className="w-5 h-5" />
-                  Save Game
-                </button>
+                  className="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white rounded-xl font-medium transition-all duration-300 flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(79,70,229,0.3)] hover:shadow-[0_0_25px_rgba(79,70,229,0.5)] active:scale-95"
+                ><ListPlus className="w-5 h-5" /> Save Game</button>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* GitHub Sync Modal */}
-      {showGithubModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-          <div className="bg-slate-900 border border-white/10 rounded-3xl w-full max-w-md p-7 shadow-[0_0_50px_rgba(0,0,0,0.5)] relative">
-            <h3 className="text-2xl font-bold text-white mb-3 flex items-center gap-3">
-              <Github className="w-7 h-7 text-indigo-400" /> Cloud Sync
-            </h3>
+      {/* Edit Game Modal */}
+      {editingGame && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md transition-all">
+          <div className="bg-slate-900 border border-white/10 rounded-3xl w-full max-w-md overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] animate-in fade-in zoom-in-95 duration-300">
+            <div className="relative h-56 bg-slate-800">
+              <img 
+                src={editingGame.imageUrl} 
+                alt={editingGame.name}
+                className="w-full h-full object-cover"
+                onError={(e) => { e.target.src = `https://placehold.co/460x215/1e293b/4f46e5?text=${encodeURIComponent(editingGame.name)}`; }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent"></div>
+            </div>
             
-            <p className="text-sm text-slate-400 mb-6 leading-relaxed">
-              Sync your library to <strong className="text-indigo-400 font-semibold">{GITHUB_OWNER}/{GITHUB_REPO}</strong>. 
-              This uses the hidden `VITE_GITHUB_TOKEN` from your environment.
-            </p>
-
-            <div className="space-y-5">
-              {githubMessage.text && (
-                <div className={`p-4 rounded-xl text-sm border flex items-start gap-3 animate-in fade-in slide-in-from-bottom-2 ${
-                  githubMessage.type === 'error' ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                }`}>
-                  <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
-                  <p className="leading-relaxed">{githubMessage.text}</p>
+            <div className="p-6 -mt-10 relative z-10 space-y-6">
+              <h3 className="text-2xl font-bold text-white leading-tight drop-shadow-md">{editingGame.name}</h3>
+              
+              <div className="space-y-5">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-400 mb-2.5 uppercase tracking-wider text-xs">Progress Category</label>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setEditingGame({...editingGame, status: 'Wanted'})}
+                      className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all duration-300 active:scale-95 ${
+                        editingGame.status === 'Wanted' 
+                          ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.15)]' 
+                          : 'bg-white/5 border-white/5 text-slate-400 hover:bg-white/10'
+                      }`}
+                    >Wanted to Play</button>
+                    <button
+                      onClick={() => setEditingGame({...editingGame, status: 'Played'})}
+                      className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all duration-300 active:scale-95 ${
+                        editingGame.status === 'Played' 
+                          ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.15)]' 
+                          : 'bg-white/5 border-white/5 text-slate-400 hover:bg-white/10'
+                      }`}
+                    >Already Played</button>
+                  </div>
                 </div>
-              )}
 
-              <div className="flex gap-3">
-                <button 
-                  onClick={pullFromGithub}
-                  disabled={githubLoading}
-                  className="flex-1 py-3.5 bg-slate-800 hover:bg-slate-700 border border-white/5 text-white rounded-xl font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50 hover:shadow-lg"
+                <div>
+                  <label className="block text-sm font-semibold text-slate-400 mb-2.5 uppercase tracking-wider text-xs">Game Mode</label>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setEditingGame({...editingGame, mode: 'Singleplayer'})}
+                      className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all duration-300 active:scale-95 ${
+                        editingGame.mode === 'Singleplayer' 
+                          ? 'bg-indigo-500/20 border-indigo-500/50 text-indigo-300 shadow-[0_0_15px_rgba(99,102,241,0.15)]' 
+                          : 'bg-white/5 border-white/5 text-slate-400 hover:bg-white/10'
+                      }`}
+                    >Singleplayer</button>
+                    <button
+                      onClick={() => setEditingGame({...editingGame, mode: 'Multiplayer'})}
+                      className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all duration-300 active:scale-95 ${
+                        editingGame.mode === 'Multiplayer' 
+                          ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.15)]' 
+                          : 'bg-white/5 border-white/5 text-slate-400 hover:bg-white/10'
+                      }`}
+                    >Multiplayer</button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-3 pt-3">
+                <div className="flex gap-3">
+                  <button 
+                    onClick={() => setEditingGame(null)}
+                    className="flex-1 py-3 bg-white/5 hover:bg-white/10 border border-white/5 text-white rounded-xl font-medium transition-all duration-300 active:scale-95"
+                  >Cancel</button>
+                  <button 
+                    onClick={saveEditedGame}
+                    className="flex-1 py-3 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white rounded-xl font-medium transition-all duration-300 flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] active:scale-95"
+                  ><CheckCircle2 className="w-5 h-5" /> Save Changes</button>
+                </div>
+                <button
+                  onClick={() => {
+                    setGameToDelete(editingGame); // Trigger confirm modal
+                    setEditingGame(null); // Close edit modal
+                  }}
+                  className="w-full py-3 mt-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 rounded-xl font-medium transition-all duration-300 flex items-center justify-center gap-2 active:scale-95"
                 >
-                  {githubLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5 text-indigo-400" />}
-                  Load
-                </button>
-                <button 
-                  onClick={pushToGithub}
-                  disabled={githubLoading}
-                  className="flex-1 py-3.5 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 text-emerald-400 rounded-xl font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50 hover:shadow-[0_0_15px_rgba(16,185,129,0.2)]"
-                >
-                  {githubLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Upload className="w-5 h-5" />}
-                  Save
+                  <Trash2 className="w-5 h-5" /> Remove from my list
                 </button>
               </div>
-              <button 
-                onClick={() => { setShowGithubModal(false); setGithubMessage({type:'', text:''}); }}
-                className="w-full py-3 bg-transparent text-slate-400 hover:text-white hover:bg-white/5 rounded-xl font-medium transition-colors mt-2"
-              >
-                Close
-              </button>
             </div>
           </div>
         </div>
@@ -529,33 +568,36 @@ export default function App() {
               <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-2.5 rounded-xl shadow-lg shadow-indigo-500/20">
                 <Gamepad2 className="w-6 h-6 text-white" />
               </div>
-              <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-indigo-300 via-indigo-400 to-purple-400 bg-clip-text text-transparent tracking-tight">
-                Steam Backlog
-              </h1>
+              <div className="flex flex-col">
+                <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-indigo-300 via-indigo-400 to-purple-400 bg-clip-text text-transparent tracking-tight leading-none">
+                  Steam Backlog
+                </h1>
+                <div className="flex items-center gap-1.5 mt-1 text-xs font-medium h-4">
+                  {syncStatus === 'syncing' ? (
+                    <span className="text-indigo-400 flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin" /> Auto-saving...</span>
+                  ) : syncStatus === 'saved' ? (
+                    <span className="text-emerald-500 flex items-center gap-1 animate-in fade-in"><Cloud className="w-3 h-3" /> Auto-saved</span>
+                  ) : syncStatus === 'error' ? (
+                    <span className="text-red-400 flex items-center gap-1 animate-in fade-in"><AlertCircle className="w-3 h-3" /> Sync Error</span>
+                  ) : null}
+                </div>
+              </div>
             </div>
             
-            <div className="flex items-center gap-5 text-sm font-medium">
-              <div className="hidden sm:flex items-center gap-5 border-r border-white/10 pr-5">
-                <div className="flex items-center gap-2 text-slate-400 bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
+            <div className="flex items-center gap-3 sm:gap-5 text-sm font-medium w-full md:w-auto justify-between md:justify-end">
+              <div className="flex items-center gap-3 sm:gap-5 border-r border-white/10 pr-3 sm:pr-5">
+                <div className="flex items-center gap-1.5 sm:gap-2 text-slate-400 bg-white/5 px-2 sm:px-3 py-1.5 rounded-lg border border-white/5">
                   <Circle className="w-4 h-4 text-amber-400" />
-                  <span>Wanted: <strong className="text-white ml-1">{filteredGames.filter(g => g.status === 'Wanted').length}</strong></span>
+                  <span className="hidden sm:inline">Wanted:</span> <strong className="text-white sm:ml-1">{stats.wanted}</strong>
                 </div>
-                <div className="flex items-center gap-2 text-slate-400 bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
+                <div className="flex items-center gap-1.5 sm:gap-2 text-slate-400 bg-white/5 px-2 sm:px-3 py-1.5 rounded-lg border border-white/5">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                  <span>Played: <strong className="text-white ml-1">{filteredGames.filter(g => g.status === 'Played').length}</strong></span>
+                  <span className="hidden sm:inline">Played:</span> <strong className="text-white sm:ml-1">{stats.played}</strong>
                 </div>
               </div>
               
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setShowGithubModal(true)}
-                  className="p-2.5 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-white/5 hidden sm:block hover:shadow-[0_0_15px_rgba(255,255,255,0.05)]"
-                  title="GitHub Sync"
-                >
-                  <Github className="w-5 h-5" />
-                </button>
-
-                <span className={`hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl border font-bold text-xs uppercase tracking-wider ${
+              <div className="flex items-center gap-3 sm:gap-4">
+                <span className={`hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-xl border font-bold text-xs uppercase tracking-wider ${
                   activeProfile === 'Aadish' ? 'bg-blue-500/10 text-blue-300 border-blue-500/20' :
                   activeProfile === 'Aditya' ? 'bg-orange-500/10 text-orange-300 border-orange-500/20' :
                   'bg-indigo-500/10 text-indigo-300 border-indigo-500/20'
@@ -566,11 +608,11 @@ export default function App() {
                 
                 <button 
                   onClick={() => setActiveProfile(null)}
-                  className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/5 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all"
+                  className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-400 hover:to-rose-400 text-white px-4 sm:px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-[0_0_15px_rgba(244,63,94,0.4)] hover:shadow-[0_0_25px_rgba(244,63,94,0.6)] active:scale-95"
                   title="Switch Profile"
                 >
-                  <Users className="w-4 h-4 text-indigo-400" />
-                  <span className="hidden sm:inline">Switch</span>
+                  <Users className="w-4 h-4 text-white" />
+                  <span className="hidden sm:inline">Switch Profile</span>
                 </button>
               </div>
             </div>
@@ -578,7 +620,7 @@ export default function App() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         
         {/* Add Game Section */}
         {activeProfile !== 'Combined' && (
@@ -604,7 +646,7 @@ export default function App() {
               <button
                 type="submit"
                 disabled={loading}
-                className="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3.5 sm:py-4 rounded-2xl font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50 whitespace-nowrap shadow-[0_0_15px_rgba(79,70,229,0.2)] hover:shadow-[0_0_25px_rgba(79,70,229,0.4)] hover:-translate-y-0.5"
+                className="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3.5 sm:py-4 rounded-2xl font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50 whitespace-nowrap shadow-[0_0_15px_rgba(79,70,229,0.2)] hover:shadow-[0_0_25px_rgba(79,70,229,0.4)] active:scale-95"
               >
                 {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
                 {loading ? 'Fetching...' : 'Fetch'}
@@ -612,7 +654,7 @@ export default function App() {
             </form>
             
             {error && (
-              <div className="mt-5 flex items-center gap-2 text-red-400 text-sm bg-red-500/10 p-3.5 rounded-xl border border-red-500/20">
+              <div className="mt-5 flex items-center gap-2 text-red-400 text-sm bg-red-500/10 p-3.5 rounded-xl border border-red-500/20 animate-in slide-in-from-top-2">
                 <AlertCircle className="w-4 h-4 flex-shrink-0" />
                 <p>{error}</p>
               </div>
@@ -621,9 +663,10 @@ export default function App() {
         )}
 
         {/* Filters and Search */}
-        <section className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center">
-          <div className="flex flex-wrap gap-3">
-            <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl p-1.5 border border-white/5 flex gap-1">
+        <section className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center w-full">
+          {/* Scrollable container for mobile filters */}
+          <div className="flex w-full overflow-x-auto pb-2 -mb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] gap-3 items-center">
+            <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl p-1.5 border border-white/5 flex gap-1 flex-shrink-0">
               {['All', 'Wanted', 'Played'].map(status => (
                 <button
                   key={status}
@@ -638,7 +681,7 @@ export default function App() {
                 </button>
               ))}
             </div>
-            <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl p-1.5 border border-white/5 flex gap-1">
+            <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl p-1.5 border border-white/5 flex gap-1 flex-shrink-0">
               {['All', 'Singleplayer', 'Multiplayer'].map(mode => (
                 <button
                   key={mode}
@@ -655,7 +698,7 @@ export default function App() {
             </div>
 
             {activeProfile === 'Combined' && (
-              <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl p-1.5 border border-white/5 flex gap-1">
+              <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl p-1.5 border border-white/5 flex gap-1 flex-shrink-0">
                 {['All', 'Aadish', 'Aditya', 'Both'].map(player => (
                   <button
                     key={player}
@@ -672,15 +715,34 @@ export default function App() {
               </div>
             )}
           </div>
-          <div className="relative w-full lg:w-72">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search games..."
-              className="w-full bg-slate-900/50 backdrop-blur-sm border border-white/5 rounded-xl pl-11 pr-4 py-3 text-sm outline-none focus:border-indigo-500/50 focus:bg-slate-900 transition-all shadow-inner"
-            />
+          
+          <div className="flex flex-col sm:flex-row w-full lg:w-auto gap-3 flex-shrink-0">
+            {/* Sorting Dropdown */}
+            <div className="relative flex items-center gap-2 group">
+              <ArrowUpDown className="absolute left-3 w-4 h-4 text-slate-500 pointer-events-none" />
+              <select
+                value={sortOption}
+                onChange={(e) => setSortOption(e.target.value)}
+                className="w-full sm:w-auto bg-slate-900/50 backdrop-blur-sm border border-white/5 rounded-xl pl-10 pr-8 py-3 text-sm text-slate-300 font-medium outline-none focus:border-indigo-500/50 focus:bg-slate-900 transition-all shadow-inner appearance-none cursor-pointer hover:bg-slate-800"
+              >
+                <option value="Newest">Newest First</option>
+                <option value="Oldest">Oldest First</option>
+                <option value="A-Z">Name (A-Z)</option>
+                <option value="Z-A">Name (Z-A)</option>
+              </select>
+            </div>
+
+            {/* Search Input */}
+            <div className="relative w-full lg:w-64">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search games..."
+                className="w-full bg-slate-900/50 backdrop-blur-sm border border-white/5 rounded-xl pl-11 pr-4 py-3 text-sm outline-none focus:border-indigo-500/50 focus:bg-slate-900 transition-all shadow-inner placeholder-slate-500"
+              />
+            </div>
           </div>
         </section>
 
@@ -690,14 +752,14 @@ export default function App() {
             <Gamepad2 className="w-16 h-16 mx-auto text-slate-600 mb-5" />
             <h3 className="text-2xl font-bold text-slate-300 tracking-tight">No games found</h3>
             <p className="text-slate-500 mt-2 max-w-sm mx-auto">
-              {profileFilteredGames.length === 0 
+              {games.length === 0 
                 ? "Your library is empty. Paste a Steam URL above to start building your collection!" 
                 : "No games match your current filters or search query."}
             </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredGames.map((game) => {
+            {filteredGames.map((game, idx) => {
               const addedBy = game.addedBy || [];
               const isBoth = addedBy.length === 2;
               const hasAadish = addedBy.includes('Aadish');
@@ -706,7 +768,8 @@ export default function App() {
               return (
                 <div 
                   key={game.id} 
-                  className="group flex flex-col bg-slate-900/60 backdrop-blur-md rounded-2xl overflow-hidden border border-white/5 hover:border-indigo-500/30 shadow-lg hover:shadow-[0_10px_30px_rgba(79,70,229,0.15)] hover:-translate-y-1 transition-all duration-300"
+                  className="group flex flex-col bg-slate-900/60 backdrop-blur-md rounded-2xl overflow-hidden border border-white/5 hover:border-indigo-500/30 shadow-lg hover:shadow-[0_10px_30px_rgba(79,70,229,0.15)] hover:-translate-y-1 transition-all duration-300 animate-in fade-in slide-in-from-bottom-4"
+                  style={{ animationFillMode: "both", animationDelay: `${idx * 50}ms` }}
                 >
                   <div className="relative aspect-[460/215] bg-slate-950 overflow-hidden">
                     <img 
@@ -746,7 +809,7 @@ export default function App() {
                         href={game.steamUrl} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="text-slate-500 hover:text-indigo-400 bg-white/5 hover:bg-white/10 p-1.5 rounded-lg transition-colors flex-shrink-0"
+                        className="text-slate-500 hover:text-indigo-400 bg-white/5 hover:bg-white/10 p-1.5 rounded-lg transition-colors flex-shrink-0 active:scale-95"
                         title="Open in Steam"
                       >
                         <ExternalLink className="w-4 h-4" />
@@ -757,42 +820,24 @@ export default function App() {
                       
                       {activeProfile !== 'Combined' ? (
                         <>
-                          {/* Modifiable Action Buttons */}
-                          <button 
-                            onClick={() => updateGame(game.id, { mode: game.mode === 'Singleplayer' ? 'Multiplayer' : 'Singleplayer' })}
-                            className="flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-slate-200 transition-colors bg-black/20 w-fit px-3 py-1.5 rounded-lg border border-white/5 hover:border-white/10"
-                            title="Click to toggle mode"
-                          >
+                          <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 bg-black/20 w-fit px-3 py-1.5 rounded-lg border border-white/5">
                             {game.mode === 'Multiplayer' 
                               ? <><Users className="w-3.5 h-3.5 text-cyan-400" /> Multiplayer</>
                               : <><User className="w-3.5 h-3.5 text-indigo-400" /> Singleplayer</>
                             }
-                          </button>
+                          </div>
 
                           <div className="flex items-center gap-2 pt-3 border-t border-white/5">
-                            {game.status === 'Wanted' ? (
-                              <button
-                                onClick={() => updateGame(game.id, { status: 'Played' })}
-                                className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm font-semibold transition-all bg-indigo-500/10 text-indigo-300 hover:bg-emerald-500/10 hover:text-emerald-400 border border-indigo-500/20 hover:border-emerald-500/30"
-                              >
-                                <CheckCircle2 className="w-4 h-4" /> Mark as Played
-                              </button>
-                            ) : (
-                              <div className="flex-1"></div> 
-                            )}
-                            
                             <button
-                              onClick={() => deleteGame(game.id)}
-                              className="p-2.5 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-xl border border-transparent hover:border-red-500/20 transition-all"
-                              title="Remove Game"
+                              onClick={() => setEditingGame(game)}
+                              className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm font-semibold transition-all bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5 hover:border-white/10 active:scale-95"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Pencil className="w-4 h-4" /> Edit Details
                             </button>
                           </div>
                         </>
                       ) : (
                         <>
-                           {/* Read Only Badges for Combined View */}
                            <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 bg-black/20 w-fit px-3 py-1.5 rounded-lg border border-white/5">
                             {game.mode === 'Multiplayer' 
                               ? <><Users className="w-3.5 h-3.5 text-cyan-400" /> Multiplayer</>
