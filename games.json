@@ -50,7 +50,15 @@
     "addedAt": 1774014349508,
     "addedBy": [
       "Aadish"
-    ]
+    ],
+    "sharedList": {
+      "type": "Main",
+      "order": 0,
+      "addedBy": "Aadish",
+      "upvotes": [
+        "Aadish"
+      ]
+    }
   },
   {
     "appId": "elden-ring",
