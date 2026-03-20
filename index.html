@@ -5,9 +5,169 @@
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Steam Backlog Tracker</title>
+    <script>
+      (function() {
+        var theme = localStorage.getItem('steam-tracker-theme') || 'dark';
+        if (theme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      })();
+    </script>
   </head>
-  <body class="bg-slate-950 text-slate-200">
-    <div id="root"></div>
+  <body class="bg-slate-50 text-slate-900 dark:bg-[#020617] dark:text-slate-200 transition-colors">
+    <div id="root">
+      <style>
+        :root {
+          --bg-color: #f8fafc;
+          --bg-gradient: radial-gradient(ellipse at top, #e2e8f0, #f8fafc);
+          --icon-color: #334155;
+          --ring-color: linear-gradient(135deg, #4f46e5, #9333ea);
+          --ring-shadow: rgba(79, 70, 229, 0.4);
+          --text-gradient: linear-gradient(to right, #4f46e5, #7c3aed, #9333ea);
+          --loader-ring: #cbd5e1;
+          --loader-spin: #6366f1;
+        }
+        html.dark {
+          --bg-color: #020617;
+          --bg-gradient: radial-gradient(ellipse at top, #1e293b, #020617);
+          --icon-color: #ffffff;
+          --ring-color: linear-gradient(135deg, #6366f1, #a855f7);
+          --ring-shadow: rgba(99, 102, 241, 0.7);
+          --text-gradient: linear-gradient(to right, #a5b4fc, #818cf8, #c084fc);
+          --loader-ring: #1e293b;
+          --loader-spin: #818cf8;
+        }
+
+        .loader-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          height: 100vh;
+          background: var(--bg-color);
+          background-image: var(--bg-gradient);
+          font-family: system-ui, -apple-system, sans-serif;
+          transition: background 0.3s ease;
+        }
+
+        .gaming-icon {
+          width: 140px;
+          height: 140px;
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .spinner-outer {
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          border: 3px solid transparent;
+          border-top-color: var(--loader-spin);
+          border-bottom-color: var(--loader-spin);
+          animation: spin 2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+          opacity: 0.8;
+        }
+
+        .spinner-inner {
+          position: absolute;
+          width: 75%;
+          height: 75%;
+          border-radius: 50%;
+          border: 3px solid transparent;
+          border-left-color: #a855f7;
+          border-right-color: #ec4899;
+          animation: spin-reverse 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+          opacity: 0.9;
+        }
+        
+        .pulse-core {
+          position: absolute;
+          width: 50%;
+          height: 50%;
+          border-radius: 50%;
+          background: var(--ring-color);
+          filter: blur(15px);
+          animation: pulse-core 2s ease-in-out infinite;
+          opacity: 0.4;
+        }
+
+        .gaming-icon svg {
+          width: 45px;
+          height: 45px;
+          color: var(--icon-color);
+          z-index: 10;
+          animation: float 3s ease-in-out infinite;
+          filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+        }
+
+        .loader-text-wrapper {
+          margin-top: 40px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .loader-text {
+          font-size: 1.75rem;
+          font-weight: 900;
+          background: var(--text-gradient);
+          -webkit-background-clip: text;
+          background-clip: text;
+          color: transparent;
+          letter-spacing: 0.15em;
+          text-transform: uppercase;
+          animation: fade 2s ease-in-out infinite;
+        }
+
+        .loader-subtext {
+          margin-top: 8px;
+          font-size: 0.8rem;
+          font-weight: 600;
+          color: var(--icon-color);
+          opacity: 0.5;
+          letter-spacing: 0.2em;
+          text-transform: uppercase;
+        }
+
+        @keyframes spin { 
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); } 
+        }
+        @keyframes spin-reverse { 
+          0% { transform: rotate(360deg); }
+          100% { transform: rotate(0deg); } 
+        }
+        @keyframes pulse-core {
+          0%, 100% { transform: scale(0.8); opacity: 0.3; }
+          50% { transform: scale(1.2); opacity: 0.6; }
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-8px); }
+        }
+        @keyframes fade {
+          0%, 100% { opacity: 1; filter: drop-shadow(0 0 10px var(--ring-shadow)); }
+          50% { opacity: 0.6; filter: drop-shadow(0 0 2px var(--ring-shadow)); }
+        }
+      </style>
+      <div class="loader-container">
+        <div class="gaming-icon">
+          <div class="pulse-core"></div>
+          <div class="spinner-outer"></div>
+          <div class="spinner-inner"></div>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="12" x2="10" y2="12"></line><line x1="8" y1="10" x2="8" y2="14"></line><line x1="15" y1="13" x2="15.01" y2="13"></line><line x1="18" y1="11" x2="18.01" y2="11"></line><rect x="2" y="6" width="20" height="12" rx="2"></rect></svg>
+        </div>
+        <div class="loader-text-wrapper">
+          <div class="loader-text">Steam Backlog</div>
+          <div class="loader-subtext">Initializing setup</div>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
