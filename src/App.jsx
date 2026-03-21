@@ -113,42 +113,13 @@ export default function App() {
 
   // --- Profile Switching Helper ---
   const loginAs = useCallback(async (profile) => {
-    setProfileLoading(true);
-
-    // Pre-calculate target games to determine the top 12 images that will render first
-    const targetGames = games.filter(g => {
-        if (profile === 'Combined') return true;
-        return (g.addedBy || []).includes(profile);
-    }).sort((a, b) => b.addedAt - a.addedAt).slice(0, 12);
-
-    // Create image preloading promises
-    const imagePromises = targetGames.map(g => {
-      return new Promise((resolve) => {
-        const img = new Image();
-        img.onload = resolve;
-        img.onerror = resolve; // don't hang on broken images
-        img.src = g.imageUrl;
-      });
-    });
-
-    // Enforce a minimum load time for premium feel (800ms), max wait (3000ms)
-    const minTimePromise = new Promise(resolve => setTimeout(resolve, 800));
-    const maxTimeoutPromise = new Promise(resolve => setTimeout(resolve, 3000));
-
-    // Wait for images AND minimum time, or force resolve if it takes longer than 3s
-    await Promise.race([
-        Promise.all([minTimePromise, Promise.all(imagePromises)]),
-        maxTimeoutPromise
-    ]);
-
     setActiveProfile(profile);
     if (profile !== 'Combined') {
       setPlayerFilter(profile); 
     } else {
       setPlayerFilter('All');
     }
-    setProfileLoading(false);
-  }, [games]);
+  }, []);
 
   // --- GitHub Auto-Sync Functions ---
   const GITHUB_OWNER = 'AadishY';
@@ -186,7 +157,16 @@ export default function App() {
       
       if (response.ok) {
         const parsedGames = await response.json();
-        setGames(parsedGames);
+        if (Array.isArray(parsedGames)) {
+          setGames(parsedGames);
+        } else if (parsedGames && parsedGames.content) {
+          // Fallback if browser cached the metadata object instead of honoring 'raw' header
+          const decodedContent = decodeURIComponent(escape(atob(parsedGames.content.replace(/\n/g, ''))));
+          setGames(JSON.parse(decodedContent));
+        } else {
+          console.error("Unknown payload from GitHub sync:", parsedGames);
+          setGames([]);
+        }
       }
       setSyncStatus('saved');
     } catch (err) {
@@ -550,7 +530,8 @@ export default function App() {
 
   // --- Highly Optimized Filtering & Sorting via useMemo ---
   const filteredGames = useMemo(() => {
-    let result = games.filter(game => {
+    const safeGames = Array.isArray(games) ? games : [];
+    let result = safeGames.filter(game => {
       if (activeProfile === 'Combined') return true;
       const addedBy = game.addedBy || [];
       if (playerFilter === 'Aadish') return addedBy.includes('Aadish');
@@ -560,7 +541,7 @@ export default function App() {
     })
     .filter(game => statusFilter === 'All' || game.status === statusFilter)
     .filter(game => modeFilter === 'All' || game.mode === modeFilter)
-    .filter(game => game.name.toLowerCase().includes(searchQuery.toLowerCase()));
+    .filter(game => game.name && game.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
     // Apply Sorting
     result.sort((a, b) => {
