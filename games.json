@@ -23,7 +23,14 @@
     "addedAt": 1774079067374,
     "addedBy": [
       "Aadish"
-    ]
+    ],
+    "sharedList": {
+      "type": "Main",
+      "addedBy": "Aadish",
+      "upvotes": [
+        "Aadish"
+      ]
+    }
   },
   {
     "appId": "demonologist-2",
