@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ListPlus, CheckCircle2, Trash2, X } from 'lucide-react';
 
 export default function GameModal({ 

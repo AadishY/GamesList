@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Gamepad2, ListPlus } from 'lucide-react';
 
 // Extracted Components
@@ -56,7 +56,7 @@ export default function App() {
 
   // Profile State
   const [activeProfile, setActiveProfile] = useState(null);
-  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileLoading] = useState(false);
 
   // App View State
   const [currentView, setCurrentView] = useState('home'); // 'home' | 'sharedList'
@@ -129,7 +129,7 @@ export default function App() {
   const getGithubToken = () => {
     try {
       return import.meta.env.VITE_GITHUB_TOKEN || '';
-    } catch (e) {
+    } catch {
       return '';
     }
   };
@@ -137,7 +137,7 @@ export default function App() {
   const getRawgKey = () => {
     try {
       return import.meta.env.VITE_RAWG_API_KEY || '';
-    } catch (e) {
+    } catch {
       return '';
     }
   };
@@ -239,7 +239,7 @@ export default function App() {
 
   // --- Game Parsing & Fetching Utilities ---
   const extractGameInfo = (url) => {
-    const match = url.match(/\/app\/(\d+)(?:\/([^\/?#]+))?/);
+    const match = url.match(/\/app\/(\d+)(?:\/([^/?#]+))?/);
     if (!match) return null;
     return {
       appId: match[1],
@@ -664,7 +664,7 @@ export default function App() {
               viewMode === 'compact' ? 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4' :
               'flex flex-col gap-3'
             }>
-              {filteredGames.map((game, idx) => (
+              {filteredGames.map((game) => (
                 <GameCard 
                   key={game.id}
                   game={game}

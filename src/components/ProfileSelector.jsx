@@ -1,4 +1,3 @@
-import React from 'react';
 import { Gamepad2, User, Users, Sun, Moon } from 'lucide-react';
 
 export default function ProfileSelector({ loginAs, theme, toggleTheme }) {

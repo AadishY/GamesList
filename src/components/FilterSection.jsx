@@ -1,4 +1,3 @@
-import React from 'react';
 import { ArrowUpDown, Search, LayoutGrid, Grid2x2, List } from 'lucide-react';
 
 export default function FilterSection({

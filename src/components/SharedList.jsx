@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { ArrowLeft, Plus, Gamepad2 } from 'lucide-react';
 import SharedListGameCard from './SharedListGameCard';
 import SharedListAddModal from './SharedListAddModal';

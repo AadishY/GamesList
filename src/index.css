@@ -102,7 +102,7 @@ html.dark body {
   
   /* Dark Mode specific buttons (reference image showed white shadows) */
   .dark .brutal-btn {
-    @apply border-2 border-black; /* Gap effect against background */
+    /* border-2 border-black redundant here */
     box-shadow: 4px 4px 0px #fff;
   }
   .dark .brutal-btn:hover {

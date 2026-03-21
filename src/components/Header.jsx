@@ -1,4 +1,3 @@
-import React from 'react';
 import { Gamepad2, Loader2, Cloud, AlertCircle, Circle, CheckCircle2, Users, User, Sun, Moon } from 'lucide-react';
 
 export default function Header({ syncStatus, stats, activeProfile, loginAs, theme, toggleTheme, currentView }) {

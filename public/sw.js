@@ -1,6 +1,6 @@
 const CACHE_NAME = 'game-images-v1';
 
-self.addEventListener('install', (event) => {
+self.addEventListener('install', () => {
   self.skipWaiting();
 });
 
@@ -19,8 +19,6 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  const url = new URL(event.request.url);
-  
   // Only cache images and ignore API requests
   if (event.request.destination === 'image' || event.request.url.match(/\.(png|jpg|jpeg|gif|webp)$/i)) {
     event.respondWith(

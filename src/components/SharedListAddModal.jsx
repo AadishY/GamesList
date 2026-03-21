@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Search, X, CheckCircle2 } from 'lucide-react';
 
 export default function SharedListAddModal({ games, setGames, activeProfile, onClose }) {

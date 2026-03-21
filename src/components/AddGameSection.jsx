@@ -1,4 +1,3 @@
-import React from 'react';
 import { ListPlus, Search, Loader2, X, AlertCircle } from 'lucide-react';
 
 export default function AddGameSection({

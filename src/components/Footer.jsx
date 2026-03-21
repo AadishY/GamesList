@@ -1,4 +1,3 @@
-import React from 'react';
 import { Gamepad2, Heart } from 'lucide-react';
 
 export default function Footer() {
