@@ -50,7 +50,14 @@
     "addedAt": 1774078952798,
     "addedBy": [
       "Aadish"
-    ]
+    ],
+    "sharedList": {
+      "type": "Side",
+      "addedBy": "Aadish",
+      "upvotes": [
+        "Aadish"
+      ]
+    }
   },
   {
     "appId": "lethal-company",
