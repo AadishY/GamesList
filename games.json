@@ -70,7 +70,14 @@
     "addedAt": 1774078908256,
     "addedBy": [
       "Aadish"
-    ]
+    ],
+    "sharedList": {
+      "type": "Side",
+      "addedBy": "Aadish",
+      "upvotes": [
+        "Aadish"
+      ]
+    }
   },
   {
     "appId": "dying-light-the-beast",
