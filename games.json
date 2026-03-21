@@ -15,8 +15,8 @@
       "type": "Main",
       "addedBy": "Aadish",
       "upvotes": [
-        "Aadish",
-        "Aditya"
+        "Aditya",
+        "Aadish"
       ],
       "order": 0
     }
@@ -162,9 +162,7 @@
     "sharedList": {
       "type": "Main",
       "addedBy": "Aadish",
-      "upvotes": [
-        "Aadish"
-      ],
+      "upvotes": [],
       "order": 1
     }
   },
