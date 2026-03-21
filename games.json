@@ -30,7 +30,14 @@
     "addedAt": 1774078976219,
     "addedBy": [
       "Aadish"
-    ]
+    ],
+    "sharedList": {
+      "type": "Side",
+      "addedBy": "Aadish",
+      "upvotes": [
+        "Aadish"
+      ]
+    }
   },
   {
     "appId": "3799100",
