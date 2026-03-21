@@ -77,9 +77,9 @@ const SharedListGameCard = React.memo(({
       <div className="flex items-center gap-2 pr-1">
         {game.steamUrl && (
           <a href={game.steamUrl} target="_blank" rel="noopener noreferrer"
-            className="p-3 sm:p-4 bg-black/10 dark:bg-white/10 rounded-xl border-2 border-transparent hover:border-black dark:hover:border-white transition-all flex items-center justify-center"
+            className="p-2 sm:p-3 bg-black/10 dark:bg-white/10 rounded-lg border-2 border-transparent hover:border-black dark:hover:border-white transition-all flex items-center justify-center"
             title="Open Steam link"
-          ><ExternalLink className="w-5 h-5 sm:w-6 sm:h-6" /></a>
+          ><ExternalLink className="w-4 h-4 sm:w-5 sm:h-5" /></a>
         )}
         {canVote && (
           <button onClick={handleVote}
