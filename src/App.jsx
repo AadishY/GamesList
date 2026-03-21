@@ -152,12 +152,11 @@ export default function App() {
     
     setSyncStatus('syncing');
     try {
-      // Add a timestamp cache-buster to ensure we get the latest file state
+      // FIX: Removed the Cache-Control header. The ?t timestamp is enough!
       const response = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${FILE_PATH}?t=${Date.now()}`, {
         headers: { 
           Authorization: `Bearer ${token}`, 
-          Accept: 'application/vnd.github.v3.raw',
-          'Cache-Control': 'no-cache'
+          Accept: 'application/vnd.github.v3.raw'
         }
       });
       
@@ -192,12 +191,11 @@ export default function App() {
 
     try {
       let sha = null;
-      // CRITICAL FIX: Append a timestamp so the browser never uses a cached SHA
+      // FIX: Removed the Cache-Control header here as well
       const getResponse = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${FILE_PATH}?t=${Date.now()}`, {
         headers: { 
           Authorization: `Bearer ${token}`, 
-          Accept: 'application/vnd.github.v3+json',
-          'Cache-Control': 'no-cache, no-store, must-revalidate' 
+          Accept: 'application/vnd.github.v3+json'
         }
       });
       
@@ -205,6 +203,8 @@ export default function App() {
         const data = await getResponse.json();
         sha = data.sha;
       }
+
+      // ... rest of the function remains exactly the same
 
       // Robust UTF-8 encoding for games with special characters/emojis
       const contentStr = JSON.stringify(currentGames, null, 2);
