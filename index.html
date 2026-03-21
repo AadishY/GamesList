@@ -3,8 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Steam Backlog Tracker</title>
+    <!-- Sharp geometry font -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script>
       (function() {
         var theme = localStorage.getItem('steam-tracker-theme') || 'dark';
@@ -16,155 +18,110 @@
       })();
     </script>
   </head>
-  <body class="bg-slate-50 text-slate-900 dark:bg-[#020617] dark:text-slate-200 transition-colors">
+  <body class="text-black dark:text-white transition-colors duration-200" style="font-family: 'Space Grotesk', system-ui, sans-serif;">
     <div id="root">
       <style>
-        :root {
-          --bg-color: #f8fafc;
-          --bg-gradient: radial-gradient(ellipse at top, #e2e8f0, #f8fafc);
-          --icon-color: #334155;
-          --ring-color: linear-gradient(135deg, #4f46e5, #9333ea);
-          --ring-shadow: rgba(79, 70, 229, 0.4);
-          --text-gradient: linear-gradient(to right, #4f46e5, #7c3aed, #9333ea);
-          --loader-ring: #cbd5e1;
-          --loader-spin: #6366f1;
-        }
-        html.dark {
-          --bg-color: #020617;
-          --bg-gradient: radial-gradient(ellipse at top, #1e293b, #020617);
-          --icon-color: #ffffff;
-          --ring-color: linear-gradient(135deg, #6366f1, #a855f7);
-          --ring-shadow: rgba(99, 102, 241, 0.7);
-          --text-gradient: linear-gradient(to right, #a5b4fc, #818cf8, #c084fc);
-          --loader-ring: #1e293b;
-          --loader-spin: #818cf8;
-        }
-
         .loader-container {
           display: flex;
-          flex-direction: column;
           align-items: center;
           justify-content: center;
           height: 100vh;
-          background: var(--bg-color);
-          background-image: var(--bg-gradient);
-          font-family: system-ui, -apple-system, sans-serif;
-          transition: background 0.3s ease;
+          font-family: 'Space Grotesk', system-ui, sans-serif;
+          background-color: #fafafa;
+          background-image: linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
+                            linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px);
+          background-size: 30px 30px;
+        }
+        html.dark .loader-container {
+          background-color: #111116;
+          background-image: linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
+                            linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
         }
 
-        .gaming-icon {
-          width: 140px;
-          height: 140px;
-          position: relative;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .spinner-outer {
-          position: absolute;
-          width: 100%;
-          height: 100%;
-          border-radius: 50%;
-          border: 3px solid transparent;
-          border-top-color: var(--loader-spin);
-          border-bottom-color: var(--loader-spin);
-          animation: spin 2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
-          opacity: 0.8;
-        }
-
-        .spinner-inner {
-          position: absolute;
-          width: 75%;
-          height: 75%;
-          border-radius: 50%;
-          border: 3px solid transparent;
-          border-left-color: #a855f7;
-          border-right-color: #ec4899;
-          animation: spin-reverse 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
-          opacity: 0.9;
-        }
-        
-        .pulse-core {
-          position: absolute;
-          width: 50%;
-          height: 50%;
-          border-radius: 50%;
-          background: var(--ring-color);
-          filter: blur(15px);
-          animation: pulse-core 2s ease-in-out infinite;
-          opacity: 0.4;
-        }
-
-        .gaming-icon svg {
-          width: 45px;
-          height: 45px;
-          color: var(--icon-color);
-          z-index: 10;
-          animation: float 3s ease-in-out infinite;
-          filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
-        }
-
-        .loader-text-wrapper {
-          margin-top: 40px;
+        .loader-glass {
           display: flex;
           flex-direction: column;
           align-items: center;
+          background: rgba(255, 255, 255, 0.7);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 2px solid #000;
+          box-shadow: 8px 8px 0px #000;
+          border-radius: 1.5rem;
+          padding: 3rem 4rem;
+          position: relative;
+        }
+        html.dark .loader-glass {
+          background: rgba(0, 0, 0, 0.5);
+          border: 2px solid rgba(255, 255, 255, 0.2);
+          box-shadow: 8px 8px 0px #fff;
         }
 
-        .loader-text {
-          font-size: 1.75rem;
-          font-weight: 900;
-          background: var(--text-gradient);
-          -webkit-background-clip: text;
-          background-clip: text;
-          color: transparent;
-          letter-spacing: 0.15em;
-          text-transform: uppercase;
-          animation: fade 2s ease-in-out infinite;
+        .loader-btn {
+          background: #fbdf3b; /* Neon Yellow */
+          border: 2px solid #000;
+          padding: 1rem;
+          border-radius: 0.75rem;
+          box-shadow: 4px 4px 0px #000;
+          animation: hop 1.5s ease-in-out infinite;
+          margin-bottom: 2rem;
+        }
+        html.dark .loader-btn {
+          border-color: #fff;
+          box-shadow: 4px 4px 0px #fff;
         }
 
-        .loader-subtext {
-          margin-top: 8px;
-          font-size: 0.8rem;
-          font-weight: 600;
-          color: var(--icon-color);
-          opacity: 0.5;
-          letter-spacing: 0.2em;
-          text-transform: uppercase;
-        }
-
-        @keyframes spin { 
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); } 
-        }
-        @keyframes spin-reverse { 
-          0% { transform: rotate(360deg); }
-          100% { transform: rotate(0deg); } 
-        }
-        @keyframes pulse-core {
-          0%, 100% { transform: scale(0.8); opacity: 0.3; }
-          50% { transform: scale(1.2); opacity: 0.6; }
-        }
-        @keyframes float {
+        @keyframes hop {
           0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-8px); }
+          50% { transform: translateY(-10px); }
         }
-        @keyframes fade {
-          0%, 100% { opacity: 1; filter: drop-shadow(0 0 10px var(--ring-shadow)); }
-          50% { opacity: 0.6; filter: drop-shadow(0 0 2px var(--ring-shadow)); }
+
+        .loader-title {
+          font-size: 1.75rem;
+          font-weight: 800;
+          letter-spacing: -0.05em;
+          text-transform: uppercase;
+          margin-bottom: 1rem;
+        }
+
+        .loader-bar-wrap {
+          border: 2px solid #000;
+          height: 12px;
+          width: 200px;
+          border-radius: 6px;
+          overflow: hidden;
+          background: rgba(0,0,0,0.05);
+        }
+        html.dark .loader-bar-wrap {
+          border-color: #fff;
+          background: rgba(255,255,255,0.05);
+        }
+
+        .loader-bar {
+          background: #ff90e8; /* Pink */
+          height: 100%;
+          border-right: 2px solid #000;
+          animation: fillup 1.5s ease-in-out infinite;
+        }
+        html.dark .loader-bar {
+          border-right: 2px solid #fff;
+        }
+
+        @keyframes fillup {
+          0% { width: 0%; }
+          50% { width: 100%; }
+          100% { width: 0%; transform: translateX(200px); }
         }
       </style>
       <div class="loader-container">
-        <div class="gaming-icon">
-          <div class="pulse-core"></div>
-          <div class="spinner-outer"></div>
-          <div class="spinner-inner"></div>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="12" x2="10" y2="12"></line><line x1="8" y1="10" x2="8" y2="14"></line><line x1="15" y1="13" x2="15.01" y2="13"></line><line x1="18" y1="11" x2="18.01" y2="11"></line><rect x="2" y="6" width="20" height="12" rx="2"></rect></svg>
-        </div>
-        <div class="loader-text-wrapper">
-          <div class="loader-text">Steam Backlog</div>
-          <div class="loader-subtext">Initializing setup</div>
+        <div class="loader-glass">
+          <div class="loader-btn">
+            <svg style="width: 32px; height: 32px; color: #000;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="12" x2="10" y2="12"></line><line x1="8" y1="10" x2="8" y2="14"></line><line x1="15" y1="13" x2="15.01" y2="13"></line><line x1="18" y1="11" x2="18.01" y2="11"></line><rect x="2" y="6" width="20" height="12" rx="2"></rect></svg>
+          </div>
+          <div class="loader-title">Steam Backlog</div>
+          <div class="loader-bar-wrap">
+            <div class="loader-bar"></div>
+          </div>
         </div>
       </div>
     </div>

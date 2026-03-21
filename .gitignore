@@ -12,7 +12,7 @@ node_modules/
 dist/
 dist-ssr/
 *.local
-
+lint_output.txt
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

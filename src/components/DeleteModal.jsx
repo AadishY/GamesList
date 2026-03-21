@@ -5,29 +5,26 @@ export default function DeleteModal({ gameToDelete, setGameToDelete, confirmDele
   if (!gameToDelete) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-md transition-all text-center">
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-red-500/20 rounded-3xl w-full max-w-sm p-6 shadow-xl dark:shadow-[0_0_50px_rgba(239,68,68,0.2)] animate-in fade-in zoom-in-95 duration-300 relative overflow-hidden transition-colors">
-        <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-red-500/0 via-red-500 to-red-500/0"></div>
-        <div className="mx-auto w-16 h-16 bg-red-50 dark:bg-red-500/10 flex items-center justify-center rounded-full mb-4">
-          <Trash2 className="w-8 h-8 text-red-500 dark:text-red-400" />
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6 bg-black/60 dark:bg-black/80 backdrop-blur-xl text-center">
+      <div className="glass-panel w-full max-w-sm p-8 sm:p-10 animate-in fade-in zoom-in-95 duration-300 relative overflow-hidden flex flex-col items-center">
+        
+        <div className="w-20 h-20 bg-[#ff4a4a] brutal-btn flex items-center justify-center rounded-3xl mb-8 -rotate-3">
+          <Trash2 className="w-10 h-10 text-black" />
         </div>
-        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 transition-colors">Remove Game?</h3>
-        <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 leading-relaxed transition-colors">
-          Are you sure you want to remove <strong className="text-slate-900 dark:text-white transition-colors">{gameToDelete.name}</strong> from your list?
+        
+        <h3 className="text-3xl font-black mb-3 uppercase tracking-tighter text-black dark:text-white">Delete Match?</h3>
+        <p className="text-sm text-black/60 dark:text-white/60 mb-10 font-bold px-2">
+          This will permenantly remove the game from your list. <br/>
+          <strong className="text-black dark:text-white text-base mt-2 block italic opacity-80">{gameToDelete.name}</strong>
         </p>
-        <div className="flex gap-3">
-          <button 
-            onClick={() => setGameToDelete(null)}
-            className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 dark:bg-white/5 dark:hover:bg-white/10 dark:border-white/5 dark:text-white rounded-xl font-medium transition-all active:scale-95"
-          >
-            Cancel
-          </button>
-          <button 
-            onClick={confirmDeleteGame}
-            className="flex-1 py-3 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 dark:bg-red-500/10 dark:hover:bg-red-500/20 dark:text-red-400 dark:border-red-500/20 rounded-xl font-medium transition-all flex items-center justify-center gap-2 active:scale-95"
-          >
-            Yes, Remove
-          </button>
+        
+        <div className="flex flex-col sm:flex-row gap-3 w-full">
+          <button onClick={() => setGameToDelete(null)}
+            className="w-full py-4 sm:py-3 bg-white/50 dark:bg-black/50 border-2 border-black/20 dark:border-white/20 text-black/60 hover:text-black dark:text-white/60 hover:dark:text-white rounded-2xl sm:rounded-xl font-extrabold uppercase tracking-widest transition-all shadow-sm hover:shadow-brutal-sm active:translate-y-0 active:shadow-none order-2 sm:order-1"
+          >Cancel</button>
+          <button onClick={confirmDeleteGame}
+            className="w-full py-4 sm:py-3 bg-[#ff4a4a] text-black brutal-btn rounded-2xl sm:rounded-xl font-black uppercase tracking-widest flex items-center justify-center gap-2 order-1 sm:order-2 active:scale-95"
+          >Yes, Delete</button>
         </div>
       </div>
     </div>

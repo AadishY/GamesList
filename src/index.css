@@ -2,34 +2,127 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Smooth transitions everywhere */
+/* ── Premium Glass-Brutalism Foundation ── */
+
 * {
   scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent; /* Remove mobile tap highlight */
+  touch-action: manipulation; /* KILLS 300ms mobile tap delay */
 }
 
-/* Custom scrollbar — adapts to theme */
-::-webkit-scrollbar {
-  width: 6px;
+/* Base grid background — heavily visible stark grid */
+body {
+  background-color: #f4f4f5; /* zinc-100 */
+  background-image: 
+    linear-gradient(to right, rgba(0,0,0,0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0,0,0,0.08) 1px, transparent 1px);
+  background-size: 32px 32px;
 }
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1; /* slate-300 */
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8; /* slate-400 */
-}
-
-.dark ::-webkit-scrollbar-thumb {
-  background: #1e293b; /* slate-800 */
-}
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: #334155; /* slate-700 */
+html.dark body {
+  background-color: #050510; /* deep dark space */
+  background-image: 
+    linear-gradient(to right, rgba(255,255,255,0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.08) 1px, transparent 1px);
+  background-size: 32px 32px;
 }
 
-/* Image rendering optimization */
-img {
-  content-visibility: auto;
+/* Scrollbar — sleek glass brutal */
+::-webkit-scrollbar { width: 12px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { 
+  background: rgba(0,0,0,0.8); 
+  border: 3px solid #f4f4f5; 
+  border-radius: 8px; 
+}
+.dark ::-webkit-scrollbar-thumb { 
+  background: rgba(255,255,255,0.8); 
+  border: 3px solid #09090b; 
+}
+
+/* Base interactive transitions config for mobile perf */
+.gpu-accel {
+  will-change: transform, box-shadow;
+  transform: translateZ(0); 
+  backface-visibility: hidden;
+}
+
+@layer utilities {
+  /* ── Structural Glass Panels ── */
+  .glass-panel {
+    @apply bg-white/70 dark:bg-black/80 backdrop-blur-xl border-2 border-black dark:border-white/10;
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.9), 6px 6px 0px rgba(0,0,0,1);
+    border-radius: 1.5rem;
+  }
+  .dark .glass-panel {
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.05), 6px 6px 0px rgba(255,255,255,0.8);
+  }
+
+  /* Flatter version for inner areas or nav */
+  .glass-panel-flat {
+    @apply bg-white/70 dark:bg-black/60 backdrop-blur-md border border-black/10 dark:border-white/10;
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.8);
+    border-radius: 1rem;
+  }
+  .dark .glass-panel-flat {
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.05);
+  }
+
+  /* ── Interactive Brutal Buttons ── */
+  .brutal-btn {
+    @apply border-2 border-black font-extrabold text-black transition-all duration-150 gpu-accel flex items-center justify-center;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 4px 4px 0px #000;
+  }
+  .brutal-btn:hover {
+    transform: translate3d(-2px, -2px, 0);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 6px 6px 0px #000;
+  }
+  .brutal-btn:active {
+    transform: translate3d(4px, 4px, 0) !important; 
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0px 0px 0px #000 !important;
+  }
+  
+  /* Dark Mode specific buttons (reference image showed white shadows) */
+  .dark .brutal-btn {
+    @apply border-2 border-black; /* Gap effect against background */
+    box-shadow: 4px 4px 0px #fff;
+  }
+  .dark .brutal-btn:hover {
+    box-shadow: 6px 6px 0px #fff;
+  }
+  .dark .brutal-btn:active {
+    box-shadow: 0px 0px 0px #fff !important;
+    transform: translate3d(4px, 4px, 0);
+  }
+
+  /* Less aggressive small shadows */
+  .shadow-brutal-sm {
+    box-shadow: 2px 2px 0px #000;
+  }
+  .dark .shadow-brutal-sm {
+    box-shadow: 2px 2px 0px #fff;
+  }
+
+  /* Pure Neon Fills */
+  .bg-neon-yellow { background-color: #facc15; color: #000; }
+  .bg-neon-cyan { background-color: #06b6d4; color: #000; }
+  .bg-neon-pink { background-color: #ec4899; color: #000; }
+  .bg-neon-purple { background-color: #a855f7; color: #000; }
+  .bg-neon-green { background-color: #84cc16; color: #000; }
+  .bg-neon-orange { background-color: #f97316; color: #000; }
+
+  /* ── Tactile Animations ── */
+  .tactile-logo {
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.3s;
+    display: inline-flex;
+    cursor: pointer;
+  }
+  .tactile-logo:hover {
+    transform: scale(1.15) rotate(-8deg);
+    filter: drop-shadow(0 0 8px rgba(236, 72, 153, 0.8));
+  }
+  .tactile-logo:active {
+    transform: scale(0.8) rotate(12deg);
+    transition: transform 0.05s;
+    filter: drop-shadow(0 0 0px transparent);
+  }
 }

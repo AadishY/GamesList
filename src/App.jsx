@@ -56,6 +56,7 @@ export default function App() {
 
   // Profile State
   const [activeProfile, setActiveProfile] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(false);
 
   // App View State
   const [currentView, setCurrentView] = useState('home'); // 'home' | 'sharedList'
@@ -111,14 +112,43 @@ export default function App() {
   }, []);
 
   // --- Profile Switching Helper ---
-  const loginAs = useCallback((profile) => {
+  const loginAs = useCallback(async (profile) => {
+    setProfileLoading(true);
+
+    // Pre-calculate target games to determine the top 12 images that will render first
+    const targetGames = games.filter(g => {
+        if (profile === 'Combined') return true;
+        return (g.addedBy || []).includes(profile);
+    }).sort((a, b) => b.addedAt - a.addedAt).slice(0, 12);
+
+    // Create image preloading promises
+    const imagePromises = targetGames.map(g => {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = resolve;
+        img.onerror = resolve; // don't hang on broken images
+        img.src = g.imageUrl;
+      });
+    });
+
+    // Enforce a minimum load time for premium feel (800ms), max wait (3000ms)
+    const minTimePromise = new Promise(resolve => setTimeout(resolve, 800));
+    const maxTimeoutPromise = new Promise(resolve => setTimeout(resolve, 3000));
+
+    // Wait for images AND minimum time, or force resolve if it takes longer than 3s
+    await Promise.race([
+        Promise.all([minTimePromise, Promise.all(imagePromises)]),
+        maxTimeoutPromise
+    ]);
+
     setActiveProfile(profile);
     if (profile !== 'Combined') {
       setPlayerFilter(profile); 
     } else {
       setPlayerFilter('All');
     }
-  }, []);
+    setProfileLoading(false);
+  }, [games]);
 
   // --- GitHub Auto-Sync Functions ---
   const GITHUB_OWNER = 'AadishY';
@@ -151,13 +181,11 @@ export default function App() {
     setSyncStatus('syncing');
     try {
       const response = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${FILE_PATH}`, {
-        headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github.v3+json' }
+        headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github.v3.raw' }
       });
       
       if (response.ok) {
-        const data = await response.json();
-        const decodedContent = decodeURIComponent(escape(atob(data.content)));
-        const parsedGames = JSON.parse(decodedContent);
+        const parsedGames = await response.json();
         setGames(parsedGames);
       }
       setSyncStatus('saved');
@@ -186,8 +214,13 @@ export default function App() {
         sha = data.sha;
       }
 
+      // Async Base64 encoding via FileReader perfectly avoids blocking UI thread on mobile
       const contentStr = JSON.stringify(currentGames, null, 2);
-      const encodedContent = btoa(unescape(encodeURIComponent(contentStr)));
+      const encodedContent = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.readAsDataURL(new Blob([contentStr]));
+      });
 
       const putResponse = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${FILE_PATH}`, {
         method: 'PUT',
@@ -553,11 +586,21 @@ export default function App() {
   // Renders
 
   if (!activeProfile) {
+    if (profileLoading) {
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#f4f4f5] dark:bg-[#050510] transition-colors">
+          <div className="glass-panel p-10 flex flex-col items-center gap-6 animate-in fade-in zoom-in-95 duration-300">
+            <div className="w-14 h-14 border-4 border-black dark:border-white border-b-neon-pink rounded-full animate-spin drop-shadow-md"></div>
+            <h2 className="text-xl sm:text-2xl font-black uppercase tracking-[0.2em] text-black dark:text-white animate-pulse">Loading Profile...</h2>
+          </div>
+        </div>
+      );
+    }
     return <ProfileSelector loginAs={loginAs} theme={theme} toggleTheme={toggleTheme} />;
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-[#020617] text-slate-800 dark:text-slate-200 font-sans selection:bg-indigo-500/30 animate-in fade-in duration-500 overflow-x-hidden transition-colors">
+    <div className="min-h-screen flex flex-col transition-colors selection:bg-neon-pink/30 selection:text-black">
       
       <DeleteModal 
         gameToDelete={gameToDelete} 
@@ -625,13 +668,13 @@ export default function App() {
 
           {/* Games Grid */}
           {filteredGames.length === 0 ? (
-            <div className="text-center py-24 bg-white/60 dark:bg-slate-900/30 backdrop-blur-sm rounded-3xl border border-slate-300 dark:border-white/5 border-dashed transition-colors">
-              <Gamepad2 className="w-16 h-16 mx-auto text-slate-400 dark:text-slate-600 mb-5" />
-              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-300 tracking-tight">No games found</h3>
-              <p className="text-slate-500 mt-2 max-w-sm mx-auto">
+            <div className="text-center py-20 glass-panel rounded-[2rem] border-dashed">
+              <Gamepad2 className="w-16 h-16 mx-auto text-black/20 dark:text-white/20 mb-4" />
+              <h3 className="text-xl font-extrabold text-black/60 dark:text-white/60 tracking-tight uppercase">No games found</h3>
+              <p className="text-black/40 dark:text-white/40 mt-2 text-sm max-w-sm mx-auto font-bold uppercase tracking-widest leading-relaxed">
                 {games.length === 0 
-                  ? "Your library is empty. Paste a Steam URL or search a game above to start building your collection!" 
-                  : "No games match your current filters or search query."}
+                  ? "Paste a Steam URL or search a game above to start your collection." 
+                  : "No games match your current filters."}
               </p>
             </div>
           ) : (
@@ -664,9 +707,9 @@ export default function App() {
       {currentView === 'home' && activeProfile !== 'Combined' && (
         <button 
           onClick={() => setCurrentView('sharedList')}
-          className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-4 rounded-full shadow-[0_10px_30px_rgba(79,70,229,0.4)] hover:shadow-[0_15px_40px_rgba(79,70,229,0.6)] font-bold tracking-widest uppercase transition-all flex items-center gap-3 z-50 active:scale-95 border border-indigo-400"
+          className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 bg-neon-pink brutal-btn shadow-pink text-black px-6 py-4 rounded-2xl border-2 border-black hover:-translate-y-1 hover:shadow-brutal-lg active:translate-y-0 active:shadow-none font-extrabold uppercase tracking-widest text-lg transition-all flex items-center gap-3 z-50"
         >
-          <ListPlus className="w-6 h-6" />
+          <ListPlus className="w-6 h-6 border-2 border-black rounded-md p-0.5 bg-white" />
           <span className="hidden sm:inline-block">List</span>
         </button>
       )}
