@@ -4,31 +4,21 @@ import SharedListGameCard from './SharedListGameCard';
 import SharedListAddModal from './SharedListAddModal';
 
 export default function SharedList({ games, setGames, activeProfile, goBack }) {
-  const [filter, setFilter] = useState('All');
+  const [filter, setFilter] = useState('Main');
   const [showAddModal, setShowAddModal] = useState(false);
   
   const dragItem = useRef(null);
   const dragOverItem = useRef(null);
 
   const sharedGames = useMemo(() => {
-    const list = games.filter(g => g.sharedList);
-    if (filter === 'All') {
-      return list.sort((a, b) => {
-        const aBoth = (a.sharedList.upvotes || []).length >= 2;
-        const bBoth = (b.sharedList.upvotes || []).length >= 2;
-        if (aBoth && !bBoth) return -1;
-        if (!aBoth && bBoth) return 1;
-        return a.name.localeCompare(b.name);
-      });
-    } else {
-      return list.filter(g => g.sharedList.type === filter).sort((a, b) => (a.sharedList.order || 0) - (b.sharedList.order || 0));
-    }
+    const list = games.filter(g => g.sharedList && g.sharedList.type === filter);
+    return list.sort((a, b) => (a.sharedList.order || 0) - (b.sharedList.order || 0));
   }, [games, filter]);
 
-  const handleDragStart = (e, idx) => { if (filter === 'All') return; dragItem.current = idx; e.dataTransfer.effectAllowed = 'move'; };
-  const handleDragEnter = (e, idx) => { if (filter === 'All') return; dragOverItem.current = idx; };
+  const handleDragStart = (e, idx) => { dragItem.current = idx; e.dataTransfer.effectAllowed = 'move'; };
+  const handleDragEnter = (e, idx) => { dragOverItem.current = idx; };
   const handleDragEnd = () => {
-    if (filter === 'All' || dragItem.current === null || dragOverItem.current === null || dragItem.current === dragOverItem.current) return;
+    if (dragItem.current === null || dragOverItem.current === null || dragItem.current === dragOverItem.current) return;
     const copy = [...sharedGames]; const dragged = copy[dragItem.current]; copy.splice(dragItem.current, 1); copy.splice(dragOverItem.current, 0, dragged);
     const copyIds = copy.map(c => c.id);
     setGames(prev => prev.map(game => { const i = copyIds.indexOf(game.id); return i > -1 ? { ...game, sharedList: { ...game.sharedList, order: i } } : game; }));
@@ -55,7 +45,7 @@ export default function SharedList({ games, setGames, activeProfile, goBack }) {
             </div>
           </div>
           <div className="bg-white/40 dark:bg-black/40 rounded-2xl p-1.5 border-2 border-black/5 dark:border-white/10 flex gap-1.5 w-full sm:w-auto overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-            {['All', 'Main', 'Side'].map(f => (
+            {['Main', 'Side'].map(f => (
               <button key={f} onClick={() => setFilter(f)} className={pillClass(filter === f)}>{f}</button>
             ))}
           </div>
@@ -70,11 +60,11 @@ export default function SharedList({ games, setGames, activeProfile, goBack }) {
         ) : (
           <div className="flex flex-col gap-4">
             <div className="px-3 text-[10px] font-extrabold text-black/40 dark:text-white/40 uppercase tracking-[0.2em] mb-1 pl-4">
-              {filter === 'All' ? 'Alphabetical / Priority' : 'Drag to Reorder'}
+              Drag to Reorder
             </div>
             {sharedGames.map((game, idx) => (
               <SharedListGameCard key={game.id} game={game} activeProfile={activeProfile} setGames={setGames} viewFilter={filter}
-                draggable={filter !== 'All'} index={idx}
+                draggable index={idx}
                 onDragStart={(e) => handleDragStart(e, idx)} onDragEnter={(e) => handleDragEnter(e, idx)} onDragEnd={handleDragEnd}
               />
             ))}
