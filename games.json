@@ -71,6 +71,13 @@
     "addedBy": [
       "Aadish",
       "Aditya"
-    ]
+    ],
+    "sharedList": {
+      "type": "Side",
+      "addedBy": "Aadish",
+      "upvotes": [
+        "Aadish"
+      ]
+    }
   }
 ]
