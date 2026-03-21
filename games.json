@@ -259,6 +259,13 @@
     "addedBy": [
       "Aadish",
       "Aditya"
-    ]
+    ],
+    "sharedList": {
+      "type": "Main",
+      "addedBy": "Aditya",
+      "upvotes": [
+        "Aditya"
+      ]
+    }
   }
 ]
