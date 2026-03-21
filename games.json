@@ -37,7 +37,14 @@
     "addedBy": [
       "Aditya",
       "Aadish"
-    ]
+    ],
+    "sharedList": {
+      "type": "Side",
+      "addedBy": "Aadish",
+      "upvotes": [
+        "Aadish"
+      ]
+    }
   },
   {
     "appId": "elden-ring-nightreign",
