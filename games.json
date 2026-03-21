@@ -1,5 +1,18 @@
 [
   {
+    "appId": "split-fiction",
+    "name": "Split Fiction",
+    "imageUrl": "https://media.rawg.io/media/games/02a/02ac22b3b90717dabaa535640c38534c.jpg",
+    "steamUrl": "https://store.steampowered.com/search/?term=Split%20Fiction",
+    "status": "Played",
+    "mode": "Multiplayer",
+    "id": "3ddc4bf9-e53b-4fe2-930a-1c41692a595f",
+    "addedAt": 1774078836335,
+    "addedBy": [
+      "Aadish"
+    ]
+  },
+  {
     "appId": "repo-2",
     "name": "R.E.P.O.",
     "imageUrl": "https://media.rawg.io/media/screenshots/5d7/5d754e1dc0084cc9b1b36c1f087cf21f.jpg",
