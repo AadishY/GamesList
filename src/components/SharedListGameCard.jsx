@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ThumbsUp, Pencil, Trash2, ArrowRightLeft, GripVertical, CheckCircle2 } from 'lucide-react';
+import { ThumbsUp, Pencil, Trash2, ArrowRightLeft, GripVertical, CheckCircle2, ExternalLink } from 'lucide-react';
 
 const SharedListGameCard = React.memo(({ 
   game, activeProfile, setGames, viewFilter, draggable, onDragStart, onDragEnter, onDragEnd 
@@ -75,6 +75,12 @@ const SharedListGameCard = React.memo(({
       </div>
 
       <div className="flex items-center gap-2 pr-1">
+        {game.steamUrl && (
+          <a href={game.steamUrl} target="_blank" rel="noopener noreferrer"
+            className="p-3 sm:p-4 bg-black/10 dark:bg-white/10 rounded-xl border-2 border-transparent hover:border-black dark:hover:border-white transition-all flex items-center justify-center"
+            title="Open Steam link"
+          ><ExternalLink className="w-5 h-5 sm:w-6 sm:h-6" /></a>
+        )}
         {canVote && (
           <button onClick={handleVote}
             className="p-3 sm:p-4 bg-neon-yellow brutal-btn rounded-xl transition-all flex items-center justify-center active:scale-90"
