@@ -43,7 +43,8 @@
       "addedBy": "Aadish",
       "upvotes": [
         "Aadish"
-      ]
+      ],
+      "order": 1
     }
   },
   {
@@ -84,7 +85,8 @@
       "addedBy": "Aadish",
       "upvotes": [
         "Aadish"
-      ]
+      ],
+      "order": 0
     }
   }
 ]
