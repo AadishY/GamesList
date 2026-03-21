@@ -1,5 +1,18 @@
 [
   {
+    "appId": "phasmophobia",
+    "name": "Phasmophobia",
+    "imageUrl": "https://media.rawg.io/media/screenshots/370/370895ff725d74e26b8d30389222b397.jpg",
+    "steamUrl": "https://store.steampowered.com/search/?term=Phasmophobia",
+    "status": "Played",
+    "mode": "Multiplayer",
+    "id": "1190d8db-bb27-4b84-81fa-0d055118fd94",
+    "addedAt": 1774078976219,
+    "addedBy": [
+      "Aadish"
+    ]
+  },
+  {
     "appId": "3799100",
     "name": "SIDE EFFECTS",
     "imageUrl": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3799100/header.jpg",
