@@ -10,7 +10,14 @@
     "addedAt": 1774079096811,
     "addedBy": [
       "Aadish"
-    ]
+    ],
+    "sharedList": {
+      "type": "Main",
+      "addedBy": "Aadish",
+      "upvotes": [
+        "Aadish"
+      ]
+    }
   },
   {
     "appId": "lords-of-the-fallen-2",
