@@ -60,7 +60,6 @@ export default function App() {
   // Sync State
   const [syncStatus, setSyncStatus] = useState('syncing'); 
   const isReadyForSync = useRef(false);
-  const lastSyncedState = useRef('[]'); // Prevents infinite push loops
 
   // Router specific
   const navigate = useNavigate();

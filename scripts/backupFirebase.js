@@ -1,4 +1,3 @@
-/* eslint-env node */
 /* global process */
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, getDocs } from 'firebase/firestore';

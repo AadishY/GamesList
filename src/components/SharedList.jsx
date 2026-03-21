@@ -3,11 +3,7 @@ import { ArrowLeft, Plus, Gamepad2 } from 'lucide-react';
 import SharedListGameCard from './SharedListGameCard';
 import SharedListAddModal from './SharedListAddModal';
 
-<<<<<<< HEAD
 export default function SharedList({ games, updateFirebaseGame, activeProfile, goBack }) {
-=======
-export default function SharedList({ games, setGames, activeProfile, goBack }) {
->>>>>>> 70c63fd9f68c6c1d4f0009f4585df0bfd497d2fd
   const [filter, setFilter] = useState('Main');
   const [showAddModal, setShowAddModal] = useState(false);
   
@@ -68,13 +64,8 @@ export default function SharedList({ games, setGames, activeProfile, goBack }) {
               Drag to Reorder
             </div>
             {sharedGames.map((game, idx) => (
-<<<<<<< HEAD
               <SharedListGameCard key={game.id} game={game} activeProfile={activeProfile} updateFirebaseGame={updateFirebaseGame} viewFilter={filter}
                 draggable={true} index={idx}
-=======
-              <SharedListGameCard key={game.id} game={game} activeProfile={activeProfile} setGames={setGames} viewFilter={filter}
-                draggable index={idx}
->>>>>>> 70c63fd9f68c6c1d4f0009f4585df0bfd497d2fd
                 onDragStart={(e) => handleDragStart(e, idx)} onDragEnter={(e) => handleDragEnter(e, idx)} onDragEnd={handleDragEnd}
               />
             ))}
