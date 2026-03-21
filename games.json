@@ -1,5 +1,18 @@
 [
   {
+    "appId": "demonologist-2",
+    "name": "Demonologist",
+    "imageUrl": "https://media.rawg.io/media/screenshots/739/739cb7963f74b31eea450baf642d19d1.jpg",
+    "steamUrl": "https://store.steampowered.com/search/?term=Demonologist",
+    "status": "Played",
+    "mode": "Multiplayer",
+    "id": "dc383dc3-de82-437f-b721-45845764f195",
+    "addedAt": 1774078995278,
+    "addedBy": [
+      "Aadish"
+    ]
+  },
+  {
     "appId": "phasmophobia",
     "name": "Phasmophobia",
     "imageUrl": "https://media.rawg.io/media/screenshots/370/370895ff725d74e26b8d30389222b397.jpg",
