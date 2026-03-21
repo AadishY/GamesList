@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import { ListPlus, CheckCircle2, Trash2, X } from 'lucide-react';
+import OptimizedImage from './OptimizedImage';
 
 export default function GameModal({ 
   gameData, setGameData, onSave, onCancel, onDelete, isEditMode 
 }) {
-  const [imgLoaded, setImgLoaded] = useState(false);
-
   if (!gameData) return null;
 
   const optClass = (active, colorClass) => {
@@ -22,15 +21,9 @@ export default function GameModal({
         
         {/* Header Image */}
         <div className="relative h-48 sm:h-[220px] bg-black/10 dark:bg-white/5 shrink-0 rounded-t-[calc(1.5rem-2px)] sm:rounded-t-[calc(2rem-2px)] overflow-hidden">
-          {!imgLoaded && (
-            <div className="absolute inset-0 bg-black/20 dark:bg-white/10 animate-shimmer"></div>
-          )}
-          <img 
+          <OptimizedImage 
             src={gameData.imageUrl} alt={gameData.name}
-            onLoad={() => setImgLoaded(true)}
-            decoding="async"
-            className={`w-full h-full object-cover transition-opacity duration-500 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
-            onError={(e) => { e.target.src = `https://placehold.co/460x215/1a1a1a/8b5cf6?text=${encodeURIComponent(gameData.name)}`; }}
+            width={640} priority={true}
           />
           <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#fafafa] dark:from-[#050505] to-transparent"></div>
 

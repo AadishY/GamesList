@@ -1,22 +1,15 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useRef } from 'react';
 import { ExternalLink, User, Users, ShieldAlert, Pencil } from 'lucide-react';
+import OptimizedImage from './OptimizedImage';
 
 const GameCard = React.memo(({ game, index = 0, activeProfile, setEditingGame, onRemove, viewMode = 'grid' }) => {
-  const [imgLoaded, setImgLoaded] = useState(false);
   const cardRef = useRef(null);
   const addedBy = game.addedBy || [];
   const isBoth = addedBy.length === 2;
   const hasAadish = addedBy.includes('Aadish');
   const hasAditya = addedBy.includes('Aditya');
   const isMyGame = activeProfile !== 'Combined' && addedBy.includes(activeProfile);
-
-  // Cap stagger delay to prevent long waits
   const staggerDelay = Math.min((index % 15) * 35, 500);
-
-  const handleImgLoad = useCallback(() => setImgLoaded(true), []);
-  const handleImgError = useCallback((e) => {
-    e.target.src = `https://placehold.co/460x215/1a1a1a/8b5cf6?text=${encodeURIComponent(game.name)}`;
-  }, [game.name]);
 
   const playerBadge = (sm = false) => {
     const cls = sm ? 'text-[9px] px-1.5 py-0.5' : 'text-[10px] px-2 py-1';
@@ -76,10 +69,6 @@ const GameCard = React.memo(({ game, index = 0, activeProfile, setEditingGame, o
     );
   };
 
-  // Skeleton loader with shimmer
-  const skeleton = !imgLoaded && (
-    <div className="absolute inset-0 bg-black/10 dark:bg-white/10 animate-shimmer"></div>
-  );
 
   // ── TABLE VIEW ──
   if (viewMode === 'table') {
@@ -90,13 +79,9 @@ const GameCard = React.memo(({ game, index = 0, activeProfile, setEditingGame, o
         style={{ animationDelay: `${staggerDelay}ms` }}
       >
         <div className="relative w-24 h-16 sm:w-32 sm:h-20 flex-shrink-0 border-2 border-black/20 dark:border-white/20 rounded-xl overflow-hidden">
-          {skeleton}
-          <img 
+          <OptimizedImage 
             src={game.imageUrl} alt={game.name}
-            loading="lazy" decoding="async"
-            onLoad={handleImgLoad}
-            className={`w-full h-full object-cover transition-opacity duration-300 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
-            onError={handleImgError}
+            width={240} priority={index < 3}
           />
         </div>
         <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
@@ -125,13 +110,9 @@ const GameCard = React.memo(({ game, index = 0, activeProfile, setEditingGame, o
         style={{ animationDelay: `${staggerDelay}ms` }}
       >
         <div className="relative aspect-[460/215] bg-black/5 dark:bg-white/5 border-b-2 border-black/10 dark:border-white/10 overflow-hidden">
-          {skeleton}
-          <img 
+          <OptimizedImage 
             src={game.imageUrl} alt={game.name} 
-            loading="lazy" decoding="async"
-            onLoad={handleImgLoad}
-            className={`w-full h-full object-cover transition-opacity duration-300 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
-            onError={handleImgError}
+            width={420} priority={index < 3}
           />
           <div className="absolute top-2 left-2 flex gap-1">{statusBadge(true)}{playerBadge(true)}</div>
         </div>
@@ -161,13 +142,9 @@ const GameCard = React.memo(({ game, index = 0, activeProfile, setEditingGame, o
       style={{ animationDelay: `${staggerDelay}ms` }}
     >
       <div className="relative aspect-[460/215] bg-black/5 dark:bg-white/5 overflow-hidden border-b-2 border-black/10 dark:border-white/10 rounded-t-[calc(1.5rem-2px)]">
-        {skeleton}
-        <img 
+        <OptimizedImage 
           src={game.imageUrl} alt={game.name} 
-          loading="lazy" decoding="async"
-          onLoad={handleImgLoad}
-          className={`w-full h-full object-cover transition-opacity duration-300 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
-          onError={handleImgError}
+          width={640} priority={index < 3}
         />
         <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white/20 dark:from-black/50 to-transparent"></div>
 

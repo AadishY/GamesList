@@ -1,12 +1,11 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { ThumbsUp, Pencil, Trash2, ArrowRightLeft, GripVertical, CheckCircle2, ExternalLink } from 'lucide-react';
+import OptimizedImage from './OptimizedImage';
 
 const SharedListGameCard = React.memo(({ 
   game, index = 0, activeProfile, updateFirebaseGame, viewFilter, draggable, onDragStart, onDragEnter, onDragEnd 
 }) => {
   const [showMenu, setShowMenu] = useState(false);
-  const [imgLoaded, setImgLoaded] = useState(false);
-
   const shared = game.sharedList || {};
   const upvotes = shared.upvotes || [];
   const bothWanted = upvotes.length >= 2;
@@ -14,13 +13,7 @@ const SharedListGameCard = React.memo(({
   const haveIVoted = upvotes.includes(activeProfile);
   const canVote = activeProfile !== 'Combined' && !isMyGame && !haveIVoted;
   const canEdit = activeProfile !== 'Combined';
-
   const staggerDelay = Math.min((index % 15) * 35, 500);
-
-  const handleImgLoad = useCallback(() => setImgLoaded(true), []);
-  const handleImgError = useCallback((e) => {
-    e.target.src = `https://placehold.co/460x215/1a1a1a/8b5cf6?text=${encodeURIComponent(game.name)}`;
-  }, [game.name]);
 
   const handleVote = () => {
     if (!canVote) return;
@@ -50,16 +43,10 @@ const SharedListGameCard = React.memo(({
     >
       {draggable && <div className="text-black/50 dark:text-white/20 group-hover:text-neon-pink transition-colors pl-1 cursor-grab"><GripVertical className="w-7 h-7" /></div>}
 
-      <div className="relative w-20 h-14 sm:w-32 sm:h-20 flex-shrink-0 border-2 border-black/20 dark:border-white/20 rounded-xl overflow-hidden">
-        {!imgLoaded && (
-          <div className="absolute inset-0 bg-black/10 dark:bg-white/10 animate-shimmer"></div>
-        )}
-        <img 
+      <div className="relative w-20 h-14 sm:w-32 sm:h-20 flex-shrink-0 border-2 border-black/20 dark:border-white/20 rounded-xl overflow-hidden text-black dark:text-white">
+        <OptimizedImage 
           src={game.imageUrl} alt={game.name}
-          loading="lazy" decoding="async"
-          onLoad={handleImgLoad}
-          className={`w-full h-full object-cover transition-opacity duration-300 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
-          onError={handleImgError}
+          width={240} priority={index < 3}
         />
       </div>
       

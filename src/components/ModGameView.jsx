@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { ArrowLeft, Plus, Settings2, Link as LinkIcon, Calendar, Info, Trash2 } from 'lucide-react';
+import OptimizedImage from './OptimizedImage';
 import ModAddModal from './ModAddModal'; 
 import DeleteWarningModal from './DeleteWarningModal';
 
@@ -52,7 +53,7 @@ export default function ModGameView({ gameEntry, goBack, updateFirebaseMod }) {
         {/* Header styling similar to SharedList */}
         <div className="glass-panel-flat p-4 sm:p-5 rounded-[2rem] flex flex-col sm:flex-row items-stretch sm:items-center gap-5 mb-8 relative overflow-hidden">
           <div className="absolute inset-0 opacity-10 pointer-events-none">
-            <img src={gameEntry.gameImageUrl} alt="bg" className="w-full h-full object-cover blur-md" />
+            <OptimizedImage src={gameEntry.gameImageUrl} alt="bg" width={640} className="blur-md" />
           </div>
           <div className="relative z-10 flex flex-1 items-center justify-between gap-4 pl-1">
             <div className="flex items-center gap-4">
@@ -78,12 +79,12 @@ export default function ModGameView({ gameEntry, goBack, updateFirebaseMod }) {
           <div className="flex flex-col gap-4">
             {modsList.map((mod, index) => (
               <div key={mod.id} className="group glass-panel-flat p-4 sm:p-5 flex flex-col sm:flex-row gap-4 hover:shadow-brutal transition-[box-shadow] items-start sm:items-center animate-stagger-enter" style={{ animationDelay: `${Math.min(index * 40, 500)}ms` }}>
-                <img 
-                  src={mod.image || `https://placehold.co/100x100/1a1a1a/8b5cf6?text=${encodeURIComponent(mod.name)}`} 
-                  alt={mod.name} 
-                  className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover border-2 border-black/10 dark:border-white/10 flex-shrink-0"
-                  decoding="async" loading="lazy"
-                />
+                <div className="w-16 h-16 sm:w-20 sm:h-20 flex-shrink-0 border-2 border-black/10 dark:border-white/20 rounded-xl overflow-hidden">
+                  <OptimizedImage 
+                    src={mod.image} alt={mod.name} 
+                    width={200} priority={index < 3}
+                  />
+                </div>
                 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">

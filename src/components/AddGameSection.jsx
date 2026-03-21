@@ -1,4 +1,5 @@
 import { ListPlus, Search, Loader2, X, AlertCircle } from 'lucide-react';
+import OptimizedImage from './OptimizedImage';
 
 export default function AddGameSection({
   activeProfile, urlInput, handleInputChange, handleFetchGameDetails,
@@ -41,10 +42,12 @@ export default function AddGameSection({
                   <div key={game.id} onMouseDown={(e) => { e.preventDefault(); handleSelectSearchResult(game); }} onClick={() => handleSelectSearchResult(game)} 
                     className={`flex items-center gap-4 p-3 hover:bg-neon-yellow/20 dark:hover:bg-neon-yellow/10 cursor-pointer transition-colors border-b-2 border-black/5 dark:border-white/5 last:border-0 ${isAddedByMe ? 'opacity-40 grayscale' : ''}`}
                   >
-                    <img src={game.background_image || `https://placehold.co/100x100/1a1a1a/8b5cf6?text=${encodeURIComponent(game.name)}`} alt={game.name} 
-                      className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover border-2 border-black/20 dark:border-white/20 flex-shrink-0"
-                      loading="lazy" decoding="async"
-                    />
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0 border-2 border-black/20 dark:border-white/20 rounded-xl overflow-hidden">
+                      <OptimizedImage 
+                        src={game.background_image} alt={game.name} 
+                        width={200}
+                      />
+                    </div>
                     <div className="flex flex-col min-w-0 w-full">
                       <span className="font-black text-sm sm:text-base truncate uppercase tracking-tight">{game.name}</span>
                       <div className="flex items-center gap-2 mt-1 flex-wrap">
