@@ -44,20 +44,20 @@ export default function ModsList({ games, activeProfile, goBack, mods, updateFir
         <div className="glass-panel-flat p-4 sm:p-5 rounded-[2rem] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-5 mb-8">
           <div className="flex items-center gap-4 pl-1">
             <button onClick={goBack}
-              className="p-3.5 sm:p-3 bg-white/50 dark:bg-white/10 rounded-2xl sm:rounded-xl border-2 border-black/10 dark:border-white/20 shadow-sm hover:-translate-y-1 hover:shadow-brutal-sm active:translate-y-0 active:shadow-none transition-all"
+              className="p-3.5 sm:p-3 bg-white/50 dark:bg-white/10 rounded-2xl sm:rounded-xl border-2 border-black/10 dark:border-white/20 shadow-sm hover:-translate-y-1 hover:shadow-brutal-sm active:translate-y-0 active:shadow-none transition-[transform,box-shadow]"
             ><ArrowLeft className="w-5 h-5 pointer-events-none" /></button>
             <div className="flex flex-col">
-              <h2 className="text-xl sm:text-2xl font-black tracking-tighter uppercase leading-none">Mods Library</h2>
-              <p className="text-[10px] text-black/50 dark:text-white/50 font-extrabold uppercase tracking-[0.2em] mt-1.5 ml-0.5">{activeProfile}&apos;s Mods</p>
+              <h2 className="text-xl sm:text-2xl font-black tracking-tighter uppercase leading-none text-black dark:text-white">Mods Library</h2>
+              <p className="text-[10px] text-black/70 dark:text-white/50 font-black uppercase tracking-[0.2em] mt-1.5 ml-0.5">{activeProfile}&apos;s Mods</p>
             </div>
           </div>
         </div>
 
         {profileModsEntries.length === 0 ? (
           <div className="text-center py-20 glass-panel rounded-[2rem] border-dashed">
-            <Box className="w-16 h-16 mx-auto text-black/20 dark:text-white/20 mb-5" />
+            <Box className="w-16 h-16 mx-auto text-black/50 dark:text-white/20 mb-5" />
             <h3 className="text-2xl font-black text-black/60 dark:text-white/60 uppercase tracking-tighter">No games tracked</h3>
-            <p className="text-black/40 dark:text-white/40 font-bold mt-2 text-xs uppercase tracking-widest max-w-[200px] mx-auto leading-relaxed">Add a game to start tracking its mods.</p>
+            <p className="text-black/60 dark:text-white/40 font-black mt-2 text-xs uppercase tracking-widest max-w-[200px] mx-auto leading-relaxed">Add a game to start tracking its mods.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -65,25 +65,26 @@ export default function ModsList({ games, activeProfile, goBack, mods, updateFir
               <div 
                 key={entry.id}
                 onClick={() => setSelectedGame(entry)}
-                className="group cursor-pointer flex flex-col glass-panel overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-brutal-lg animate-stagger-enter"
+                className="group cursor-pointer flex flex-col glass-panel overflow-hidden transition-[transform,box-shadow] duration-200 hover:-translate-y-1 hover:shadow-brutal-lg animate-stagger-enter"
                 style={{ animationDelay: `${(index % 20) * 40}ms` }}
               >
                 <div className="relative aspect-[460/215] bg-black/5 dark:bg-white/5 overflow-hidden border-b-2 border-black/10 dark:border-white/10 rounded-t-[calc(1.5rem-2px)]">
                   <img 
                     src={entry.gameImageUrl} alt={entry.gameName} 
                     loading="lazy"
-                    className="w-full h-full object-cover group-hover:scale-110 transition-all duration-700 ease-out"
+                    className="w-full h-full object-cover"
+                    decoding="async"
                     onError={(e) => { e.target.src = `https://placehold.co/460x215/1a1a1a/8b5cf6?text=${encodeURIComponent(entry.gameName)}`; }}
                   />
                   <div className="absolute top-2 right-2 flex gap-1.5">
-                    <div className="bg-neon-cyan text-black border-2 border-black rounded-lg px-2 py-1 flex items-center gap-1.5 font-bold text-xs uppercase shadow-none group-hover:shadow-brutal-sm transition-all">
+                    <div className="bg-neon-cyan text-black border-2 border-black rounded-lg px-2 py-1 flex items-center gap-1.5 font-black text-xs uppercase shadow-none group-hover:shadow-brutal-sm transition-[box-shadow]">
                       <Settings className="w-3 h-3" /> {(entry.modsList || []).length}
                     </div>
                   </div>
                 </div>
                 <div className="p-4 flex flex-col flex-1 relative bg-white/50 dark:bg-black/50 backdrop-blur-sm">
                   <div className="flex items-center justify-between gap-3">
-                    <h3 className="font-extrabold text-lg leading-tight line-clamp-1 uppercase tracking-tighter transition-colors group-hover:text-neon-purple flex-1" title={entry.gameName}>
+                    <h3 className="font-black text-lg leading-tight line-clamp-1 uppercase tracking-tighter transition-colors group-hover:text-neon-purple flex-1" title={entry.gameName}>
                       {entry.gameName}
                     </h3>
                     <button 
@@ -91,7 +92,7 @@ export default function ModsList({ games, activeProfile, goBack, mods, updateFir
                         e.stopPropagation();
                         setGameToDelete(entry);
                       }}
-                      className="p-2 bg-[#ff4a4a] text-black border-2 border-black rounded-lg shadow-sm hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
+                      className="p-2 bg-[#ff4a4a] text-black border-2 border-black rounded-lg shadow-sm hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-[transform,box-shadow]"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -104,7 +105,7 @@ export default function ModsList({ games, activeProfile, goBack, mods, updateFir
       </div>
 
       <button onClick={() => setShowAddModal(true)}
-        className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 bg-neon-cyan text-black px-6 py-5 sm:py-4 rounded-2xl sm:rounded-[1.5rem] brutal-btn font-extrabold uppercase tracking-widest text-lg transition-all flex items-center justify-center gap-3 z-50 pointer-events-auto active:scale-95"
+        className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 bg-neon-cyan text-black px-6 py-5 sm:py-4 rounded-2xl sm:rounded-[1.5rem] brutal-btn font-extrabold uppercase tracking-widest text-lg transition-[transform,box-shadow] flex items-center justify-center gap-3 z-50 pointer-events-auto active:scale-95"
       >
         <Plus className="w-7 h-7 sm:w-6 sm:h-6 border-2 border-black rounded-md p-0.5 bg-white shadow-brutal-sm" />
         <span className="hidden sm:inline-block">Add Game</span>

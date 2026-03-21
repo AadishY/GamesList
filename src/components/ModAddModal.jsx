@@ -119,10 +119,10 @@ export default function ModAddModal({ gameEntry, updateFirebaseMod, onClose }) {
 
         <form onSubmit={handleFetchOrAdd} className="p-4 sm:p-6 flex flex-col gap-4">
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-black/40 dark:text-white/40" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-black/70 dark:text-white/40" />
             <input type="text" value={inputVal} onChange={e => setInputVal(e.target.value)}
               placeholder="Paste Nexus Mod Link OR type mod name..."
-              className="w-full bg-white/50 dark:bg-black/80 border-2 border-black/10 dark:border-white/20 rounded-2xl pl-12 pr-4 py-4 sm:py-3 text-base sm:text-lg font-bold outline-none focus:border-black dark:focus:border-white focus:bg-white focus:shadow-brutal transition-all placeholder-black/30 dark:placeholder-white/30"
+              className="w-full bg-white/50 dark:bg-black/80 border-2 border-black/10 dark:border-white/20 rounded-2xl pl-12 pr-4 py-4 sm:py-3 text-base sm:text-lg font-black outline-none focus:border-black dark:focus:border-white focus:bg-white focus:shadow-brutal transition-all placeholder-black/60 dark:placeholder-white/30"
               disabled={loading}
             />
           </div>
@@ -135,7 +135,7 @@ export default function ModAddModal({ gameEntry, updateFirebaseMod, onClose }) {
 
           <div className="flex justify-end mt-2">
             <button type="submit" disabled={loading || !inputVal.trim()}
-              className="bg-neon-pink brutal-btn px-8 py-4 sm:py-3 rounded-2xl text-base sm:text-lg disabled:opacity-50 whitespace-nowrap flex items-center justify-center gap-3 active:scale-95 w-full sm:w-auto"
+              className="bg-neon-pink brutal-btn px-8 py-4 sm:py-3 rounded-2xl text-base sm:text-lg font-black disabled:opacity-50 whitespace-nowrap flex items-center justify-center gap-3 active:scale-95 w-full sm:w-auto"
             >
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5 hidden sm:block" />}
               {loading ? 'WAIT' : 'ADD MOD'}

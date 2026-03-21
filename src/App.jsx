@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { Gamepad2, ListPlus, X, Settings2 } from 'lucide-react';
+import { useState, useEffect, useRef, useMemo, useCallback, lazy, Suspense } from 'react';
+import { Gamepad2, ListPlus, X, Settings2, Loader2 } from 'lucide-react';
 
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { collection, onSnapshot, doc, setDoc, deleteDoc } from 'firebase/firestore';
@@ -14,8 +14,20 @@ import AddGameSection from './components/AddGameSection';
 import FilterSection from './components/FilterSection';
 import GameCard from './components/GameCard';
 import Footer from './components/Footer';
-import SharedList from './components/SharedList';
-import ModsList from './components/ModsList';
+
+// Lazy-loaded route components for code splitting
+const SharedList = lazy(() => import('./components/SharedList'));
+const ModsList = lazy(() => import('./components/ModsList'));
+
+// Route loading fallback
+const RouteFallback = () => (
+  <div className="flex-1 flex items-center justify-center py-20">
+    <div className="flex flex-col items-center gap-4 animate-fade-scale">
+      <Loader2 className="w-8 h-8 animate-spin text-neon-pink" />
+      <span className="text-xs font-black uppercase tracking-widest text-black/80 dark:text-white/60">Loading...</span>
+    </div>
+  </div>
+);
 
 export default function App() {
   // App State
@@ -577,7 +589,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col transition-colors selection:bg-neon-pink/30 selection:text-black">
+    <div className="min-h-screen flex flex-col transition-[background-color,color] selection:bg-neon-pink/30 selection:text-black">
       
       <DeleteModal 
         gameToDelete={gameToDelete} 
@@ -618,34 +630,36 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Navigate to={`/${activeProfile || ''}`} replace />} />
         <Route path="/:profileId/list" element={
-          <SharedList 
-            games={games} 
-            activeProfile={activeProfile} 
-            goBack={() => navigate(`/${activeProfile}`)} 
-            updateFirebaseGame={updateFirebaseGame}
-          />
+          <Suspense fallback={<RouteFallback />}>
+            <SharedList 
+              games={games} 
+              activeProfile={activeProfile} 
+              goBack={() => navigate(`/${activeProfile}`)} 
+              updateFirebaseGame={updateFirebaseGame}
+            />
+          </Suspense>
         } />
         <Route path="/:profileId/mods" element={
-          <ModsList 
-            games={games}
-            activeProfile={activeProfile} 
-            goBack={() => navigate(`/${activeProfile}`)} 
-            mods={mods}
-            // Mods list setMods would ideally be replaced by firebase updates inside ModsList.
-            // For now, passing updateFirebaseGame generic or a specialized updateFirebaseMod.
-            updateFirebaseMod={async (modId, updateFn) => {
-              const currentMod = mods.find(m => m.id === modId);
-              if (currentMod) {
-                await setDoc(doc(db, 'mods', String(modId)), updateFn({ ...currentMod }));
-              }
-            }}
-            addFirebaseMod={async (newMod) => {
-              await setDoc(doc(db, 'mods', String(newMod.id)), newMod);
-            }}
-            deleteFirebaseMod={async (modId) => {
-              await deleteDoc(doc(db, 'mods', String(modId)));
-            }}
-          />
+          <Suspense fallback={<RouteFallback />}>
+            <ModsList 
+              games={games}
+              activeProfile={activeProfile} 
+              goBack={() => navigate(`/${activeProfile}`)} 
+              mods={mods}
+              updateFirebaseMod={async (modId, updateFn) => {
+                const currentMod = mods.find(m => m.id === modId);
+                if (currentMod) {
+                  await setDoc(doc(db, 'mods', String(modId)), updateFn({ ...currentMod }));
+                }
+              }}
+              addFirebaseMod={async (newMod) => {
+                await setDoc(doc(db, 'mods', String(newMod.id)), newMod);
+              }}
+              deleteFirebaseMod={async (modId) => {
+                await deleteDoc(doc(db, 'mods', String(modId)));
+              }}
+            />
+          </Suspense>
         } />
         <Route path="/:profileId" element={
           <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 space-y-6 flex-1 w-full relative">
@@ -678,9 +692,9 @@ export default function App() {
           {/* Games Grid */}
           {filteredGames.length === 0 ? (
             <div className="text-center py-20 glass-panel rounded-[2rem] border-dashed">
-              <Gamepad2 className="w-16 h-16 mx-auto text-black/20 dark:text-white/20 mb-4" />
-              <h3 className="text-xl font-extrabold text-black/60 dark:text-white/60 tracking-tight uppercase">No games found</h3>
-              <p className="text-black/40 dark:text-white/40 mt-2 text-sm max-w-sm mx-auto font-bold uppercase tracking-widest leading-relaxed">
+              <Gamepad2 className="w-16 h-16 mx-auto text-black/50 dark:text-white/20 mb-4" />
+              <h3 className="text-xl font-extrabold text-black/70 dark:text-white/60 tracking-tight uppercase">No games found</h3>
+              <p className="text-black/70 dark:text-white/60 mt-2 text-sm max-w-sm mx-auto font-bold uppercase tracking-widest leading-relaxed">
                 {games.length === 0 
                   ? "Paste a Steam URL or search a game above to start your collection." 
                   : "No games match your current filters."}
@@ -688,7 +702,7 @@ export default function App() {
             </div>
           ) : (
             <div className={
-              viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-8' :
+              viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-7' :
               viewMode === 'compact' ? 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4' :
               'flex flex-col gap-3'
             }>

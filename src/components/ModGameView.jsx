@@ -57,11 +57,11 @@ export default function ModGameView({ gameEntry, goBack, updateFirebaseMod }) {
           <div className="relative z-10 flex flex-1 items-center justify-between gap-4 pl-1">
             <div className="flex items-center gap-4">
               <button onClick={goBack}
-                className="p-3.5 sm:p-3 bg-white/50 dark:bg-white/10 rounded-2xl sm:rounded-xl border-2 border-black/10 dark:border-white/20 shadow-sm hover:-translate-y-1 hover:shadow-brutal-sm active:translate-y-0 active:shadow-none transition-all"
+                className="p-3.5 sm:p-3 bg-white/50 dark:bg-white/10 rounded-2xl sm:rounded-xl border-2 border-black/10 dark:border-white/20 shadow-sm hover:-translate-y-1 hover:shadow-brutal-sm active:translate-y-0 active:shadow-none transition-[transform,box-shadow]"
               ><ArrowLeft className="w-5 h-5 pointer-events-none" /></button>
               <div className="flex flex-col">
-                <h2 className="text-xl sm:text-2xl font-black tracking-tighter uppercase leading-none">{gameEntry.gameName} Mods</h2>
-                <p className="text-[10px] text-black/50 dark:text-white/50 font-extrabold uppercase tracking-[0.2em] mt-1.5 ml-0.5">{modsList.length} Installed</p>
+                <h2 className="text-xl sm:text-2xl font-black tracking-tighter uppercase leading-none text-black dark:text-white">{gameEntry.gameName} Mods</h2>
+                <p className="text-[10px] text-black/70 dark:text-white/50 font-black uppercase tracking-[0.2em] mt-1.5 ml-0.5">{modsList.length} Installed</p>
               </div>
             </div>
             
@@ -70,35 +70,36 @@ export default function ModGameView({ gameEntry, goBack, updateFirebaseMod }) {
 
         {modsList.length === 0 ? (
           <div className="text-center py-20 glass-panel rounded-[2rem] border-dashed">
-            <Settings2 className="w-16 h-16 mx-auto text-black/20 dark:text-white/20 mb-5" />
+            <Settings2 className="w-16 h-16 mx-auto text-black/50 dark:text-white/20 mb-5" />
             <h3 className="text-2xl font-black text-black/60 dark:text-white/60 uppercase tracking-tighter">No mods installed</h3>
-            <p className="text-black/40 dark:text-white/40 font-bold mt-2 text-xs uppercase tracking-widest max-w-[200px] mx-auto leading-relaxed">Add a mod to enhance your game.</p>
+            <p className="text-black/60 dark:text-white/40 font-black mt-2 text-xs uppercase tracking-widest max-w-[200px] mx-auto leading-relaxed">Add a mod to enhance your game.</p>
           </div>
         ) : (
           <div className="flex flex-col gap-4">
-            {modsList.map((mod) => (
-              <div key={mod.id} className="group glass-panel-flat p-4 sm:p-5 flex flex-col sm:flex-row gap-4 hover:shadow-brutal transition-all items-start sm:items-center">
+            {modsList.map((mod, index) => (
+              <div key={mod.id} className="group glass-panel-flat p-4 sm:p-5 flex flex-col sm:flex-row gap-4 hover:shadow-brutal transition-[box-shadow] items-start sm:items-center animate-stagger-enter" style={{ animationDelay: `${Math.min(index * 40, 500)}ms` }}>
                 <img 
                   src={mod.image || `https://placehold.co/100x100/1a1a1a/8b5cf6?text=${encodeURIComponent(mod.name)}`} 
                   alt={mod.name} 
                   className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover border-2 border-black/10 dark:border-white/10 flex-shrink-0"
+                  decoding="async" loading="lazy"
                 />
                 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-extrabold text-lg sm:text-xl truncate tracking-tight uppercase" title={mod.name}>{mod.name}</h3>
+                    <h3 className="font-black text-lg sm:text-xl truncate tracking-tight uppercase text-black dark:text-white" title={mod.name}>{mod.name}</h3>
                     <span className="bg-neon-yellow text-black px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-widest border border-black/10">v{mod.version || '1.0'}</span>
                   </div>
-                  <p className="text-sm text-black/60 dark:text-white/60 font-bold line-clamp-2">{mod.description || 'No description provided.'}</p>
+                  <p className="text-sm text-black/60 dark:text-white/60 font-black line-clamp-2">{mod.description || 'No description provided.'}</p>
                   
                   <div className="flex flex-wrap items-center gap-3 mt-3">
                     {mod.lastUpdated && (
-                      <div className="flex items-center gap-1.5 text-xs text-black/40 dark:text-white/40 font-bold">
+                      <div className="flex items-center gap-1.5 text-xs text-black/55 dark:text-white/40 font-black">
                         <Calendar className="w-3.5 h-3.5" /> Updated {mod.lastUpdated}
                       </div>
                     )}
                     {mod.changelog && (
-                      <button onClick={() => setChangelogMod(mod)} className="flex items-center gap-1.5 text-xs text-neon-purple hover:underline font-bold uppercase tracking-widest">
+                      <button onClick={() => setChangelogMod(mod)} className="flex items-center gap-1.5 text-xs text-neon-purple hover:underline font-black uppercase tracking-widest">
                         <Info className="w-3.5 h-3.5" /> Changelog
                       </button>
                     )}
@@ -114,7 +115,7 @@ export default function ModGameView({ gameEntry, goBack, updateFirebaseMod }) {
                      </a>
                   )}
                   <button onClick={() => setModToDelete(mod)}
-                    className="flex items-center justify-center p-2 sm:p-3 bg-white/10 hover:bg-[#ff4a4a] text-black/40 dark:text-white/40 hover:text-white rounded-xl transition-colors border-2 border-transparent hover:border-black dark:hover:border-white"
+                    className="flex items-center justify-center p-2 sm:p-3 bg-white/10 hover:bg-[#ff4a4a] text-black/55 dark:text-white/40 hover:text-white rounded-xl transition-colors border-2 border-transparent hover:border-black dark:hover:border-white"
                   >
                     <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
                   </button>
@@ -126,7 +127,7 @@ export default function ModGameView({ gameEntry, goBack, updateFirebaseMod }) {
       </div>
 
       <button onClick={() => setShowAddMod(true)}
-        className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 bg-neon-purple text-black px-6 py-5 sm:py-4 rounded-2xl sm:rounded-[1.5rem] brutal-btn font-extrabold uppercase tracking-widest text-lg transition-all flex items-center justify-center gap-3 z-50 pointer-events-auto active:scale-95"
+        className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 bg-neon-purple text-black px-6 py-5 sm:py-4 rounded-2xl sm:rounded-[1.5rem] brutal-btn font-extrabold uppercase tracking-widest text-lg transition-[transform,box-shadow] flex items-center justify-center gap-3 z-50 pointer-events-auto active:scale-95"
       >
         <Plus className="w-7 h-7 sm:w-6 sm:h-6 border-2 border-black rounded-md p-0.5 bg-white shadow-brutal-sm" />
         <span className="hidden sm:inline-block">Add Mod</span>
@@ -143,7 +144,7 @@ export default function ModGameView({ gameEntry, goBack, updateFirebaseMod }) {
       {changelogMod && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm shadow-brutal-lg">
           <div className="glass-panel w-full max-w-lg p-6 flex flex-col gap-4">
-            <h3 className="text-xl font-black uppercase tracking-tight">Changelog: {changelogMod.name}</h3>
+            <h3 className="text-xl font-black uppercase tracking-tight text-black dark:text-white">Changelog: {changelogMod.name}</h3>
             <div className="max-h-64 overflow-y-auto text-sm text-black/80 dark:text-white/80 p-4 bg-black/5 dark:bg-white/5 rounded-xl border border-black/10 dark:border-white/10 whitespace-pre-wrap">
               {sortedChangelogText}
             </div>

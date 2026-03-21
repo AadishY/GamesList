@@ -9,81 +9,267 @@
   --color-neon-orange: #f97316;
 }
 
+/* Force Tailwind v4 to use class-based dark mode instead of media query */
+@variant dark (&:where(.dark, .dark *));
+
 /* ── Premium Glass-Brutalism Foundation ── */
 
 * {
   scroll-behavior: smooth;
-  -webkit-tap-highlight-color: transparent; /* Remove mobile tap highlight */
-  touch-action: manipulation; /* KILLS 300ms mobile tap delay */
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
-/* Base grid background — heavily visible stark grid */
+::selection {
+  background-color: #ec4899;
+  color: #fff;
+}
+
+.dark ::selection {
+  background-color: #a855f7;
+  color: #fff;
+}
+
+:focus-visible {
+  outline: 3px solid #ec4899;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.dark :focus-visible {
+  outline: 3px solid #a855f7;
+}
+
+/* Base grid background */
 body {
-  background-color: #f4f4f5; /* zinc-100 */
+  background-color: #f4f4f5;
   background-image: 
-    linear-gradient(to right, rgba(0,0,0,0.08) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(0,0,0,0.08) 1px, transparent 1px);
+    linear-gradient(to right, rgba(0,0,0,0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0,0,0,0.06) 1px, transparent 1px);
   background-size: 32px 32px;
 }
 html.dark body {
-  background-color: #050510; /* deep dark space */
+  background-color: #050510;
   background-image: 
-    linear-gradient(to right, rgba(255,255,255,0.08) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255,255,255,0.08) 1px, transparent 1px);
+    linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
   background-size: 32px 32px;
 }
 
-/* Scrollbar — sleek glass brutal */
-::-webkit-scrollbar { width: 12px; }
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { 
-  background: rgba(0,0,0,0.8); 
-  border: 3px solid #f4f4f5; 
-  border-radius: 8px; 
+  background: rgba(0,0,0,0.35); 
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  border-radius: 10px; 
 }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.55); background-clip: padding-box; }
 .dark ::-webkit-scrollbar-thumb { 
-  background: rgba(255,255,255,0.8); 
-  border: 3px solid #09090b; 
+  background: rgba(255,255,255,0.25); 
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
+.dark ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.45); background-clip: padding-box; }
 
-/* Base interactive transitions config for mobile perf */
+/* GPU acceleration utility */
 .gpu-accel {
   will-change: transform, box-shadow;
   transform: translateZ(0); 
   backface-visibility: hidden;
 }
 
+/* ── Keyframe Animations (subtle & refined) ── */
+
+@keyframes slide-up-fade {
+  from { opacity: 0; transform: translateY(12px) translateZ(0); }
+  to { opacity: 1; transform: translateY(0) translateZ(0); }
+}
+
+@keyframes slide-down-in {
+  from { opacity: 0; transform: translateY(-8px) translateZ(0); }
+  to { opacity: 1; transform: translateY(0) translateZ(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.96) translateZ(0); }
+  to { opacity: 1; transform: scale(1) translateZ(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes shake-subtle {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(-4deg); }
+  40% { transform: rotate(4deg); }
+  60% { transform: rotate(-2deg); }
+  80% { transform: rotate(1deg); }
+}
+
+@keyframes backdrop-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes profile-bg-float {
+  0%, 100% { transform: translateY(0) rotate(var(--r, 0deg)); opacity: 0.7; }
+  50% { transform: translateY(-12px) rotate(calc(var(--r, 0deg) + 3deg)); opacity: 1; }
+}
+
+@keyframes profile-bg-click {
+  0% { transform: scale(1) rotate(0deg); filter: brightness(1) drop-shadow(0 0 0px transparent); }
+  15% { transform: scale(0.7) rotate(-15deg); filter: brightness(0.7); }
+  45% { transform: scale(1.6) rotate(20deg); filter: brightness(2.5) drop-shadow(0 0 20px currentColor); }
+  100% { transform: scale(1) rotate(0deg); filter: brightness(1) drop-shadow(0 0 0px transparent); }
+}
+
+@keyframes profile-sword-swing {
+  0%, 100% { transform: rotate(45deg) translateX(0); }
+  50% { transform: rotate(60deg) translateX(10px); }
+}
+
+@keyframes profile-trophy-shine {
+  0%, 100% { filter: brightness(1) drop-shadow(0 0 5px rgba(255,215,0,0.3)); transform: translateY(0); }
+  50% { filter: brightness(1.8) drop-shadow(0 0 15px rgba(255,215,0,0.8)); transform: translateY(-10px); }
+}
+
+@keyframes profile-ghost-wobble {
+  0%, 100% { transform: translateX(0) skewX(0deg); }
+  25% { transform: translateX(-5px) skewX(5deg); }
+  75% { transform: translateX(5px) skewX(-5deg); }
+}
+
+@keyframes profile-dice-roll {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(10deg) scale(1.1); }
+  75% { transform: rotate(-10deg) scale(0.9); }
+  100% { transform: rotate(0deg); }
+}
+
+@keyframes profile-zap-flicker {
+  0%, 100% { opacity: 1; filter: brightness(1); }
+  10%, 30%, 50% { opacity: 0.4; filter: brightness(0.5); }
+  20%, 40%, 60% { opacity: 1; filter: brightness(2); }
+}
+
+@keyframes profile-joystick-tilt {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(15deg) translateY(-5px); }
+  75% { transform: rotate(-15deg) translateY(5px); }
+}
+
+@keyframes profile-rocket-pulse {
+  0%, 100% { transform: translate(0, 0) scale(1); filter: drop-shadow(0 0 5px currentColor); }
+  50% { transform: translate(5px, -5px) scale(1.1); filter: drop-shadow(0 10px 15px currentColor); }
+}
+
+@keyframes profile-target-breath {
+  0%, 100% { transform: scale(1); opacity: 0.7; }
+  50% { transform: scale(1.2); opacity: 1; }
+}
+
+@keyframes profile-bg-shockwave {
+  0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; border-width: 4px; }
+  100% { transform: translate(-50%, -50%) scale(2.5); opacity: 0; border-width: 1px; }
+}
+
+@keyframes profile-bg-float-alt {
+  0%, 100% { transform: translateY(0) rotate(var(--r, 0deg)) scale(1); opacity: var(--op, 0.7); }
+  50% { transform: translateY(-20px) rotate(calc(var(--r, 0deg) - 5deg)) scale(1.05); opacity: 1; }
+}
+
+@keyframes profile-bg-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes profile-bg-pulse {
+  0%, 100% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.1); filter: brightness(1.3); }
+}
+
+.profile-bg-float {
+  animation: profile-bg-float 8s ease-in-out infinite;
+}
+
+.profile-anim-sword { animation: profile-sword-swing 4s ease-in-out infinite; }
+.profile-anim-trophy { animation: profile-trophy-shine 3s ease-in-out infinite; }
+.profile-anim-ghost { animation: profile-ghost-wobble 2.5s ease-in-out infinite; }
+.profile-anim-dice { animation: profile-dice-roll 5s ease-in-out infinite; }
+.profile-anim-zap { animation: profile-zap-flicker 4s linear infinite; }
+.profile-anim-joystick { animation: profile-joystick-tilt 3s ease-in-out infinite; }
+.profile-anim-rocket { animation: profile-rocket-pulse 2s ease-in-out infinite; }
+.profile-anim-target { animation: profile-target-breath 3s ease-in-out infinite; }
+
+.profile-bg-click:active {
+  animation: profile-bg-click 0.35s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+  z-index: 100;
+}
+
+.profile-bg-click::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  border: 2px solid currentColor;
+  border-radius: inherit;
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.profile-bg-click:active::after {
+  animation: profile-bg-shockwave 0.4s ease-out forwards;
+}
+
+.profile-bg-hover:hover {
+  filter: brightness(1.5) drop-shadow(0 0 12px currentColor);
+  transform: scale(1.2) rotate(10deg) !important;
+  opacity: 1 !important;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
 @layer utilities {
   /* ── Structural Glass Panels ── */
   .glass-panel {
-    background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.5));
+    background: linear-gradient(135deg, rgba(255,255,255,0.92), rgba(255,255,255,0.55));
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border: 2px solid #000;
-    box-shadow: inset 0 1px 1px rgba(255,255,255,0.9), 6px 6px 0px rgba(0,0,0,1);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.9), 5px 5px 0px rgba(0,0,0,1);
     border-radius: 1.5rem;
     transform: translateZ(0); 
   }
   .dark .glass-panel {
-    background: linear-gradient(135deg, rgba(30,30,40,0.85), rgba(10,10,15,0.95));
+    background: linear-gradient(135deg, rgba(25,25,35,0.88), rgba(8,8,14,0.96));
     border-color: rgb(255 255 255 / 0.1);
-    box-shadow: inset 0 1px 1px rgba(255,255,255,0.05), 6px 6px 0px rgba(255,255,255,0.8);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.05), 5px 5px 0px rgba(255,255,255,0.8);
   }
 
-  /* Flatter version for inner areas or nav */
   .glass-panel-flat {
     background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.7));
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgb(0 0 0 / 0.1);
+    border: 1px solid rgb(0 0 0 / 0.08);
     box-shadow: inset 0 1px 1px rgba(255,255,255,0.8);
     border-radius: 1rem;
     transform: translateZ(0);
   }
   .dark .glass-panel-flat {
-    background: linear-gradient(135deg, rgba(20,20,30,0.7), rgba(0,0,10,0.8));
-    border-color: rgb(255 255 255 / 0.1);
-    box-shadow: inset 0 1px 1px rgba(255,255,255,0.05);
+    background: linear-gradient(135deg, rgba(18,18,28,0.75), rgba(5,5,12,0.85));
+    border-color: rgb(255 255 255 / 0.08);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.04);
   }
 
   /* ── Interactive Brutal Buttons ── */
@@ -91,13 +277,10 @@ html.dark body {
     border: 2px solid #000;
     font-weight: 800;
     color: #000;
-    transition-property: all;
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    transition-duration: 150ms;
+    transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.15s ease, opacity 0.15s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    will-change: transform, box-shadow;
     transform: translateZ(0); 
     backface-visibility: hidden;
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 4px 4px 0px #000;
@@ -107,13 +290,11 @@ html.dark body {
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 6px 6px 0px #000;
   }
   .brutal-btn:active {
-    transform: translate3d(4px, 4px, 0) !important; 
+    transform: translate3d(3px, 3px, 0) !important; 
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0px 0px 0px #000 !important;
   }
   
-  /* Dark Mode specific buttons (reference image showed white shadows) */
   .dark .brutal-btn {
-    /* border-2 border-black redundant here */
     box-shadow: 4px 4px 0px #fff;
   }
   .dark .brutal-btn:hover {
@@ -121,10 +302,9 @@ html.dark body {
   }
   .dark .brutal-btn:active {
     box-shadow: 0px 0px 0px #fff !important;
-    transform: translate3d(4px, 4px, 0);
+    transform: translate3d(3px, 3px, 0);
   }
 
-  /* Less aggressive small shadows */
   .shadow-brutal-sm {
     box-shadow: 2px 2px 0px #000;
   }
@@ -140,29 +320,146 @@ html.dark body {
   .bg-neon-green { background-color: #84cc16; color: #000; }
   .bg-neon-orange { background-color: #f97316; color: #000; }
 
-  /* ── Tactile Animations ── */
+  /* ── Animation Utilities (all subtle) ── */
   .tactile-logo {
-    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.3s;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.3s;
     display: inline-flex;
     cursor: pointer;
   }
   .tactile-logo:hover {
-    transform: scale(1.15) rotate(-8deg);
-    filter: drop-shadow(0 0 8px rgba(236, 72, 153, 0.8));
+    transform: scale(1.1) rotate(-5deg);
+    filter: drop-shadow(0 0 6px rgba(236, 72, 153, 0.6));
   }
   .tactile-logo:active {
-    transform: scale(0.8) rotate(12deg);
+    transform: scale(0.85) rotate(8deg);
     transition: transform 0.05s;
     filter: drop-shadow(0 0 0px transparent);
   }
 
-  /* Entrance Animation for Staggering */
-  @keyframes slide-up-fade {
-    from { opacity: 0; transform: translateY(20px) translateZ(0); }
-    to { opacity: 1; transform: translateY(0) translateZ(0); }
-  }
+  /* Entrance: gentle slide up + fade */
   .animate-stagger-enter {
-    animation: slide-up-fade 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
-    will-change: transform, opacity;
+    animation: slide-up-fade 0.35s cubic-bezier(0.25, 1, 0.5, 1) both;
+  }
+
+  /* Entrance: gentle slide down */
+  .animate-slide-down {
+    animation: slide-down-in 0.3s cubic-bezier(0.25, 1, 0.5, 1) both;
+  }
+
+  /* Entrance: clean scale in */
+  .animate-scale-spring {
+    animation: scale-in 0.3s cubic-bezier(0.25, 1, 0.5, 1) both;
+  }
+
+  /* Entrance: fade + slight scale */
+  .animate-fade-scale {
+    animation: scale-in 0.35s cubic-bezier(0.25, 1, 0.5, 1) both;
+  }
+
+  /* Skeleton shimmer */
+  .animate-shimmer {
+    background: linear-gradient(90deg, transparent 30%, rgba(255,255,255,0.12) 50%, transparent 70%);
+    background-size: 200% 100%;
+    animation: shimmer 1.8s ease-in-out infinite;
+  }
+  .dark .animate-shimmer {
+    background: linear-gradient(90deg, transparent 30%, rgba(255,255,255,0.06) 50%, transparent 70%);
+    background-size: 200% 100%;
+    animation: shimmer 1.8s ease-in-out infinite;
+  }
+
+  /* Subtle shake for error/delete */
+  .animate-shake {
+    animation: shake-subtle 0.4s ease both;
+  }
+
+  /* Simple backdrop fade */
+  .animate-backdrop-fade {
+    animation: backdrop-fade 0.2s ease-out both;
+  }
+
+  /* Simple fade in */
+  .animate-fade-in {
+    animation: fade-in 0.3s ease both;
+  }
+
+  /* ── Content Visibility for off-screen perf ── */
+  .cv-auto {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 300px;
+  }
+}
+
+/* ── TOUCH DEVICE — disable hover transforms ── */
+@media (hover: none) {
+  .brutal-btn:hover {
+    transform: translateZ(0);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 4px 4px 0px #000;
+  }
+  .dark .brutal-btn:hover {
+    box-shadow: 4px 4px 0px #fff;
+  }
+}
+
+/* ── MOBILE PERFORMANCE OVERRIDES ── */
+@media (max-width: 768px) {
+  .glass-panel {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.9), 3px 3px 0px rgba(0,0,0,1);
+  }
+  .dark .glass-panel {
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.05), 3px 3px 0px rgba(255,255,255,0.8);
+  }
+  .glass-panel-flat {
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+
+  .brutal-btn {
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 3px 3px 0px #000;
+  }
+  .brutal-btn:hover {
+    transform: translate3d(-1px, -1px, 0);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 4px 4px 0px #000;
+  }
+  .dark .brutal-btn {
+    box-shadow: 3px 3px 0px #fff;
+  }
+  .dark .brutal-btn:hover {
+    box-shadow: 4px 4px 0px #fff;
+  }
+
+  /* Even faster on mobile */
+  .animate-stagger-enter {
+    animation-duration: 0.25s;
+  }
+  .animate-scale-spring,
+  .animate-fade-scale {
+    animation-duration: 0.2s;
+  }
+  .animate-slide-down {
+    animation-duration: 0.2s;
+  }
+}
+
+/* ── REDUCED MOTION — accessibility + performance ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .animate-stagger-enter,
+  .animate-scale-spring,
+  .animate-slide-down,
+  .animate-fade-scale,
+  .animate-shake,
+  .animate-shimmer,
+  .animate-fade-in {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
 }

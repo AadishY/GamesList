@@ -7,7 +7,7 @@ export default function Header({ syncStatus, stats, activeProfile, loginAs, them
 
   return (
     <header className="sticky top-0 z-50 p-2 sm:p-3 pointer-events-none w-full">
-      <div className="max-w-7xl mx-auto glass-panel backdrop-blur-xl bg-white/40 dark:bg-black/40 p-2 sm:px-4 sm:py-2 pointer-events-auto flex items-center justify-between gap-2 shadow-brutal-sm overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      <div className="max-w-7xl mx-auto glass-panel backdrop-blur-lg sm:backdrop-blur-xl bg-white/40 dark:bg-black/40 p-2 sm:px-4 sm:py-2 pointer-events-auto flex items-center justify-between gap-2 shadow-brutal-sm overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] animate-slide-down">
           
         {/* Left: Logo + Title */}
         <div className="flex items-center gap-2 flex-shrink-0">
@@ -16,12 +16,12 @@ export default function Header({ syncStatus, stats, activeProfile, loginAs, them
           </div>
           <button 
             onClick={() => navigate('/')} 
-            className="text-sm sm:text-base font-extrabold tracking-tight leading-none truncate uppercase transition-transform origin-left outline-none active:scale-95"
+            className="text-sm sm:text-base font-black tracking-tight leading-none truncate uppercase transition-transform origin-left outline-none active:scale-95 text-black dark:text-white"
           >
             Steam Backlog
           </button>
 
-          {/* Stats / Sync (Hidden in Mod View) */}
+          {/* Stats / Sync */}
           {!isModView && (
             <div className="hidden md:flex items-center gap-2 ml-2">
               <div className="flex items-center text-[9px] font-bold uppercase tracking-widest">
@@ -34,11 +34,11 @@ export default function Header({ syncStatus, stats, activeProfile, loginAs, them
                 ) : null}
               </div>
               <div className="flex items-center gap-1.5 ml-1">
-                <div className="flex items-center gap-1 bg-neon-yellow border-2 border-black dark:border-white px-1.5 py-0.5 rounded-md text-[9px] font-bold text-black" title="Wanted">
-                  <Circle className="w-3 h-3" /> <span>{stats.wanted}</span>
+                <div className="flex items-center gap-1 bg-neon-yellow border-2 border-black dark:border-white px-1.5 py-0.5 rounded-md text-[9px] font-black text-black" title="Wanted">
+                  <Circle className="w-3 h-3" strokeWidth={3} /> <span>{stats.wanted}</span>
                 </div>
-                <div className="flex items-center gap-1 bg-neon-green border-2 border-black dark:border-white px-1.5 py-0.5 rounded-md text-[9px] font-bold text-black" title="Played">
-                  <CheckCircle2 className="w-3 h-3" /> <span>{stats.played}</span>
+                <div className="flex items-center gap-1 bg-neon-green border-2 border-black dark:border-white px-1.5 py-0.5 rounded-md text-[9px] font-black text-black" title="Played">
+                  <CheckCircle2 className="w-3 h-3" strokeWidth={3} /> <span>{stats.played}</span>
                 </div>
               </div>
             </div>
@@ -56,7 +56,6 @@ export default function Header({ syncStatus, stats, activeProfile, loginAs, them
             {theme === 'dark' ? <Moon className="w-4 h-4 text-black" /> : <Sun className="w-4 h-4 text-black" />}
           </button>
 
-          {/* Combined View */}
           {currentView !== 'sharedList' && activeProfile !== 'Combined' && !isModView && (
             <button 
               onClick={() => loginAs('Combined')}
@@ -66,7 +65,6 @@ export default function Header({ syncStatus, stats, activeProfile, loginAs, them
             </button>
           )}
 
-          {/* Profile Pill */}
           {currentView !== 'sharedList' && (
             <button 
               onClick={() => loginAs(null)}

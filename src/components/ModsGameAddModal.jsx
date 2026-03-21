@@ -37,10 +37,10 @@ export default function ModsGameAddModal({ mainGames, mods, addFirebaseMod, acti
 
         <div className="p-4 sm:p-6 pb-2 shrink-0 border-b-2 border-black/5 dark:border-white/5">
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-black/40 dark:text-white/40" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-black/70 dark:text-white/40" />
             <input type="text" value={search} onChange={e => setSearch(e.target.value)}
               placeholder="SEARCH YOUR GAMES..."
-              className="w-full bg-white/50 dark:bg-black/80 border-2 border-black/10 dark:border-white/20 rounded-2xl pl-12 pr-4 py-4 sm:py-3 text-base sm:text-lg font-bold outline-none focus:border-black dark:focus:border-white focus:bg-white focus:shadow-brutal transition-all placeholder-black/30 dark:placeholder-white/30"
+              className="w-full bg-white/50 dark:bg-black/80 border-2 border-black/10 dark:border-white/20 rounded-2xl pl-12 pr-4 py-4 sm:py-3 text-base sm:text-lg font-black outline-none focus:border-black dark:focus:border-white focus:bg-white focus:shadow-brutal transition-all placeholder-black/60 dark:placeholder-white/30"
             />
           </div>
         </div>
@@ -62,17 +62,17 @@ export default function ModsGameAddModal({ mainGames, mods, addFirebaseMod, acti
                     onError={(e) => { e.target.src = `https://placehold.co/460x215/1a1a1a/8b5cf6?text=${encodeURIComponent(game.name)}`; }}
                   />
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-extrabold text-sm sm:text-base truncate tracking-tight uppercase">{game.name}</h3>
+                    <h3 className="font-black text-sm sm:text-base truncate tracking-tight uppercase">{game.name}</h3>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     {isAlreadyTracked ? (
-                       <div className="flex items-center gap-1.5 px-4 py-3 bg-neon-green/20 dark:bg-neon-green/10 border-2 border-neon-green/30 text-neon-green rounded-xl font-bold uppercase tracking-widest text-[10px] w-full sm:w-auto justify-center">
+                       <div className="flex items-center gap-1.5 px-4 py-3 bg-neon-green text-black border-2 border-black/20 rounded-xl font-black uppercase tracking-widest text-[10px] w-full sm:w-auto justify-center shadow-sm">
                          <CheckCircle2 className="w-4 h-4" /> Tracked
                        </div>
                     ) : (
                       <div className="flex gap-2 w-full sm:w-auto">
                         <button onClick={() => addGameToMods(game)}
-                          className="flex-1 sm:flex-none py-3 px-6 bg-neon-cyan brutal-btn rounded-xl text-[10px] font-extrabold uppercase tracking-widest active:scale-95"
+                          className="flex-1 sm:flex-none py-3 px-6 bg-neon-cyan brutal-btn rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95"
                         >START TRACKING</button>
                       </div>
                     )}
