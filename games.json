@@ -1,5 +1,18 @@
 [
   {
+    "appId": "lies-of-p",
+    "name": "Lies Of P",
+    "imageUrl": "https://media.rawg.io/media/games/458/45838becd01e929b6be8b88d655cebfc.jpg",
+    "steamUrl": "https://store.steampowered.com/search/?term=Lies%20Of%20P",
+    "status": "Wanted",
+    "mode": "Multiplayer",
+    "id": "5d6bdcb3-c2fb-40a6-95c0-49cb1894dac8",
+    "addedAt": 1774079096811,
+    "addedBy": [
+      "Aadish"
+    ]
+  },
+  {
     "appId": "lords-of-the-fallen-2",
     "name": "Lords of the Fallen",
     "imageUrl": "https://media.rawg.io/media/games/12c/12c2fd04262732cb5e2e6ff378e1cc2d.jpg",
