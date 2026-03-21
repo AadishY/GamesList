@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { ArrowLeft, Plus, Settings2, Link as LinkIcon, Calendar, Info, Trash2 } from 'lucide-react';
 import ModAddModal from './ModAddModal'; 
 import DeleteWarningModal from './DeleteWarningModal';
@@ -8,7 +8,35 @@ export default function ModGameView({ gameEntry, goBack, updateFirebaseMod }) {
   const [changelogMod, setChangelogMod] = useState(null);
   const [modToDelete, setModToDelete] = useState(null);
 
-  const modsList = gameEntry.modsList || [];
+  const modsList = useMemo(() => {
+    const list = [...(gameEntry.modsList || [])];
+    return list.sort((a, b) => {
+      // Prioritize numeric epoch comparison if available
+      if (a.lastUpdatedEpoch && b.lastUpdatedEpoch) {
+        return b.lastUpdatedEpoch - a.lastUpdatedEpoch;
+      }
+      // Fallback to date string comparison
+      const dateA = new Date(a.lastUpdated).getTime() || 0;
+      const dateB = new Date(b.lastUpdated).getTime() || 0;
+      return dateB - dateA;
+    });
+  }, [gameEntry.modsList]);
+
+  const sortedChangelogText = useMemo(() => {
+    if (!changelogMod?.changelog) return 'No changelog details.';
+    
+    // If it's the standard format "Version X.Y:\n...", sort it by version descending
+    if (changelogMod.changelog.includes('Version ')) {
+      const chunks = changelogMod.changelog.split('\n\n').filter(c => c.trim());
+      return chunks.sort((a, b) => {
+        const vA = a.match(/Version ([^:\n]+):/)?.[1] || '';
+        const vB = b.match(/Version ([^:\n]+):/)?.[1] || '';
+        if (!vA || !vB) return 0;
+        return vB.localeCompare(vA, undefined, { numeric: true, sensitivity: 'base' });
+      }).join('\n\n');
+    }
+    return changelogMod.changelog;
+  }, [changelogMod]);
 
   const performDeleteMod = (modId) => {
     updateFirebaseMod(gameEntry.id, (m) => ({
@@ -117,7 +145,7 @@ export default function ModGameView({ gameEntry, goBack, updateFirebaseMod }) {
           <div className="glass-panel w-full max-w-lg p-6 flex flex-col gap-4">
             <h3 className="text-xl font-black uppercase tracking-tight">Changelog: {changelogMod.name}</h3>
             <div className="max-h-64 overflow-y-auto text-sm text-black/80 dark:text-white/80 p-4 bg-black/5 dark:bg-white/5 rounded-xl border border-black/10 dark:border-white/10 whitespace-pre-wrap">
-              {changelogMod.changelog || 'No changelog details.'}
+              {sortedChangelogText}
             </div>
             <button onClick={() => setChangelogMod(null)} className="w-full bg-black text-white px-4 py-3 rounded-xl font-black uppercase tracking-widest hover:bg-neon-pink hover:text-black transition-colors border border-white/20 hover:border-black mt-2">
               Close

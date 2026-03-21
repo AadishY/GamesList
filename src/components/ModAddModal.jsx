@@ -71,6 +71,7 @@ export default function ModAddModal({ gameEntry, updateFirebaseMod, onClose }) {
           changelog: changelogText,
           link: inputVal,
           description: data.summary || 'No description available.',
+          lastUpdatedEpoch: data.updated_timestamp || 0,
           lastUpdated: data.updated_timestamp ? new Date(data.updated_timestamp * 1000).toLocaleDateString() : 'Unknown'
         };
 

@@ -1,6 +1,13 @@
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-@import "tailwindcss/utilities";
+@import "tailwindcss";
+
+@theme {
+  --color-neon-yellow: #facc15;
+  --color-neon-cyan: #06b6d4;
+  --color-neon-pink: #ec4899;
+  --color-neon-purple: #a855f7;
+  --color-neon-green: #84cc16;
+  --color-neon-orange: #f97316;
+}
 
 /* ── Premium Glass-Brutalism Foundation ── */
 
