@@ -53,6 +53,7 @@ export default function App() {
   // Sync State
   const [syncStatus, setSyncStatus] = useState(''); 
   const isReadyForSync = useRef(false);
+  const lastSyncedState = useRef('[]'); // Prevents infinite push loops
 
   // Profile State
   const [activeProfile, setActiveProfile] = useState(null);
@@ -151,20 +152,26 @@ export default function App() {
     
     setSyncStatus('syncing');
     try {
-      const response = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${FILE_PATH}`, {
-        headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github.v3.raw' }
+      // Add a timestamp cache-buster to ensure we get the latest file state
+      const response = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${FILE_PATH}?t=${Date.now()}`, {
+        headers: { 
+          Authorization: `Bearer ${token}`, 
+          Accept: 'application/vnd.github.v3.raw',
+          'Cache-Control': 'no-cache'
+        }
       });
       
       if (response.ok) {
         const parsedGames = await response.json();
         if (Array.isArray(parsedGames)) {
           setGames(parsedGames);
+          lastSyncedState.current = JSON.stringify(parsedGames);
         } else if (parsedGames && parsedGames.content) {
-          // Fallback if browser cached the metadata object instead of honoring 'raw' header
           const decodedContent = decodeURIComponent(escape(atob(parsedGames.content.replace(/\n/g, ''))));
-          setGames(JSON.parse(decodedContent));
+          const parsed = JSON.parse(decodedContent);
+          setGames(parsed);
+          lastSyncedState.current = JSON.stringify(parsed);
         } else {
-          console.error("Unknown payload from GitHub sync:", parsedGames);
           setGames([]);
         }
       }
@@ -185,8 +192,13 @@ export default function App() {
 
     try {
       let sha = null;
-      const getResponse = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${FILE_PATH}`, {
-        headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github.v3+json' }
+      // CRITICAL FIX: Append a timestamp so the browser never uses a cached SHA
+      const getResponse = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${FILE_PATH}?t=${Date.now()}`, {
+        headers: { 
+          Authorization: `Bearer ${token}`, 
+          Accept: 'application/vnd.github.v3+json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate' 
+        }
       });
       
       if (getResponse.ok) {
@@ -194,13 +206,9 @@ export default function App() {
         sha = data.sha;
       }
 
-      // Async Base64 encoding via FileReader perfectly avoids blocking UI thread on mobile
+      // Robust UTF-8 encoding for games with special characters/emojis
       const contentStr = JSON.stringify(currentGames, null, 2);
-      const encodedContent = await new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result.split(',')[1]);
-        reader.readAsDataURL(new Blob([contentStr]));
-      });
+      const encodedContent = btoa(unescape(encodeURIComponent(contentStr)));
 
       const putResponse = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${FILE_PATH}`, {
         method: 'PUT',
@@ -216,8 +224,11 @@ export default function App() {
         })
       });
 
-      if (!putResponse.ok) throw new Error('Failed to push to GitHub.');
+      if (!putResponse.ok) throw new Error(`Failed to push to GitHub. Status: ${putResponse.status}`);
+      
       setSyncStatus('saved');
+      lastSyncedState.current = JSON.stringify(currentGames); // Update successful sync state
+      
     } catch (err) {
       console.error("GitHub Push Error:", err);
       setSyncStatus('error');
@@ -228,12 +239,16 @@ export default function App() {
     pullFromGithub();
   }, [pullFromGithub]);
 
+  // CRITICAL FIX: Only push if the games array actually changed, preventing infinite loops
   useEffect(() => {
     if (isReadyForSync.current) {
-      const debounceTimer = setTimeout(() => {
-        pushToGithub(games);
-      }, 1500);
-      return () => clearTimeout(debounceTimer);
+      const currentGamesStr = JSON.stringify(games);
+      if (currentGamesStr !== lastSyncedState.current) {
+        const debounceTimer = setTimeout(() => {
+          pushToGithub(games);
+        }, 1500);
+        return () => clearTimeout(debounceTimer);
+      }
     }
   }, [games, pushToGithub]);
 
@@ -293,7 +308,6 @@ export default function App() {
       return;
     }
 
-    // Abort any in-flight search request
     if (searchAbortRef.current) searchAbortRef.current.abort();
     const controller = new AbortController();
     searchAbortRef.current = controller;
@@ -307,7 +321,6 @@ export default function App() {
       if (response.ok) {
         const data = await response.json();
         const results = data.results || [];
-        // Cap cache at 50 entries to prevent memory bloat
         const keys = Object.keys(searchCache.current);
         if (keys.length > 50) delete searchCache.current[keys[0]];
         searchCache.current[query] = results;
