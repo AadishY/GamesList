@@ -10,7 +10,14 @@
     "addedAt": 1774078995278,
     "addedBy": [
       "Aadish"
-    ]
+    ],
+    "sharedList": {
+      "type": "Side",
+      "addedBy": "Aadish",
+      "upvotes": [
+        "Aadish"
+      ]
+    }
   },
   {
     "appId": "phasmophobia",
