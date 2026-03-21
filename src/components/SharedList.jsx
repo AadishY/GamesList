@@ -3,7 +3,11 @@ import { ArrowLeft, Plus, Gamepad2 } from 'lucide-react';
 import SharedListGameCard from './SharedListGameCard';
 import SharedListAddModal from './SharedListAddModal';
 
+<<<<<<< HEAD
 export default function SharedList({ games, updateFirebaseGame, activeProfile, goBack }) {
+=======
+export default function SharedList({ games, setGames, activeProfile, goBack }) {
+>>>>>>> 70c63fd9f68c6c1d4f0009f4585df0bfd497d2fd
   const [filter, setFilter] = useState('Main');
   const [showAddModal, setShowAddModal] = useState(false);
   
@@ -11,18 +15,8 @@ export default function SharedList({ games, updateFirebaseGame, activeProfile, g
   const dragOverItem = useRef(null);
 
   const sharedGames = useMemo(() => {
-    const list = games.filter(g => g.sharedList);
-    if (filter === 'All') {
-      return list.sort((a, b) => {
-        const aBoth = (a.sharedList.upvotes || []).length >= 2;
-        const bBoth = (b.sharedList.upvotes || []).length >= 2;
-        if (aBoth && !bBoth) return -1;
-        if (!aBoth && bBoth) return 1;
-        return a.name.localeCompare(b.name);
-      });
-    } else {
-      return list.filter(g => g.sharedList.type === filter).sort((a, b) => (a.sharedList.order || 0) - (b.sharedList.order || 0));
-    }
+    const list = games.filter(g => g.sharedList && g.sharedList.type === filter);
+    return list.sort((a, b) => (a.sharedList.order || 0) - (b.sharedList.order || 0));
   }, [games, filter]);
 
   const handleDragStart = (e, idx) => { dragItem.current = idx; e.dataTransfer.effectAllowed = 'move'; };
@@ -74,8 +68,13 @@ export default function SharedList({ games, updateFirebaseGame, activeProfile, g
               Drag to Reorder
             </div>
             {sharedGames.map((game, idx) => (
+<<<<<<< HEAD
               <SharedListGameCard key={game.id} game={game} activeProfile={activeProfile} updateFirebaseGame={updateFirebaseGame} viewFilter={filter}
                 draggable={true} index={idx}
+=======
+              <SharedListGameCard key={game.id} game={game} activeProfile={activeProfile} setGames={setGames} viewFilter={filter}
+                draggable index={idx}
+>>>>>>> 70c63fd9f68c6c1d4f0009f4585df0bfd497d2fd
                 onDragStart={(e) => handleDragStart(e, idx)} onDragEnter={(e) => handleDragEnter(e, idx)} onDragEnd={handleDragEnd}
               />
             ))}

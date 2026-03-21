@@ -60,6 +60,7 @@ export default function App() {
   // Sync State
   const [syncStatus, setSyncStatus] = useState('syncing'); 
   const isReadyForSync = useRef(false);
+  const lastSyncedState = useRef('[]'); // Prevents infinite push loops
 
   // Router specific
   const navigate = useNavigate();
@@ -181,6 +182,7 @@ export default function App() {
     }
   };
 
+<<<<<<< HEAD
   // --- Firebase Auto-Sync Functions ---
   useEffect(() => {
     setSyncStatus('syncing');
@@ -195,6 +197,96 @@ export default function App() {
       isReadyForSync.current = true;
     }, (err) => {
       console.error("Firebase games sync error:", err);
+=======
+  const pullFromGithub = useCallback(async () => {
+    const token = getGithubToken();
+    if (!token) {
+      setTimeout(() => { isReadyForSync.current = true; }, 500);
+      return;
+    }
+    
+    setSyncStatus('syncing');
+    try {
+      // FIX: Removed the Cache-Control header. The ?t timestamp is enough!
+      const response = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${FILE_PATH}?t=${Date.now()}`, {
+        headers: { 
+          Authorization: `Bearer ${token}`, 
+          Accept: 'application/vnd.github.v3.raw'
+        }
+      });
+      
+      if (response.ok) {
+        const parsedGames = await response.json();
+        if (Array.isArray(parsedGames)) {
+          setGames(parsedGames);
+          lastSyncedState.current = JSON.stringify(parsedGames);
+        } else if (parsedGames && parsedGames.content) {
+          const decodedContent = decodeURIComponent(escape(atob(parsedGames.content.replace(/\n/g, ''))));
+          const parsed = JSON.parse(decodedContent);
+          setGames(parsed);
+          lastSyncedState.current = JSON.stringify(parsed);
+        } else {
+          setGames([]);
+        }
+      }
+      setSyncStatus('saved');
+    } catch (err) {
+      console.error("GitHub Pull Error:", err);
+      setSyncStatus('error');
+    } finally {
+      setTimeout(() => { isReadyForSync.current = true; }, 1000);
+    }
+  }, []);
+
+  const pushToGithub = useCallback(async (currentGames) => {
+    const token = getGithubToken();
+    if (!token) return;
+
+    setSyncStatus('syncing');
+
+    try {
+      let sha = null;
+      // FIX: Removed the Cache-Control header here as well
+      const getResponse = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${FILE_PATH}?t=${Date.now()}`, {
+        headers: { 
+          Authorization: `Bearer ${token}`, 
+          Accept: 'application/vnd.github.v3+json'
+        }
+      });
+      
+      if (getResponse.ok) {
+        const data = await getResponse.json();
+        sha = data.sha;
+      }
+
+      // ... rest of the function remains exactly the same
+
+      // Robust UTF-8 encoding for games with special characters/emojis
+      const contentStr = JSON.stringify(currentGames, null, 2);
+      const encodedContent = btoa(unescape(encodeURIComponent(contentStr)));
+
+      const putResponse = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${FILE_PATH}`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: `Auto-sync games list (${currentGames.length} games)`,
+          content: encodedContent,
+          ...(sha && { sha })
+        })
+      });
+
+      if (!putResponse.ok) throw new Error(`Failed to push to GitHub. Status: ${putResponse.status}`);
+      
+      setSyncStatus('saved');
+      lastSyncedState.current = JSON.stringify(currentGames); // Update successful sync state
+      
+    } catch (err) {
+      console.error("GitHub Push Error:", err);
+>>>>>>> 70c63fd9f68c6c1d4f0009f4585df0bfd497d2fd
       setSyncStatus('error');
     });
 
@@ -214,6 +306,26 @@ export default function App() {
     };
   }, []);
 
+<<<<<<< HEAD
+=======
+  useEffect(() => {
+    pullFromGithub();
+  }, [pullFromGithub]);
+
+  // CRITICAL FIX: Only push if the games array actually changed, preventing infinite loops
+  useEffect(() => {
+    if (isReadyForSync.current) {
+      const currentGamesStr = JSON.stringify(games);
+      if (currentGamesStr !== lastSyncedState.current) {
+        const debounceTimer = setTimeout(() => {
+          pushToGithub(games);
+        }, 1500);
+        return () => clearTimeout(debounceTimer);
+      }
+    }
+  }, [games, pushToGithub]);
+
+>>>>>>> 70c63fd9f68c6c1d4f0009f4585df0bfd497d2fd
   // --- Game Parsing & Fetching Utilities ---
   const extractGameInfo = (url) => {
     const match = url.match(/\/app\/(\d+)(?:\/([^/?#]+))?/);
@@ -270,7 +382,6 @@ export default function App() {
       return;
     }
 
-    // Abort any in-flight search request
     if (searchAbortRef.current) searchAbortRef.current.abort();
     const controller = new AbortController();
     searchAbortRef.current = controller;
@@ -284,7 +395,6 @@ export default function App() {
       if (response.ok) {
         const data = await response.json();
         const results = data.results || [];
-        // Cap cache at 50 entries to prevent memory bloat
         const keys = Object.keys(searchCache.current);
         if (keys.length > 50) delete searchCache.current[keys[0]];
         searchCache.current[query] = results;
