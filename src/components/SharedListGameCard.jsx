@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { ThumbsUp, Pencil, Trash2, ArrowRightLeft, GripVertical, CheckCircle2 } from 'lucide-react';
+import { ThumbsUp, Pencil, Trash2, ArrowRightLeft, GripVertical, CheckCircle2, ExternalLink } from 'lucide-react';
 
 const SharedListGameCard = React.memo(({ 
-  game, activeProfile, setGames, viewFilter, draggable, onDragStart, onDragEnter, onDragEnd 
+  game, index = 0, activeProfile, updateFirebaseGame, viewFilter, draggable, onDragStart, onDragEnter, onDragEnd 
 }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
@@ -10,28 +10,36 @@ const SharedListGameCard = React.memo(({
   const shared = game.sharedList || {};
   const upvotes = shared.upvotes || [];
   const bothWanted = upvotes.length >= 2;
-  const canVote = activeProfile !== 'Combined' && !upvotes.includes(activeProfile);
+  const isMyGame = shared.addedBy === activeProfile;
+  const haveIVoted = upvotes.includes(activeProfile);
+  const canVote = activeProfile !== 'Combined' && !isMyGame && !haveIVoted;
   const canEdit = activeProfile !== 'Combined';
 
   const handleVote = () => {
     if (!canVote) return;
-    setGames(prev => prev.map(g => g.id === game.id ? { ...g, sharedList: { ...g.sharedList, upvotes: [...upvotes, activeProfile] } } : g));
+    updateFirebaseGame(game.id, (g) => ({ ...g, sharedList: { ...g.sharedList, upvotes: [...upvotes, activeProfile] } }));
+  };
+
+  const removeVote = () => {
+    updateFirebaseGame(game.id, (g) => ({ ...g, sharedList: { ...g.sharedList, upvotes: upvotes.filter(p => p !== activeProfile) } }));
+    setShowMenu(false);
   };
 
   const toggleType = () => {
     const newType = shared.type === 'Main' ? 'Side' : 'Main';
-    setGames(prev => prev.map(g => g.id === game.id ? { ...g, sharedList: { ...g.sharedList, type: newType } } : g));
+    updateFirebaseGame(game.id, (g) => ({ ...g, sharedList: { ...g.sharedList, type: newType } }));
     setShowMenu(false);
   };
 
   const removeFromList = () => {
-    setGames(prev => prev.map(g => { if (g.id === game.id) { const r = { ...g }; delete r.sharedList; return r; } return g; }));
+    updateFirebaseGame(game.id, (g) => { const r = { ...g }; delete r.sharedList; return r; });
   };
 
   return (
     <div 
-      className={`relative flex items-center gap-3 sm:gap-4 p-3 sm:p-5 glass-panel-flat hover:-translate-y-1 hover:shadow-brutal transition-all group overflow-visible ${draggable ? 'cursor-grab active:cursor-grabbing' : ''}`}
+      className={`relative flex items-center gap-3 sm:gap-4 p-3 sm:p-5 glass-panel-flat hover:-translate-y-1 hover:shadow-brutal transition-all group overflow-visible animate-stagger-enter ${draggable ? 'cursor-grab active:cursor-grabbing' : ''}`}
       draggable={draggable} onDragStart={onDragStart} onDragEnter={onDragEnter} onDragEnd={onDragEnd} onDragOver={(e) => e.preventDefault()}
+      style={{ animationDelay: `${(index % 20) * 40}ms` }}
     >
       {draggable && <div className="text-black/20 dark:text-white/20 group-hover:text-neon-pink transition-colors pl-1 cursor-grab"><GripVertical className="w-7 h-7" /></div>}
 
@@ -75,21 +83,27 @@ const SharedListGameCard = React.memo(({
       </div>
 
       <div className="flex items-center gap-2 pr-1">
+        <a href={game.steamUrl} target="_blank" rel="noopener noreferrer"
+          className="bg-black/5 dark:bg-white/10 text-black dark:text-white hover:bg-neon-pink dark:hover:bg-neon-pink hover:text-black p-2.5 sm:p-3 rounded-xl border-2 border-transparent hover:border-black transition-colors flex-shrink-0 active:scale-95"
+          title="Open in Steam">
+            <ExternalLink className="w-5 h-5" />
+        </a>
+
         {canVote && (
           <button onClick={handleVote}
-            className="p-3 sm:p-4 bg-neon-yellow brutal-btn rounded-xl transition-all flex items-center justify-center active:scale-90"
+            className="p-2.5 sm:p-3 bg-neon-yellow brutal-btn rounded-xl transition-all flex items-center justify-center active:scale-90"
             title="I want this too!"
-          ><ThumbsUp className="w-5 h-5 sm:w-6 sm:h-6 text-black" /></button>
+          ><ThumbsUp className="w-5 h-5 sm:w-5 sm:h-5 text-black" /></button>
         )}
-        {!canVote && upvotes.includes(activeProfile) && (
-           <div className="p-3 sm:p-4 bg-white/20 dark:bg-black/20 rounded-xl border-2 border-transparent"><CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-neon-green opacity-80"/></div>
+        {!canVote && !isMyGame && haveIVoted && (
+           <div className="p-2.5 sm:p-3 bg-white/20 dark:bg-black/20 rounded-xl border-2 border-transparent"><CheckCircle2 className="w-5 h-5 sm:w-5 sm:h-5 text-neon-green opacity-80"/></div>
         )}
 
         {canEdit && (
           <div className="relative z-20">
             <button onClick={() => setShowMenu(!showMenu)}
-              className="p-3 sm:p-4 bg-white hover:bg-black text-black hover:text-white dark:bg-black dark:hover:bg-white dark:text-white dark:hover:text-black border-2 border-black dark:border-white rounded-xl transition-all shadow-sm hover:-translate-y-1 hover:shadow-brutal-sm active:scale-95"
-            ><Pencil className="w-5 h-5 sm:w-6 sm:h-6" /></button>
+              className="p-2.5 sm:p-3 bg-white hover:bg-black text-black hover:text-white dark:bg-black dark:hover:bg-white dark:text-white dark:hover:text-black border-2 border-black dark:border-white rounded-xl transition-all shadow-sm hover:-translate-y-1 hover:shadow-brutal-sm active:scale-95"
+            ><Pencil className="w-5 h-5 sm:w-5 sm:h-5" /></button>
             
             {showMenu && (
               <>
@@ -99,6 +113,14 @@ const SharedListGameCard = React.memo(({
                     <button onClick={toggleType}
                       className="w-full flex items-center gap-3 px-4 py-3 text-sm font-extrabold uppercase tracking-widest bg-white dark:bg-black/50 hover:bg-neon-green dark:hover:bg-neon-green hover:text-black rounded-xl transition-colors border-2 border-transparent hover:border-black active:scale-95"
                     ><ArrowRightLeft className="w-5 h-5" /> Move To {shared.type === 'Main' ? 'Side' : 'Main'}</button>
+                    {haveIVoted && !isMyGame && (
+                      <>
+                        <div className="h-0.5 w-full bg-black/10 dark:bg-white/10 rounded-full my-1"></div>
+                        <button onClick={removeVote}
+                          className="w-full flex items-center gap-3 px-4 py-3 text-sm font-extrabold uppercase tracking-widest text-[#ff4a4a] hover:bg-[#ff4a4a] hover:text-black rounded-xl transition-colors border-2 border-transparent hover:border-black active:scale-95"
+                        ><ThumbsUp className="w-5 h-5 rotate-180" /> Remove Like</button>
+                      </>
+                    )}
                     <div className="h-0.5 w-full bg-black/10 dark:bg-white/10 rounded-full my-1"></div>
                     <button onClick={removeFromList}
                       className="w-full flex items-center gap-3 px-4 py-3 text-sm font-extrabold uppercase tracking-widest text-[#ff4a4a] hover:bg-[#ff4a4a] hover:text-black rounded-xl transition-colors border-2 border-transparent hover:border-black active:scale-95"

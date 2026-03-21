@@ -1,21 +1,26 @@
 import { useState, useMemo } from 'react';
 import { Search, X, CheckCircle2 } from 'lucide-react';
 
-export default function SharedListAddModal({ games, updateFirebaseGame, activeProfile, onClose }) {
+export default function ModsGameAddModal({ mainGames, mods, addFirebaseMod, activeProfile, onClose }) {
   const [search, setSearch] = useState('');
   
   const myGames = useMemo(() => {
-    return games.filter(g => (g.addedBy || []).includes(activeProfile));
-  }, [games, activeProfile]);
+    return mainGames.filter(g => (g.addedBy || []).includes(activeProfile));
+  }, [mainGames, activeProfile]);
 
   const filteredGames = useMemo(() => {
-    return myGames.filter(g => !g.sharedList && g.name.toLowerCase().includes(search.toLowerCase()));
+    return myGames.filter(g => g.name.toLowerCase().includes(search.toLowerCase()));
   }, [myGames, search]);
 
-  const addGame = (game, type) => {
-    updateFirebaseGame(game.id, (g) => ({
-      ...g, sharedList: { type, addedBy: activeProfile, upvotes: [activeProfile] }
-    }));
+  const addGameToMods = (game) => {
+    addFirebaseMod({
+       id: crypto.randomUUID(),
+       gameId: game.appId || game.id,
+       gameName: game.name,
+       gameImageUrl: game.imageUrl,
+       addedBy: activeProfile,
+       modsList: []
+    });
     onClose();
   };
 
@@ -24,7 +29,7 @@ export default function SharedListAddModal({ games, updateFirebaseGame, activePr
       <div className="glass-panel w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         
         <div className="p-5 sm:p-6 bg-black/5 dark:bg-white/5 border-b-2 border-black/10 dark:border-white/10 flex justify-between items-center shrink-0">
-          <h2 className="text-xl sm:text-2xl font-black uppercase tracking-tighter">Add to Shared List</h2>
+          <h2 className="text-xl sm:text-2xl font-black uppercase tracking-tighter">Track Mods for Game</h2>
           <button onClick={onClose} className="p-2 border-2 border-transparent hover:border-black/20 dark:hover:border-white/20 rounded-xl transition-colors hover:bg-black/5 dark:hover:bg-white/5 text-black/50 hover:text-black dark:text-white/50 dark:hover:text-white active:scale-95">
             <X className="w-6 h-6" />
           </button>
@@ -47,7 +52,9 @@ export default function SharedListAddModal({ games, updateFirebaseGame, activePr
             </div>
           ) : (
             filteredGames.map(game => {
-              const inList = !!game.sharedList;
+              const gameIdToTrack = String(game.appId || game.id);
+              const isAlreadyTracked = mods.some(m => m.addedBy === activeProfile && String(m.gameId) === gameIdToTrack);
+              
               return (
                 <div key={game.id} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3 bg-black/5 dark:bg-white/5 border-2 border-black/10 dark:border-white/10 rounded-2xl hover:border-black/20 dark:hover:border-white/30 transition-colors group">
                   <img src={game.imageUrl} alt={game.name}
@@ -58,18 +65,15 @@ export default function SharedListAddModal({ games, updateFirebaseGame, activePr
                     <h3 className="font-extrabold text-sm sm:text-base truncate tracking-tight uppercase">{game.name}</h3>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    {inList ? (
+                    {isAlreadyTracked ? (
                        <div className="flex items-center gap-1.5 px-4 py-3 bg-neon-green/20 dark:bg-neon-green/10 border-2 border-neon-green/30 text-neon-green rounded-xl font-bold uppercase tracking-widest text-[10px] w-full sm:w-auto justify-center">
-                         <CheckCircle2 className="w-4 h-4" /> Added
+                         <CheckCircle2 className="w-4 h-4" /> Tracked
                        </div>
                     ) : (
                       <div className="flex gap-2 w-full sm:w-auto">
-                        <button onClick={() => addGame(game, 'Main')}
-                          className="flex-1 sm:flex-none py-3 px-4 bg-neon-cyan brutal-btn rounded-xl text-[10px] font-extrabold uppercase tracking-widest active:scale-95"
-                        >Add to Main</button>
-                        <button onClick={() => addGame(game, 'Side')}
-                          className="flex-1 sm:flex-none py-3 px-4 bg-neon-purple brutal-btn rounded-xl text-[10px] font-extrabold uppercase tracking-widest active:scale-95"
-                        >Add to Side</button>
+                        <button onClick={() => addGameToMods(game)}
+                          className="flex-1 sm:flex-none py-3 px-6 bg-neon-cyan brutal-btn rounded-xl text-[10px] font-extrabold uppercase tracking-widest active:scale-95"
+                        >START TRACKING</button>
                       </div>
                     )}
                   </div>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ExternalLink, User, Users, ShieldAlert, Pencil } from 'lucide-react';
 
-const GameCard = React.memo(({ game, activeProfile, setEditingGame, viewMode = 'grid' }) => {
+const GameCard = React.memo(({ game, index = 0, activeProfile, setEditingGame, viewMode = 'grid' }) => {
   const [imgLoaded, setImgLoaded] = useState(false);
   const addedBy = game.addedBy || [];
   const isBoth = addedBy.length === 2;
@@ -12,7 +12,7 @@ const GameCard = React.memo(({ game, activeProfile, setEditingGame, viewMode = '
   const playerBadge = (sm = false) => {
     const cls = sm ? 'text-[9px] px-1.5 py-0.5' : 'text-[10px] px-2 py-1';
     return (isBoth || hasAadish || hasAditya) ? (
-      <span className={`w-fit ${cls} font-black uppercase tracking-[0.1em] rounded-md border-2 border-black shadow-none transition-all ${
+      <span className={`w-fit ${cls} font-black uppercase tracking-[0.1em] rounded-md border-2 border-black dark:border-white shadow-none transition-all ${
         isBoth ? 'bg-neon-purple text-black' : hasAadish ? 'bg-neon-cyan text-black' : 'bg-neon-orange text-black'
       }`}>
         {isBoth ? 'Both' : hasAadish ? 'Aadish' : 'Aditya'}
@@ -23,7 +23,7 @@ const GameCard = React.memo(({ game, activeProfile, setEditingGame, viewMode = '
   const statusBadge = (sm = false) => {
     const cls = sm ? 'text-[9px] px-1.5 py-0.5' : 'text-[10px] px-2 py-1';
     return (
-      <span className={`w-fit ${cls} font-black uppercase tracking-[0.1em] rounded-md border-2 border-black shadow-none transition-all ${
+      <span className={`w-fit ${cls} font-black uppercase tracking-[0.1em] rounded-md border-2 border-black dark:border-white shadow-none transition-all ${
         game.status === 'Played' ? 'bg-neon-green text-black' : 'bg-neon-yellow text-black'
       }`}>
         {game.status}
@@ -34,10 +34,10 @@ const GameCard = React.memo(({ game, activeProfile, setEditingGame, viewMode = '
   const modeBadge = (sm = false) => {
     const cls = sm ? 'text-[9px]' : 'text-xs';
     return (
-      <div className={`flex items-center gap-1.5 ${cls} font-extrabold uppercase tracking-widest text-black/60 dark:text-white/60`}>
+      <div className={`flex items-center gap-2 ${cls} font-black uppercase tracking-widest text-black/60 dark:text-white/60 group/mode`}>
         {game.mode === 'Multiplayer' 
-          ? <><div className="bg-neon-cyan p-1 sm:p-1.5 border-2 border-black dark:border-white/20 rounded-md"><Users className="w-3 h-3 text-black" /></div> <span className="hidden sm:inline">Mutli</span></>
-          : <><div className="bg-neon-purple p-1 sm:p-1.5 border-2 border-black dark:border-white/20 rounded-md"><User className="w-3 h-3 text-black" /></div> <span className="hidden sm:inline">Single</span></>
+          ? <><div className="bg-neon-cyan p-1.5 sm:p-2 border-2 border-black dark:border-white rounded-xl shadow-brutal-sm group-hover/mode:scale-110 transition-transform"><Users className="w-4 h-4 text-black" /></div> <span>Multiplayer</span></>
+          : <><div className="bg-neon-purple p-1.5 sm:p-2 border-2 border-black dark:border-white rounded-xl shadow-brutal-sm group-hover/mode:scale-110 transition-transform"><User className="w-4 h-4 text-black" /></div> <span>Singleplayer</span></>
         }
       </div>
     );
@@ -54,7 +54,7 @@ const GameCard = React.memo(({ game, activeProfile, setEditingGame, viewMode = '
     if (isMyGame) {
       return (
         <button onClick={() => setEditingGame(game)}
-          className={`flex items-center justify-center gap-2 ${compact ? 'py-1.5 px-4 text-[10px]' : 'flex-1 py-3 px-4 text-sm'} bg-[#ff4a4a] text-black border-2 border-black brutal-btn rounded-xl uppercase tracking-widest`}
+          className={`flex items-center justify-center gap-2 ${compact ? 'py-1.5 px-4 text-[10px]' : 'flex-1 py-3 px-4 text-sm'} bg-[#ff4a4a] text-black border-2 border-black brutal-btn rounded-xl uppercase tracking-widest w-full`}
         >
           <Pencil className="w-4 h-4" /> Edit
         </button>
@@ -70,7 +70,10 @@ const GameCard = React.memo(({ game, activeProfile, setEditingGame, viewMode = '
   // ── TABLE VIEW ──
   if (viewMode === 'table') {
     return (
-      <div className="group flex items-center gap-4 p-3 glass-panel-flat hover:shadow-brutal transition-all duration-200">
+      <div 
+        className="group flex items-center gap-4 p-3 glass-panel-flat hover:shadow-brutal transition-all duration-200 animate-stagger-enter"
+        style={{ animationDelay: `${(index % 20) * 40}ms` }}
+      >
         <div className="relative w-24 h-16 sm:w-32 sm:h-20 flex-shrink-0 border-2 border-black/20 dark:border-white/20 rounded-xl overflow-hidden">
           {!imgLoaded && (
             <div className="absolute inset-0 block animate-pulse bg-black/10 dark:bg-white/10"></div>
@@ -103,7 +106,10 @@ const GameCard = React.memo(({ game, activeProfile, setEditingGame, viewMode = '
   // ── COMPACT VIEW ──
   if (viewMode === 'compact') {
     return (
-      <div className="group flex flex-col glass-panel-flat overflow-hidden hover:shadow-brutal transition-all duration-200">
+      <div 
+        className="group flex flex-col glass-panel-flat overflow-hidden hover:shadow-brutal transition-all duration-200 animate-stagger-enter"
+        style={{ animationDelay: `${(index % 20) * 40}ms` }}
+      >
         <div className="relative aspect-[460/215] bg-black/5 dark:bg-white/5 border-b-2 border-black/10 dark:border-white/10 overflow-hidden">
           {!imgLoaded && (
             <div className="absolute inset-0 block animate-pulse bg-black/10 dark:bg-white/10"></div>
@@ -126,7 +132,9 @@ const GameCard = React.memo(({ game, activeProfile, setEditingGame, viewMode = '
           </div>
           <div className="mt-auto flex items-center justify-between gap-2 pt-2 border-t border-black/5 dark:border-white/5">
             {modeBadge(true)}
-            {editBtn(true)}
+            <div className="flex items-center gap-1.5">
+              {editBtn(true)}
+            </div>
           </div>
         </div>
       </div>
@@ -135,7 +143,10 @@ const GameCard = React.memo(({ game, activeProfile, setEditingGame, viewMode = '
 
   // ── DEFAULT GRID VIEW ──
   return (
-    <div className="group flex flex-col glass-panel overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-brutal-lg animate-in fade-in slide-in-from-bottom-2">
+    <div 
+      className="group flex flex-col glass-panel overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-brutal-lg animate-stagger-enter"
+      style={{ animationDelay: `${(index % 20) * 40}ms` }}
+    >
       <div className="relative aspect-[460/215] bg-black/5 dark:bg-white/5 overflow-hidden border-b-2 border-black/10 dark:border-white/10 rounded-t-[calc(1.5rem-2px)]">
         {!imgLoaded && (
           <div className="absolute inset-0 block animate-pulse bg-black/10 dark:bg-white/10"></div>
@@ -160,8 +171,8 @@ const GameCard = React.memo(({ game, activeProfile, setEditingGame, viewMode = '
         </div>
       </div>
 
-      <div className="p-5 sm:p-6 flex flex-col flex-1">
-        <h3 className="font-extrabold text-lg sm:text-xl leading-tight line-clamp-2 uppercase tracking-tighter mb-5" title={game.name}>
+      <div className="p-4 sm:p-6 flex flex-col flex-1">
+        <h3 className="font-extrabold text-base sm:text-xl leading-tight line-clamp-2 uppercase tracking-tighter mb-4" title={game.name}>
           {game.name}
         </h3>
 
@@ -169,7 +180,7 @@ const GameCard = React.memo(({ game, activeProfile, setEditingGame, viewMode = '
           <div className="font-bold flex items-center">
             {modeBadge()}
           </div>
-          <div className="pt-4 border-t-2 border-black/5 dark:border-white/10">
+          <div className="pt-4 border-t-2 border-black/5 dark:border-white/10 flex items-center gap-2">
             {editBtn()}
           </div>
         </div>

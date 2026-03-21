@@ -1,97 +1,68 @@
 import { Gamepad2, Loader2, Cloud, AlertCircle, Circle, CheckCircle2, Users, User, Sun, Moon } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function Header({ syncStatus, stats, activeProfile, loginAs, theme, toggleTheme, currentView }) {
+  const navigate = useNavigate();
+  const isModView = currentView === 'modsList';
+
   return (
-    <header className="sticky top-0 z-50 p-2 sm:p-4 pointer-events-none w-full">
-      <div className="max-w-7xl mx-auto glass-panel p-3 sm:px-5 sm:py-3 pointer-events-auto flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-4 w-full transition-all">
+    <header className="sticky top-0 z-50 p-2 sm:p-3 pointer-events-none w-full">
+      <div className="max-w-7xl mx-auto glass-panel backdrop-blur-xl bg-white/40 dark:bg-black/40 p-2 sm:px-4 sm:py-2 pointer-events-auto flex items-center justify-between gap-2 shadow-brutal-sm overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           
-        {/* Left: Logo + Stats */}
-        <div className="flex items-center justify-between gap-3 flex-shrink-0 w-full md:w-auto">
-          <div className="flex items-center gap-3">
-            <div className="bg-neon-pink brutal-btn p-2 rounded-xl flex-shrink-0 tactile-logo">
-              <Gamepad2 className="w-6 h-6 sm:w-7 sm:h-7" />
-            </div>
-            
-            <div className="flex flex-col justify-center min-w-0 pr-2">
-              <div className="flex items-center gap-2">
-                <button 
-                  onClick={() => window.location.reload()} 
-                  className="text-lg sm:text-xl font-extrabold tracking-tight leading-none truncate uppercase transition-transform origin-left outline-none active:scale-95"
-                >
-                  Steam Backlog
-                </button>
-              </div>
-              
-              {/* Desktop Stats / Sync */}
-              <div className="hidden sm:flex items-center gap-2 mt-1">
-                <div className="flex items-center text-[10px] font-bold uppercase tracking-widest">
-                  {syncStatus === 'syncing' ? (
-                    <span className="text-neon-purple flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin" /> Saving...</span>
-                  ) : syncStatus === 'saved' ? (
-                    <span className="text-neon-green flex items-center gap-1"><Cloud className="w-3 h-3" /> Synced</span>
-                  ) : syncStatus === 'error' ? (
-                    <span className="text-[#ff4a4a] flex items-center gap-1"><AlertCircle className="w-3 h-3" /> Error</span>
-                  ) : null}
-                </div>
-                
-                <div className="flex items-center gap-1.5 ml-1">
-                  <div className="flex items-center gap-1 bg-neon-yellow border-2 border-black dark:border-white px-1.5 py-0.5 rounded-md text-[10px] font-bold text-black" title="Wanted">
-                    <Circle className="w-3 h-3" /> <span>{stats.wanted}</span>
-                  </div>
-                  <div className="flex items-center gap-1 bg-neon-green border-2 border-black dark:border-white px-1.5 py-0.5 rounded-md text-[10px] font-bold text-black" title="Played">
-                    <CheckCircle2 className="w-3 h-3" /> <span>{stats.played}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+        {/* Left: Logo + Title */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="bg-neon-pink brutal-btn p-1.5 sm:p-2 rounded-lg sm:rounded-xl flex-shrink-0 tactile-logo cursor-pointer" onClick={() => navigate('/')}>
+            <Gamepad2 className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
-          
-          {/* Mobile Theme Toggle */}
           <button 
-            onClick={toggleTheme}
-            className="md:hidden p-3 bg-neon-cyan brutal-btn rounded-xl active:scale-90 transition-transform"
+            onClick={() => navigate('/')} 
+            className="text-sm sm:text-base font-extrabold tracking-tight leading-none truncate uppercase transition-transform origin-left outline-none active:scale-95"
           >
-            {theme === 'dark' ? <Moon className="w-5 h-5 text-black" /> : <Sun className="w-5 h-5 text-black" />}
+            Steam Backlog
           </button>
+
+          {/* Stats / Sync (Hidden in Mod View) */}
+          {!isModView && (
+            <div className="hidden md:flex items-center gap-2 ml-2">
+              <div className="flex items-center text-[9px] font-bold uppercase tracking-widest">
+                {syncStatus === 'syncing' ? (
+                  <span className="text-neon-purple flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin" /> Save</span>
+                ) : syncStatus === 'saved' ? (
+                  <span className="text-neon-green flex items-center gap-1"><Cloud className="w-3 h-3" /> Sync</span>
+                ) : syncStatus === 'error' ? (
+                  <span className="text-[#ff4a4a] flex items-center gap-1"><AlertCircle className="w-3 h-3" /> Err</span>
+                ) : null}
+              </div>
+              <div className="flex items-center gap-1.5 ml-1">
+                <div className="flex items-center gap-1 bg-neon-yellow border-2 border-black dark:border-white px-1.5 py-0.5 rounded-md text-[9px] font-bold text-black" title="Wanted">
+                  <Circle className="w-3 h-3" /> <span>{stats.wanted}</span>
+                </div>
+                <div className="flex items-center gap-1 bg-neon-green border-2 border-black dark:border-white px-1.5 py-0.5 rounded-md text-[9px] font-bold text-black" title="Played">
+                  <CheckCircle2 className="w-3 h-3" /> <span>{stats.played}</span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Mobile Stats Ribbon */}
-        <div className="flex sm:hidden items-center justify-between w-full px-1 border-t-2 border-black/10 dark:border-white/10 pt-2 pb-1">
-          <div className="flex items-center text-[10px] font-bold uppercase tracking-widest text-black/60 dark:text-white/60">
-            {syncStatus === 'syncing' ? <span className="text-neon-purple"><Loader2 className="w-3 h-3 inline animate-spin" /> Save</span>
-             : syncStatus === 'saved' ? <span className="text-neon-green"><Cloud className="w-3 h-3 inline" /> Sync</span>
-             : syncStatus === 'error' ? <span className="text-[#ff4a4a]"><AlertCircle className="w-3 h-3 inline" /> Err</span>
-             : null}
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 bg-neon-yellow border-2 border-black dark:border-white px-2 py-0.5 rounded-md text-[10px] font-bold text-black">
-              Wanted: {stats.wanted}
-            </div>
-            <div className="flex items-center gap-1 bg-neon-green border-2 border-black dark:border-white px-2 py-0.5 rounded-md text-[10px] font-bold text-black">
-              Played: {stats.played}
-            </div>
-          </div>
-        </div>
-        
         {/* Right: Actions */}
-        <div className="flex items-center justify-start md:justify-end gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div className="flex items-center justify-end gap-2 flex-shrink-0">
           
-          {/* Theme Toggle (Desktop) */}
           <button 
             onClick={toggleTheme}
-            className="hidden md:flex p-3 bg-neon-cyan brutal-btn rounded-xl flex-shrink-0"
+            className="p-2 sm:p-2.5 bg-neon-cyan brutal-btn rounded-lg sm:rounded-xl flex-shrink-0"
             title="Toggle Theme"
           >
-            {theme === 'dark' ? <Moon className="w-5 h-5 text-black" /> : <Sun className="w-5 h-5 text-black" />}
+            {theme === 'dark' ? <Moon className="w-4 h-4 text-black" /> : <Sun className="w-4 h-4 text-black" />}
           </button>
 
           {/* Combined View */}
-          {currentView !== 'sharedList' && activeProfile !== 'Combined' && (
+          {currentView !== 'sharedList' && activeProfile !== 'Combined' && !isModView && (
             <button 
               onClick={() => loginAs('Combined')}
-              className="flex items-center gap-2 bg-neon-purple brutal-btn px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-widest flex-shrink-0"
+              className="flex items-center gap-1.5 bg-neon-purple brutal-btn px-3 py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold uppercase tracking-widest flex-shrink-0"
             >
-              <Users className="w-4 h-4" /> <span className="hidden sm:inline-block">Combined</span>
+              <Users className="w-3.5 h-3.5" /> <span className="hidden sm:inline-block">Combined</span>
             </button>
           )}
 
@@ -99,10 +70,10 @@ export default function Header({ syncStatus, stats, activeProfile, loginAs, them
           {currentView !== 'sharedList' && (
             <button 
               onClick={() => loginAs(null)}
-              className="flex items-center gap-2 bg-neon-yellow brutal-btn px-5 py-3 rounded-xl text-xs font-bold uppercase tracking-widest flex-shrink-0"
+              className="flex items-center gap-1.5 bg-neon-yellow brutal-btn px-3 py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold uppercase tracking-widest flex-shrink-0"
             >
-              {activeProfile === 'Combined' ? <Users className="w-4 h-4" /> : <User className="w-4 h-4" />}
-              <span className="truncate max-w-[100px] sm:max-w-none">{activeProfile}</span>
+              {activeProfile === 'Combined' ? <Users className="w-3.5 h-3.5" /> : <User className="w-3.5 h-3.5" />}
+              <span className="truncate max-w-[80px] sm:max-w-none">{activeProfile}</span>
             </button>
           )}
         </div>

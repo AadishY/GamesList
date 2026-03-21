@@ -3,8 +3,8 @@ import { ArrowLeft, Plus, Gamepad2 } from 'lucide-react';
 import SharedListGameCard from './SharedListGameCard';
 import SharedListAddModal from './SharedListAddModal';
 
-export default function SharedList({ games, setGames, activeProfile, goBack }) {
-  const [filter, setFilter] = useState('All');
+export default function SharedList({ games, updateFirebaseGame, activeProfile, goBack }) {
+  const [filter, setFilter] = useState('Main');
   const [showAddModal, setShowAddModal] = useState(false);
   
   const dragItem = useRef(null);
@@ -25,13 +25,14 @@ export default function SharedList({ games, setGames, activeProfile, goBack }) {
     }
   }, [games, filter]);
 
-  const handleDragStart = (e, idx) => { if (filter === 'All') return; dragItem.current = idx; e.dataTransfer.effectAllowed = 'move'; };
-  const handleDragEnter = (e, idx) => { if (filter === 'All') return; dragOverItem.current = idx; };
+  const handleDragStart = (e, idx) => { dragItem.current = idx; e.dataTransfer.effectAllowed = 'move'; };
+  const handleDragEnter = (e, idx) => { dragOverItem.current = idx; };
   const handleDragEnd = () => {
-    if (filter === 'All' || dragItem.current === null || dragOverItem.current === null || dragItem.current === dragOverItem.current) return;
+    if (dragItem.current === null || dragOverItem.current === null || dragItem.current === dragOverItem.current) return;
     const copy = [...sharedGames]; const dragged = copy[dragItem.current]; copy.splice(dragItem.current, 1); copy.splice(dragOverItem.current, 0, dragged);
-    const copyIds = copy.map(c => c.id);
-    setGames(prev => prev.map(game => { const i = copyIds.indexOf(game.id); return i > -1 ? { ...game, sharedList: { ...game.sharedList, order: i } } : game; }));
+    copy.forEach((game, index) => {
+      updateFirebaseGame(game.id, (g) => ({ ...g, sharedList: { ...g.sharedList, order: index } }));
+    });
     dragItem.current = null; dragOverItem.current = null;
   };
 
@@ -55,7 +56,7 @@ export default function SharedList({ games, setGames, activeProfile, goBack }) {
             </div>
           </div>
           <div className="bg-white/40 dark:bg-black/40 rounded-2xl p-1.5 border-2 border-black/5 dark:border-white/10 flex gap-1.5 w-full sm:w-auto overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-            {['All', 'Main', 'Side'].map(f => (
+            {['Main', 'Side'].map(f => (
               <button key={f} onClick={() => setFilter(f)} className={pillClass(filter === f)}>{f}</button>
             ))}
           </div>
@@ -70,11 +71,11 @@ export default function SharedList({ games, setGames, activeProfile, goBack }) {
         ) : (
           <div className="flex flex-col gap-4">
             <div className="px-3 text-[10px] font-extrabold text-black/40 dark:text-white/40 uppercase tracking-[0.2em] mb-1 pl-4">
-              {filter === 'All' ? 'Alphabetical / Priority' : 'Drag to Reorder'}
+              Drag to Reorder
             </div>
             {sharedGames.map((game, idx) => (
-              <SharedListGameCard key={game.id} game={game} activeProfile={activeProfile} setGames={setGames} viewFilter={filter}
-                draggable={filter !== 'All'} index={idx}
+              <SharedListGameCard key={game.id} game={game} activeProfile={activeProfile} updateFirebaseGame={updateFirebaseGame} viewFilter={filter}
+                draggable={true} index={idx}
                 onDragStart={(e) => handleDragStart(e, idx)} onDragEnter={(e) => handleDragEnter(e, idx)} onDragEnd={handleDragEnd}
               />
             ))}
@@ -92,7 +93,7 @@ export default function SharedList({ games, setGames, activeProfile, goBack }) {
       )}
 
       {showAddModal && (
-        <SharedListAddModal games={games} setGames={setGames} activeProfile={activeProfile} onClose={() => setShowAddModal(false)} />
+        <SharedListAddModal games={games} updateFirebaseGame={updateFirebaseGame} activeProfile={activeProfile} onClose={() => setShowAddModal(false)} />
       )}
     </div>
   );

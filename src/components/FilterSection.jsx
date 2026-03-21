@@ -41,7 +41,7 @@ export default function FilterSection({
           <div className="absolute right-4 pointer-events-none border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[6px] border-black/40 dark:border-white/40"></div>
         </div>
 
-        <div className="hidden sm:flex bg-white/50 dark:bg-black/50 rounded-xl p-1 border-2 border-black/5 dark:border-white/10 gap-1 flex-shrink-0 h-full items-center">
+        <div className="flex bg-white/50 dark:bg-black/50 rounded-xl p-1 border-2 border-black/5 dark:border-white/10 gap-1 flex-shrink-0 h-full items-center">
           {viewModes.map(({ key, icon: Icon }) => (
             <button key={key} onClick={() => setViewMode(key)}
               className={`p-2 rounded-lg transition-all ${viewMode === key ? 'bg-neon-pink brutal-btn' : 'text-black/40 hover:text-black dark:text-white/40 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 border-2 border-transparent'}`}

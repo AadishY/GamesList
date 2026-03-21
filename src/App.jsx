@@ -1,5 +1,9 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { Gamepad2, ListPlus } from 'lucide-react';
+import { Gamepad2, ListPlus, X, Settings2 } from 'lucide-react';
+
+import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
+import { collection, onSnapshot, doc, setDoc, deleteDoc } from 'firebase/firestore';
+import { db } from './firebase';
 
 // Extracted Components
 import ProfileSelector from './components/ProfileSelector';
@@ -11,10 +15,12 @@ import FilterSection from './components/FilterSection';
 import GameCard from './components/GameCard';
 import Footer from './components/Footer';
 import SharedList from './components/SharedList';
+import ModsList from './components/ModsList';
 
 export default function App() {
   // App State
   const [games, setGames] = useState([]);
+  const [mods, setMods] = useState([]);
   const [urlInput, setUrlInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -29,6 +35,7 @@ export default function App() {
   const searchAbortRef = useRef(null);
   
   // Modals
+  const [showListOverlay, setShowListOverlay] = useState(false);
   const [pendingGame, setPendingGame] = useState(null);
   const [editingGame, setEditingGame] = useState(null);
   const [gameToDelete, setGameToDelete] = useState(null); 
@@ -51,15 +58,25 @@ export default function App() {
   }, []);
 
   // Sync State
-  const [syncStatus, setSyncStatus] = useState(''); 
+  const [syncStatus, setSyncStatus] = useState('syncing'); 
   const isReadyForSync = useRef(false);
 
-  // Profile State
-  const [activeProfile, setActiveProfile] = useState(null);
-  const [profileLoading] = useState(false);
+  // Router specific
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  // App View State
-  const [currentView, setCurrentView] = useState('home'); // 'home' | 'sharedList'
+  // Profile State will be derived from URL params or maintained closely
+  // For simplicity, we define activeProfile from App state, but update it based on route change.
+  const getInitialProfile = () => {
+    const path = window.location.pathname;
+    const parts = path.split('/').filter(Boolean);
+    const profileSegment = parts[0];
+    if (['Aadish', 'Aditya', 'Combined'].includes(profileSegment)) {
+      return profileSegment;
+    }
+    return null;
+  };
+  const [activeProfile, setActiveProfile] = useState(getInitialProfile);
 
   // Theme State
   const [theme, setTheme] = useState(() => {
@@ -112,25 +129,47 @@ export default function App() {
   }, []);
 
   // --- Profile Switching Helper ---
-  const loginAs = useCallback(async (profile) => {
+  const loginAs = useCallback((profile) => {
     setActiveProfile(profile);
     if (profile !== 'Combined') {
       setPlayerFilter(profile); 
     } else {
       setPlayerFilter('All');
     }
-  }, []);
+    navigate(`/${profile}`);
+  }, [navigate]);
 
-  // --- GitHub Auto-Sync Functions ---
-  const GITHUB_OWNER = 'AadishY';
-  const GITHUB_REPO = 'GamesList';
-  const FILE_PATH = 'games.json';
+  // Sync profile state with route config
+  useEffect(() => {
+    const path = location.pathname;
+    const parts = path.split('/').filter(Boolean);
+    const profileSegment = parts[0];
 
-  const getGithubToken = () => {
+    if (!profileSegment) {
+      setActiveProfile(null);
+    } else if (['Aadish', 'Aditya', 'Combined'].includes(profileSegment)) {
+      setActiveProfile(profileSegment);
+      if (profileSegment !== 'Combined') {
+        setPlayerFilter(profileSegment);
+      } else {
+        setPlayerFilter('All');
+      }
+    }
+  }, [location.pathname]);
+
+  // Helper function to replace local setGames state mutations with Firebase updates
+  const updateFirebaseGame = async (gameId, updateFn) => {
+    setSyncStatus('syncing');
     try {
-      return import.meta.env.VITE_GITHUB_TOKEN || '';
-    } catch {
-      return '';
+      const currentGame = games.find(g => g.id === gameId);
+      if (currentGame) {
+        const updatedGame = updateFn({ ...currentGame });
+        await setDoc(doc(db, 'games', String(gameId)), updatedGame);
+        setSyncStatus('saved');
+      }
+    } catch (e) {
+      console.error(e);
+      setSyncStatus('error');
     }
   };
 
@@ -142,100 +181,38 @@ export default function App() {
     }
   };
 
-  const pullFromGithub = useCallback(async () => {
-    const token = getGithubToken();
-    if (!token) {
-      setTimeout(() => { isReadyForSync.current = true; }, 500);
-      return;
-    }
-    
-    setSyncStatus('syncing');
-    try {
-      const response = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${FILE_PATH}`, {
-        headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github.v3.raw' }
-      });
-      
-      if (response.ok) {
-        const parsedGames = await response.json();
-        if (Array.isArray(parsedGames)) {
-          setGames(parsedGames);
-        } else if (parsedGames && parsedGames.content) {
-          // Fallback if browser cached the metadata object instead of honoring 'raw' header
-          const decodedContent = decodeURIComponent(escape(atob(parsedGames.content.replace(/\n/g, ''))));
-          setGames(JSON.parse(decodedContent));
-        } else {
-          console.error("Unknown payload from GitHub sync:", parsedGames);
-          setGames([]);
-        }
-      }
-      setSyncStatus('saved');
-    } catch (err) {
-      console.error("GitHub Pull Error:", err);
-      setSyncStatus('error');
-    } finally {
-      setTimeout(() => { isReadyForSync.current = true; }, 1000);
-    }
-  }, []);
-
-  const pushToGithub = useCallback(async (currentGames) => {
-    const token = getGithubToken();
-    if (!token) return;
-
+  // --- Firebase Auto-Sync Functions ---
+  useEffect(() => {
     setSyncStatus('syncing');
 
-    try {
-      let sha = null;
-      const getResponse = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${FILE_PATH}`, {
-        headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github.v3+json' }
+    const unsubGames = onSnapshot(collection(db, 'games'), (snapshot) => {
+      const dbGames = [];
+      snapshot.forEach(doc => {
+        dbGames.push({ ...doc.data(), id: doc.id });
       });
-      
-      if (getResponse.ok) {
-        const data = await getResponse.json();
-        sha = data.sha;
-      }
-
-      // Async Base64 encoding via FileReader perfectly avoids blocking UI thread on mobile
-      const contentStr = JSON.stringify(currentGames, null, 2);
-      const encodedContent = await new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result.split(',')[1]);
-        reader.readAsDataURL(new Blob([contentStr]));
-      });
-
-      const putResponse = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${FILE_PATH}`, {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: 'application/vnd.github.v3+json',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          message: `Auto-sync games list (${currentGames.length} games)`,
-          content: encodedContent,
-          ...(sha && { sha })
-        })
-      });
-
-      if (!putResponse.ok) throw new Error('Failed to push to GitHub.');
+      setGames(dbGames);
       setSyncStatus('saved');
-    } catch (err) {
-      console.error("GitHub Push Error:", err);
+      isReadyForSync.current = true;
+    }, (err) => {
+      console.error("Firebase games sync error:", err);
       setSyncStatus('error');
-    }
+    });
+
+    const unsubMods = onSnapshot(collection(db, 'mods'), (snapshot) => {
+      const dbMods = [];
+      snapshot.forEach(doc => {
+        dbMods.push({ ...doc.data(), id: doc.id });
+      });
+      setMods(dbMods);
+    }, (err) => {
+      console.error("Firebase mods sync error:", err);
+    });
+
+    return () => {
+      unsubGames();
+      unsubMods();
+    };
   }, []);
-
-  useEffect(() => {
-    pullFromGithub();
-  }, [pullFromGithub]);
-
-  useEffect(() => {
-    if (isReadyForSync.current) {
-      const debounceTimer = setTimeout(() => {
-        pushToGithub(games);
-      }, 1500);
-      return () => clearTimeout(debounceTimer);
-    }
-  }, [games, pushToGithub]);
 
   // --- Game Parsing & Fetching Utilities ---
   const extractGameInfo = (url) => {
@@ -403,23 +380,17 @@ export default function App() {
 
           const details = steamData[appId].data;
           
-          if (checkAndHandleExisting(appId, details.name)) {
-            setLoading(false);
-            return;
-          }
-
-          const isMultiplayer = details.categories?.some(c => 
+          const isM = details.categories?.some(c => 
             c.description.toLowerCase().includes('multi-player') || 
             c.description.toLowerCase().includes('co-op')
           );
-
           finalGameData = {
             appId: String(appId),
             name: details.name,
             imageUrl: details.header_image,
             steamUrl: input,
             status: 'Wanted',
-            mode: isMultiplayer ? 'Multiplayer' : 'Singleplayer'
+            mode: isM ? 'Multiplayer' : 'Singleplayer'
           };
         } catch (err) {
           console.warn('API fetch timed out or failed. Utilizing bulletproof fallback.', err.message);
@@ -428,7 +399,7 @@ export default function App() {
             setLoading(false);
             return;
           }
-          const fallbackImage = `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${appId}/header.jpg`;
+          const fallbackImage = `https://placehold.co/460x215/1e293b/4f46e5?text=${encodeURIComponent(fallbackName)}`;
           finalGameData = {
             appId: String(appId),
             name: fallbackName,
@@ -457,16 +428,28 @@ export default function App() {
           return;
         }
 
-        const isMultiplayer = game.tags?.some(t => t.slug.includes('multiplayer') || t.slug.includes('co-op'));
-        const steamStoreSearchLink = `https://store.steampowered.com/search/?term=${encodeURIComponent(game.name)}`;
+        let steamStoreSearchLink = `https://store.steampowered.com/search/?term=${encodeURIComponent(game.name)}`;
+        
+        // Fetch explicit steam link if possible
+        try {
+          const detailRes = await fetchWithTimeout(`https://api.rawg.io/api/games/${game.slug}?key=${rawgKey}`, { timeout: 3000 });
+          if (detailRes.ok) {
+            const detailData = await detailRes.json();
+            const steamStore = detailData.stores?.find(s => s.store.name.toLowerCase().includes('steam') || s.store.slug.includes('steam'));
+            if (steamStore && steamStore.url) {
+              steamStoreSearchLink = steamStore.url;
+            }
+          }
+        } catch { /* Ignore detail fetch errors */ }
 
+        const isM = game.tags?.some(t => t.slug.includes('multiplayer') || t.slug.includes('co-op'));
         finalGameData = {
             appId: String(game.slug),
             name: game.name,
             imageUrl: game.background_image || `https://placehold.co/460x215/1e293b/4f46e5?text=${encodeURIComponent(game.name)}`,
             steamUrl: steamStoreSearchLink,
             status: 'Wanted',
-            mode: isMultiplayer ? 'Multiplayer' : 'Singleplayer'
+            mode: isM ? 'Multiplayer' : 'Singleplayer'
         };
       }
 
@@ -479,26 +462,36 @@ export default function App() {
     }
   };
 
-  const confirmAddGame = useCallback(() => {
+  const confirmAddGame = useCallback(async () => {
     if (!pendingGame) return;
+    setSyncStatus('syncing');
 
     const existingGame = getExistingGame(pendingGame.appId, pendingGame.name);
-    if (existingGame) {
-      const addedBy = existingGame.addedBy || [];
-      if (!addedBy.includes(activeProfile)) {
-        setGames(prev => prev.map(g => 
-          g.id === existingGame.id 
-            ? { ...g, addedBy: [...addedBy, activeProfile], status: pendingGame.status, mode: pendingGame.mode }
-            : g
-        ));
+    try {
+      if (existingGame) {
+        const addedBy = existingGame.addedBy || [];
+        if (!addedBy.includes(activeProfile)) {
+          const updated = { 
+            ...existingGame, 
+            addedBy: [...addedBy, activeProfile], 
+            status: pendingGame.status, 
+            mode: pendingGame.mode 
+          };
+          await setDoc(doc(db, 'games', String(updated.id)), updated);
+        }
+      } else {
+        const newGame = { 
+          ...pendingGame, 
+          id: crypto.randomUUID(), 
+          addedAt: Date.now(),
+          addedBy: [activeProfile]
+        };
+        await setDoc(doc(db, 'games', String(newGame.id)), newGame);
       }
-    } else {
-      setGames(prev => [{ 
-        ...pendingGame, 
-        id: crypto.randomUUID(), 
-        addedAt: Date.now(),
-        addedBy: [activeProfile]
-      }, ...prev]);
+      setSyncStatus('saved');
+    } catch (e) {
+      console.error(e);
+      setSyncStatus('error');
     }
 
     setPendingGame(null);
@@ -506,27 +499,42 @@ export default function App() {
   }, [pendingGame, activeProfile, getExistingGame]);
 
   // --- Edit Actions ---
-  const saveEditedGame = useCallback(() => {
+  const saveEditedGame = useCallback(async () => {
     if (activeProfile === 'Combined' || !editingGame) return;
-    setGames(prevGames => prevGames.map(g => g.id === editingGame.id ? { ...editingGame } : g));
+    setSyncStatus('syncing');
+    try {
+      await setDoc(doc(db, 'games', String(editingGame.id)), { ...editingGame });
+      setSyncStatus('saved');
+    } catch (e) {
+      console.error(e);
+      setSyncStatus('error');
+    }
     setEditingGame(null);
   }, [activeProfile, editingGame]);
 
-  const confirmDeleteGame = useCallback(() => {
+  const confirmDeleteGame = useCallback(async () => {
     if (activeProfile === 'Combined' || !gameToDelete) return; 
+    setSyncStatus('syncing');
 
-    setGames(prevGames => {
-      return prevGames.map(g => {
-        if (g.id === gameToDelete.id) {
-          const newAddedBy = (g.addedBy || []).filter(p => p !== activeProfile);
-          return { ...g, addedBy: newAddedBy };
+    try {
+      const g = games.find(gm => gm.id === gameToDelete.id);
+      if (g) {
+        const newAddedBy = (g.addedBy || []).filter(p => p !== activeProfile);
+        
+        if (newAddedBy.length === 0) {
+          await deleteDoc(doc(db, 'games', String(g.id)));
+        } else {
+          await setDoc(doc(db, 'games', String(g.id)), { ...g, addedBy: newAddedBy });
         }
-        return g;
-      }).filter(g => g.addedBy && g.addedBy.length > 0); 
-    });
+      }
+      setSyncStatus('saved');
+    } catch (e) {
+      console.error(e);
+      setSyncStatus('error');
+    }
 
     setGameToDelete(null);
-  }, [activeProfile, gameToDelete]);
+  }, [activeProfile, gameToDelete, games]);
 
   // --- Highly Optimized Filtering & Sorting via useMemo ---
   const filteredGames = useMemo(() => {
@@ -567,16 +575,6 @@ export default function App() {
   // Renders
 
   if (!activeProfile) {
-    if (profileLoading) {
-      return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#f4f4f5] dark:bg-[#050510] transition-colors">
-          <div className="glass-panel p-10 flex flex-col items-center gap-6 animate-in fade-in zoom-in-95 duration-300">
-            <div className="w-14 h-14 border-4 border-black dark:border-white border-b-neon-pink rounded-full animate-spin drop-shadow-md"></div>
-            <h2 className="text-xl sm:text-2xl font-black uppercase tracking-[0.2em] text-black dark:text-white animate-pulse">Loading Profile...</h2>
-          </div>
-        </div>
-      );
-    }
     return <ProfileSelector loginAs={loginAs} theme={theme} toggleTheme={toggleTheme} />;
   }
 
@@ -616,11 +614,43 @@ export default function App() {
         loginAs={loginAs}
         theme={theme}
         toggleTheme={toggleTheme}
-        currentView={currentView}
+        currentView={location.pathname.endsWith('/list') ? 'sharedList' : location.pathname.endsWith('/mods') ? 'modsList' : 'home'}
       />
 
-      {currentView === 'home' ? (
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 flex-1 w-full relative">
+      <Routes>
+        <Route path="/" element={<Navigate to={`/${activeProfile || ''}`} replace />} />
+        <Route path="/:profileId/list" element={
+          <SharedList 
+            games={games} 
+            activeProfile={activeProfile} 
+            goBack={() => navigate(`/${activeProfile}`)} 
+            updateFirebaseGame={updateFirebaseGame}
+          />
+        } />
+        <Route path="/:profileId/mods" element={
+          <ModsList 
+            games={games}
+            activeProfile={activeProfile} 
+            goBack={() => navigate(`/${activeProfile}`)} 
+            mods={mods}
+            // Mods list setMods would ideally be replaced by firebase updates inside ModsList.
+            // For now, passing updateFirebaseGame generic or a specialized updateFirebaseMod.
+            updateFirebaseMod={async (modId, updateFn) => {
+              const currentMod = mods.find(m => m.id === modId);
+              if (currentMod) {
+                await setDoc(doc(db, 'mods', String(modId)), updateFn({ ...currentMod }));
+              }
+            }}
+            addFirebaseMod={async (newMod) => {
+              await setDoc(doc(db, 'mods', String(newMod.id)), newMod);
+            }}
+            deleteFirebaseMod={async (modId) => {
+              await deleteDoc(doc(db, 'mods', String(modId)));
+            }}
+          />
+        } />
+        <Route path="/:profileId" element={
+          <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 space-y-6 flex-1 w-full relative">
           
           <AddGameSection 
             activeProfile={activeProfile}
@@ -660,39 +690,66 @@ export default function App() {
             </div>
           ) : (
             <div className={
-              viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6' :
+              viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-8' :
               viewMode === 'compact' ? 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4' :
               'flex flex-col gap-3'
             }>
-              {filteredGames.map((game) => (
+              {filteredGames.map((game, index) => (
                 <GameCard 
                   key={game.id}
                   game={game}
+                  index={index}
                   activeProfile={activeProfile}
                   setEditingGame={setEditingGame}
+                  onRemove={(id) => {
+                    const toDelete = games.find(g => g.id === id);
+                    if (toDelete) setGameToDelete(toDelete);
+                  }}
                   viewMode={viewMode}
                 />
               ))}
             </div>
           )}
         </main>
-      ) : (
-        <SharedList 
-          games={games} 
-          setGames={setGames} 
-          activeProfile={activeProfile} 
-          goBack={() => setCurrentView('home')} 
-        />
-      )}
+        } />
+      </Routes>
 
-      {currentView === 'home' && activeProfile !== 'Combined' && (
-        <button 
-          onClick={() => setCurrentView('sharedList')}
-          className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 bg-neon-pink brutal-btn shadow-pink text-black px-6 py-4 rounded-2xl border-2 border-black hover:-translate-y-1 hover:shadow-brutal-lg active:translate-y-0 active:shadow-none font-extrabold uppercase tracking-widest text-lg transition-all flex items-center gap-3 z-50"
-        >
-          <ListPlus className="w-6 h-6 border-2 border-black rounded-md p-0.5 bg-white" />
-          <span className="hidden sm:inline-block">List</span>
-        </button>
+      {/* Floating Action Button (FAB) Menu for Navigation */}
+      {!location.pathname.endsWith('/list') && !location.pathname.endsWith('/mods') && activeProfile !== 'Combined' && (
+        <div className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 z-50 flex flex-col items-end gap-3 pointer-events-none">
+          
+          <div className={`flex flex-col items-end gap-3 transition-all duration-300 origin-bottom ${showListOverlay ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto' : 'opacity-0 scale-90 translate-y-8 pointer-events-none'}`}>
+            <button 
+              onClick={() => { setShowListOverlay(false); navigate(`/${activeProfile}/list`); }}
+              className="bg-neon-yellow brutal-btn text-black px-6 sm:px-8 py-4 sm:py-5 rounded-2xl border-2 border-black font-black uppercase tracking-widest text-sm sm:text-base flex items-center gap-3 sm:gap-4 shadow-brutal-sm hover:-translate-y-1 active:translate-y-0 transition-all pointer-events-auto"
+            >
+              <Gamepad2 className="w-5 h-5 sm:w-6 sm:h-6" /> Game List
+            </button>
+                        <button 
+              onClick={() => { setShowListOverlay(false); navigate(`/${activeProfile}/mods`); }}
+              className="bg-neon-cyan brutal-btn text-black px-6 sm:px-8 py-4 sm:py-5 rounded-2xl border-2 border-black font-black uppercase tracking-widest text-sm sm:text-base flex items-center gap-3 sm:gap-4 shadow-brutal-sm hover:-translate-y-1 active:translate-y-0 transition-all pointer-events-auto"
+            >
+              <Settings2 className="w-5 h-5 sm:w-6 sm:h-6" /> Mod List
+            </button>
+          </div>
+
+          <button 
+            onClick={() => setShowListOverlay(!showListOverlay)}
+            className="bg-neon-pink brutal-btn shadow-pink text-black px-6 py-5 sm:px-8 sm:py-6 rounded-[2rem] border-2 border-black hover:-translate-y-1 hover:shadow-brutal-lg active:-translate-y-0 active:scale-95 active:shadow-none font-extrabold uppercase tracking-widest text-lg sm:text-xl transition-all flex items-center gap-4 pointer-events-auto"
+          >
+            {showListOverlay ? (
+              <>
+                <X className="w-7 h-7 sm:w-8 sm:h-8 border-2 border-black rounded-md p-0.5 bg-white" />
+                <span className="hidden sm:inline-block">Close</span>
+              </>
+            ) : (
+              <>
+                <ListPlus className="w-7 h-7 sm:w-8 sm:h-8 border-2 border-black rounded-md p-0.5 bg-white" />
+                <span className="hidden sm:inline-block">List</span>
+              </>
+            )}
+          </button>
+        </div>
       )}
 
       <Footer />
