@@ -1,5 +1,18 @@
 [
   {
+    "appId": "repo-2",
+    "name": "R.E.P.O.",
+    "imageUrl": "https://media.rawg.io/media/screenshots/5d7/5d754e1dc0084cc9b1b36c1f087cf21f.jpg",
+    "steamUrl": "https://store.steampowered.com/search/?term=R.E.P.O.",
+    "status": "Played",
+    "mode": "Multiplayer",
+    "id": "a14fe2c9-f311-4d90-8512-df5c8d0b0db2",
+    "addedAt": 1774078797186,
+    "addedBy": [
+      "Aadish"
+    ]
+  },
+  {
     "appId": "grand-theft-auto-v",
     "name": "Grand Theft Auto V",
     "imageUrl": "https://media.rawg.io/media/games/20a/20aa03a10cda45239fe22d035c0ebe64.jpg",
