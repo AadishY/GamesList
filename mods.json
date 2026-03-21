@@ -5,17 +5,6 @@
     "gameName": "Elden Ring Nightreign",
     "gameImageUrl": "https://media.rawg.io/media/games/a14/a143ef815d323a3000840fc774d834c7.jpg",
     "addedBy": "Aadish",
-    "modsList": [
-      {
-        "id": "a7a3258e-308e-4f7d-897c-3ef4209f2eef",
-        "name": "Seamless Co-op (Nightreign)",
-        "image": "https://staticdelivery.nexusmods.com/mods/7800/images/3/3-1748613196-728917240.png",
-        "version": "1.12",
-        "changelog": "View full changelog on Nexus mods page.",
-        "link": "https://www.nexusmods.com/eldenringnightreign/mods/3",
-        "description": "Multiplayer enhancement mod for Elden Ring: Nightreign",
-        "lastUpdated": "1/28/2026"
-      }
-    ]
+    "modsList": []
   }
 ]
