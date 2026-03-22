@@ -2,8 +2,8 @@ name: Daily Firebase Backup
 
 on:
   schedule:
-    # Runs at 00:00 UTC every 24 hours
-    - cron: '0 0 * * *'
+    # Runs at 00:00 and 12:00 UTC every day (every 12 hours)
+    - cron: '0 0,12 * * *'
   # Allow manual trigger
   workflow_dispatch:
 
@@ -33,12 +33,16 @@ jobs:
           VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
           VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
           VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+        # Update path to where your script is actually located if needed
         run: node scripts/backupFirebase.js
         
       - name: Commit and Push changes
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add backups/latest_backup.json
+          
+          # -A ensures we track both the new file creation AND the deletion of older files
+          git add -A backups/
+          
           git commit -m "Automated Firebase Backup [skip ci]" || exit 0
           git push
