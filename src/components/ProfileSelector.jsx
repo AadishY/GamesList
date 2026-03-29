@@ -67,53 +67,74 @@ export default function ProfileSelector({ loginAs, theme, toggleTheme }) {
         </button>
       </div>
 
-      <div className="glass-panel max-w-sm w-full p-8 sm:p-10 flex flex-col items-center shadow-brutal-lg animate-scale-spring relative z-10">
+      <div className="glass-panel max-w-sm w-full p-6 sm:p-8 flex flex-col items-center shadow-brutal-lg animate-scale-spring relative z-10 transition-all border-2 border-black dark:border-white/10">
         
-        <div className="bg-neon-pink brutal-btn p-5 rounded-2xl mb-6 flex items-center justify-center shadow-pink tactile-logo">
-          <Gamepad2 className="w-12 h-12 text-black" />
+        <div className="bg-neon-pink brutal-btn p-4 rounded-2xl mb-4 flex items-center justify-center shadow-pink tactile-logo">
+          <Gamepad2 className="w-10 h-10 text-black" />
         </div>
 
-        <h1 className="text-3xl font-black text-center mb-1 tracking-tighter uppercase text-black dark:text-white animate-fade-scale" style={{ animationDelay: '80ms' }}>Enter Player</h1>
-        <p className="text-black/60 dark:text-white/50 text-[10px] text-center mb-8 font-extrabold uppercase tracking-[0.2em] animate-fade-scale" style={{ animationDelay: '120ms' }}>Select your profile</p>
+        <h1 className="text-2xl font-black text-center mb-1 tracking-tighter uppercase text-black dark:text-white animate-fade-scale" style={{ animationDelay: '80ms' }}>Enter Player</h1>
+        <p className="text-black/60 dark:text-white/50 text-[9px] text-center mb-5 font-extrabold uppercase tracking-[.2em] animate-fade-scale" style={{ animationDelay: '120ms' }}>Select your profile</p>
         
-        <div className="space-y-4 w-full">
+        <div className="space-y-3 w-full">
           <button 
             onClick={() => handleLogin('Aadish')}
-            className={`w-full py-4 px-6 bg-neon-yellow brutal-btn rounded-2xl text-lg flex items-center justify-center gap-3 animate-stagger-enter transition-transform touch-manipulation ${clicked === 'Aadish' ? 'scale-90 opacity-70' : 'active:scale-95'}`}
+            className={`w-full py-3 px-6 bg-neon-yellow brutal-btn rounded-2xl text-lg flex items-center justify-center gap-3 animate-stagger-enter transition-transform touch-manipulation ${clicked === 'Aadish' ? 'scale-90 opacity-70' : 'active:scale-95'}`}
             style={{ animationDelay: '150ms' }}
             disabled={!!clicked}
           >
-            <User className="w-6 h-6" />
-            <span>Aadish</span>
+            <User className="w-5 h-5" />
+            <span className="font-extrabold uppercase tracking-tight">Aadish</span>
           </button>
           
           <button 
             onClick={() => handleLogin('Aditya')}
-            className={`w-full py-4 px-6 bg-neon-orange brutal-btn rounded-2xl text-lg flex items-center justify-center gap-3 animate-stagger-enter transition-transform touch-manipulation ${clicked === 'Aditya' ? 'scale-90 opacity-70' : 'active:scale-95'}`}
+            className={`w-full py-3 px-6 bg-neon-orange brutal-btn rounded-2xl text-lg flex items-center justify-center gap-3 animate-stagger-enter transition-transform touch-manipulation ${clicked === 'Aditya' ? 'scale-90 opacity-70' : 'active:scale-95'}`}
             style={{ animationDelay: '200ms' }}
             disabled={!!clicked}
           >
-            <User className="w-6 h-6" />
-            <span>Aditya</span>
+            <User className="w-5 h-5" />
+            <span className="font-extrabold uppercase tracking-tight">Aditya</span>
           </button>
 
-          <div className="pt-6 relative animate-fade-scale" style={{ animationDelay: '250ms' }}>
+          <div className="pt-2 relative animate-fade-scale" style={{ animationDelay: '250ms' }}>
             <div className="absolute inset-0 top-1/2 -translate-y-1/2 flex items-center pointer-events-none">
-              <div className="w-full border-t-2 border-black/15 dark:border-white/10 border-dashed"></div>
+              <div className="w-full border-t-2 border-black/10 dark:border-white/5 border-dashed"></div>
             </div>
-            <div className="relative flex justify-center text-[10px]">
-              <span className="bg-[#f4f4f5] dark:bg-[#09090b] px-3 py-1 text-black/70 dark:text-white/50 font-extrabold uppercase tracking-widest border-2 border-black/15 dark:border-white/20 rounded-lg">Or</span>
+            <div className="relative flex justify-center text-[9px]">
+              <span className="bg-[#f4f4f5] dark:bg-[#09090b] px-3 py-0.5 text-black/50 dark:text-white/40 font-extrabold uppercase tracking-widest border border-black/10 dark:border-white/10 rounded-full">Or</span>
             </div>
           </div>
 
           <button 
             onClick={() => handleLogin('Combined')}
-            className={`w-full mt-4 py-4 px-6 bg-neon-purple brutal-btn rounded-2xl text-lg flex items-center justify-center gap-3 animate-stagger-enter transition-transform touch-manipulation ${clicked === 'Combined' ? 'scale-90 opacity-70' : 'active:scale-95'}`}
+            className={`w-full py-3 px-6 bg-neon-purple brutal-btn rounded-2xl text-lg flex items-center justify-center gap-3 animate-stagger-enter transition-transform touch-manipulation ${clicked === 'Combined' ? 'scale-90 opacity-70' : 'active:scale-95'}`}
             style={{ animationDelay: '300ms' }}
             disabled={!!clicked}
           >
-            <Users className="w-6 h-6" />
-            <span>Combined</span>
+            <Users className="w-5 h-5" />
+            <span className="font-extrabold uppercase tracking-tight">Combined</span>
+          </button>
+
+          <div className="pt-3 relative animate-fade-scale" style={{ animationDelay: '350ms' }}>
+            <div className="absolute inset-0 top-1/2 -translate-y-1/2 flex items-center pointer-events-none">
+              <div className="w-full border-t-2 border-black/10 dark:border-white/5 border-dashed"></div>
+            </div>
+            <div className="relative flex justify-center text-[9px]">
+              <span className="bg-[#f4f4f5] dark:bg-[#09090b] px-3 py-0.5 text-black/50 dark:text-white/40 font-extrabold uppercase tracking-widest border border-black/10 dark:border-white/10 rounded-full">Database</span>
+            </div>
+          </div>
+
+          <button 
+            onClick={() => window.location.href = '/coopgames.html'}
+            className="w-full brutal-btn bg-cyan-400 dark:bg-cyan-500 py-3 rounded-2xl flex flex-col items-center justify-center gap-1 group animate-stagger-enter hover:bg-cyan-300 dark:hover:bg-cyan-400 transform hover:-translate-y-1 active:translate-y-0 transition-all shadow-[4px_4px_0px_#000] border-2 border-black"
+            style={{ animationDelay: '400ms' }}
+          >
+            <div className="flex items-center gap-2">
+              <Gamepad2 size={20} className="group-hover:rotate-12 transition-transform" />
+              <span className="font-black text-base uppercase tracking-tighter">Co-Op Multiplayer Mods</span>
+            </div>
+            <span className="text-[9px] font-black opacity-60 uppercase tracking-widest">Global Standalone Database</span>
           </button>
         </div>
       </div>

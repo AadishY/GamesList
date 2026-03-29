@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Co-Op Mods Database — Organise Your Games in Style</title>
+    <meta name="description" content="A premium, gaming-themed co-op mods database. Track community integrations with neon aesthetics and neubrutalist interactions." />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>" />
+    
+    <!-- Preconnect for critical origins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://unpkg.com" />
+    <link rel="preconnect" href="https://cdn.sheetjs.com" />
+
+    <!-- Sharp geometry font for premium look -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons via CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- SheetJS for processing the XLSX -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <style>
+        /* --- PREMIUM NEUBRUTALIST DESIGN SYSTEM --- */
+        :root {
+            --neon-yellow: #facc15;
+            --neon-cyan: #06b6d4;
+            --neon-pink: #ec4899;
+            --neon-purple: #a855f7;
+            --neon-green: #84cc16;
+            --neon-orange: #f97316;
+            
+            /* Default Dark Theme Highlights */
+            --bg-main: #020205;
+            --glass-bg: linear-gradient(135deg, rgba(30,30,45,0.95), rgba(10,10,20,0.98));
+            --text-main: #ffffff;
+            --text-secondary: #eeeeee;
+            --border-main: rgba(255,255,255,0.4);
+            --shadow-color: rgba(255,255,255,0.15);
+            --grid-color: rgba(255,255,255,0.08);
+        }
+
+        [data-theme="light"] {
+            --bg-main: #f4f4f5;
+            --glass-bg: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.92));
+            --text-main: #000000;
+            --text-secondary: #444444;
+            --border-main: #000000;
+            --shadow-color: #000000;
+            --grid-color: rgba(0,0,0,0.06);
+        }
+
+        [data-theme="dark"] {
+            /* Explicitly define dark theme variables to prevent state leakage */
+            --bg-main: #020205;
+            --glass-bg: linear-gradient(135deg, rgba(30,30,45,0.98), rgba(10,10,20,0.99));
+            --text-main: #ffffff;
+            --text-secondary: #eeeeee;
+            --border-main: rgba(255,255,255,0.4);
+            --shadow-color: rgba(255,255,255,0.15);
+            --grid-color: rgba(255,255,255,0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Space Grotesk', system-ui, sans-serif;
+        }
+
+        /* Essential link scaling and colors */
+        a {
+            color: var(--neon-cyan);
+            text-decoration: underline;
+            text-underline-offset: 4px;
+            transition: color 0.1s;
+        }
+
+        a:hover {
+            color: var(--neon-pink);
+        }
+
+        body {
+            font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            line-height: 1.5;
+            overflow-x: hidden;
+            background-image: 
+                linear-gradient(var(--grid-color) 1.5px, transparent 1.5px),
+                linear-gradient(90deg, var(--grid-color) 1.5px, transparent 1.5px);
+            background-size: 40px 40px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* --- UTILITIES --- */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 2px solid var(--border-main);
+            box-shadow: 6px 6px 0px var(--shadow-color);
+            border-radius: 1.5rem;
+        }
+
+        .brutal-btn {
+            border: 2px solid var(--border-main);
+            font-weight: 800;
+            color: var(--text-main);
+            background: var(--glass-bg);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 4px 4px 0px var(--shadow-color);
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .bg-neon-yellow { background: var(--neon-yellow) !important; color: #000 !important; }
+        .bg-neon-cyan { background: var(--neon-cyan) !important; color: #000 !important; }
+        .bg-neon-pink { background: var(--neon-pink) !important; color: #000 !important; }
+        .bg-neon-purple { background: var(--neon-purple) !important; color: #000 !important; }
+        .bg-neon-green { background: var(--neon-green) !important; color: #000 !important; }
+        .bg-neon-orange { background: var(--neon-orange) !important; color: #000 !important; }
+
+        .brutal-btn:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px var(--shadow-color);
+        }
+
+        .brutal-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 0px 0px 0px var(--shadow-color);
+        }
+
+        /* --- HEADER --- */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 12px;
+            width: 100%;
+        }
+
+        .header-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-box {
+            background: var(--neon-pink);
+            padding: 8px;
+            border-radius: 12px;
+            box-shadow: 3px 3px 0px var(--shadow-color);
+        }
+
+        .site-title {
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: -0.02em;
+            font-size: 1.1rem;
+            cursor: pointer;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* --- COMPONENTS --- */
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 24px;
+            flex: 1;
+            width: 100%;
+        }
+
+        h2.section-header {
+            background: var(--neon-purple);
+            color: #000;
+            padding: 12px 24px;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            border: 3px solid var(--border-main);
+            box-shadow: 6px 6px 0px var(--shadow-color);
+            text-transform: uppercase;
+            font-weight: 900;
+            margin-bottom: 32px;
+        }
+
+        .controls-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .primary-toolbar {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+            align-items: center;
+        }
+
+        .secondary-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .highlight-btn {
+            position: relative;
+            height: 72px !important;
+            font-size: 1.2rem !important;
+            font-weight: 950 !important;
+            letter-spacing: -0.02em;
+            text-transform: uppercase;
+            box-shadow: 10px 10px 0px var(--shadow-color) !important;
+            border-width: 4px !important;
+            overflow: hidden;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+        }
+
+        .highlight-btn:hover {
+            transform: translate(-4px, -4px);
+            box-shadow: 14px 14px 0px var(--shadow-color) !important;
+        }
+
+        .highlight-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 4px 4px 0px var(--shadow-color) !important;
+        }
+
+        .highlight-btn span {
+            position: relative;
+            z-index: 2;
+        }
+
+        .icon-btn-small {
+            width: 52px;
+            height: 52px;
+            min-width: 52px;
+            padding: 0 !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+        }
+
+        .new-filter-btn {
+            height: 52px;
+            padding: 0 20px !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border-radius: 12px;
+            font-weight: 900;
+        }
+
+        .search-box {
+            position: relative;
+            flex: 1;
+        }
+
+        input, select {
+            width: 100%;
+            height: 52px;
+            padding: 12px 20px;
+            background-color: var(--bg-main);
+            background-image: var(--glass-bg);
+            border: 3px solid var(--border-main);
+            border-radius: 12px;
+            font-weight: 800;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .sort-select-small {
+            width: 160px;
+        }
+
+        @media (max-width: 900px) {
+            .primary-toolbar {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .sort-select-small {
+                width: calc(50% - 4px);
+                order: 3;
+            }
+            .new-filter-btn {
+                width: calc(50% - 4px);
+                order: 4;
+            }
+            .search-box {
+                width: 100%;
+                flex: none;
+                order: 2;
+            }
+            .icon-btn-small {
+                order: 1;
+            }
+            .secondary-actions {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Style the actual options to ensure they match the theme precisely */
+        option {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            padding: 12px;
+        }
+
+        /* Dropdown arrow for custom select */
+        select {
+            background-image: 
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"),
+                var(--glass-bg);
+            background-repeat: no-repeat, no-repeat;
+            background-position: right 12px center, center;
+            background-size: 16px, cover;
+            padding-right: 40px;
+        }
+
+        input:focus {
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.2);
+        }
+
+        ::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.5;
+        }
+
+        .result-badge {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+        }
+
+        .result-badge img {
+            height: 60px;
+            filter: drop-shadow(2px 2px 0px var(--border-main));
+        }
+
+        /* --- TABLE --- */
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 1.5rem;
+            border: 2px solid var(--border-main);
+            box-shadow: 8px 8px 0px var(--shadow-color);
+            background: var(--bg-main);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: var(--neon-pink);
+            color: #000;
+            text-align: left;
+            padding: 16px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-size: 0.8rem;
+            border-bottom: 2px solid var(--border-main);
+        }
+
+        td {
+            padding: 20px 16px;
+            border-bottom: 1px solid var(--border-main);
+            font-weight: 700;
+            color: var(--text-main);
+            vertical-align: middle;
+        }
+
+        tr:last-child td { border-bottom: none; }
+        
+        tr {
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+        }
+
+        tr:hover td { 
+            background: rgba(255, 255, 255, 0.03); 
+        }
+
+        tr:hover {
+            transform: scale(1.005);
+            z-index: 10;
+        }
+
+        [data-theme="light"] tr:hover td {
+            background: rgba(0, 0, 0, 0.02);
+        }
+
+        /* --- LUXURY LINKS --- */
+        a {
+            color: var(--neon-cyan);
+            text-decoration: none;
+            position: relative;
+            padding-bottom: 2px;
+            border-bottom: 2px solid transparent;
+            font-weight: 800;
+            transition: all 0.2s;
+        }
+
+        a:hover {
+            color: var(--neon-pink);
+            border-bottom-color: var(--neon-pink);
+            text-shadow: 0 0 10px rgba(236, 72, 153, 0.3);
+        }
+
+        a::after {
+            content: ' ↗';
+            font-size: 0.8em;
+            opacity: 0.5;
+            transition: opacity 0.2s, transform 0.2s;
+            display: inline-block;
+        }
+
+        a:hover::after {
+            opacity: 1;
+            transform: translate(2px, -2px);
+        }
+
+        /* --- BOX VIEW --- */
+        .box-view {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        .game-card {
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: var(--glass-bg);
+            border-left: 6px solid var(--neon-purple);
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+        }
+        
+        .game-card:nth-child(even) {
+            border-left-color: var(--neon-cyan);
+        }
+        
+        .game-card:hover {
+            transform: translateY(-8px) scale(1.02) rotate(1deg);
+            box-shadow: 12px 12px 0px var(--shadow-color);
+            background: rgba(var(--bg-main-rgb), 0.95);
+        }
+
+        .empty-state-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 40px;
+            text-align: center;
+            background: var(--glass-bg);
+            border: 3px dashed var(--border-main);
+            border-radius: 2rem;
+            margin: 40px 0;
+            backdrop-filter: blur(24px);
+        }
+
+        .empty-state-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--neon-pink);
+            color: #000;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+            box-shadow: 6px 6px 0 var(--shadow-color);
+        }
+
+        .card-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            font-weight: 900;
+            letter-spacing: 0.15em;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .section-header {
+            display: none; /* Replaced by hero-section */
+        }
+
+        .hero-section {
+            padding: 60px 0;
+            text-align: center;
+            animation: slideIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .hero-badge {
+            background: var(--neon-pink);
+            color: #000;
+            padding: 8px 16px;
+            font-weight: 950;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            display: inline-block;
+            margin-bottom: 24px;
+            border-radius: 99px;
+            box-shadow: 4px 4px 0 var(--shadow-color);
+            border: 2px solid #000;
+        }
+
+        .hero-title {
+            font-size: clamp(2.5rem, 8vw, 4.5rem);
+            font-weight: 950;
+            line-height: 0.95;
+            letter-spacing: -0.04em;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        .hero-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.8;
+            font-weight: 600;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+
+        .text-neon-pink { color: var(--neon-pink); }
+        .text-neon-cyan { color: var(--neon-cyan); }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 900;
+            line-height: 1.1;
+            letter-spacing: -0.01em;
+            text-transform: uppercase;
+        }
+
+        /* --- FOOTER --- */
+        footer {
+            padding: 32px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .footer-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        /* --- LOADER --- */
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-main);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .loader-hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--border-main);
+            border-top-color: var(--neon-pink);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- RECENT LOG STYLES --- */
+        .recently-added-log {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .recently-added-category {
+            background: var(--neon-cyan);
+            color: #000;
+            padding: 8px 16px;
+            font-weight: 950;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            border: 3px solid #000;
+            box-shadow: 4px 4px 0 #000;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            align-self: flex-start;
+            margin-bottom: 8px;
+            letter-spacing: 0.05em;
+        }
+
+        .recently-added-game {
+            padding: 12px 20px;
+            background: rgba(var(--text-main-rgb, 255, 255, 255), 0.03);
+            border-radius: 12px;
+            border-left: 5px solid var(--neon-pink);
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: var(--text-main);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .recently-added-game:hover {
+            background: rgba(var(--text-main-rgb, 255, 255, 255), 0.07);
+            transform: translateX(8px);
+        }
+
+        .recently-added-game::before {
+            content: "→";
+            color: var(--neon-pink);
+            font-weight: 950;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(12px);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .active-toggle {
+            background: var(--neon-pink) !important;
+            color: #000 !important;
+            box-shadow: 0px 0px 0px 0px transparent !important;
+            transform: translate(2px, 2px) !important;
+        }
+
+        .active-toggle i {
+            color: #000 !important;
+        }
+
+        /* --- MOBILE --- */
+        @media (max-width: 640px) {
+            .container { padding: 16px; }
+            .hero-title { font-size: 2.5rem; }
+            .search-sort-row {
+                grid-template-columns: 1fr;
+            }
+            .actions-row .brutal-btn {
+                min-width: calc(50% - 6px);
+            }
+            .search-box { grid-column: span 1; }
+            .header-container { padding: 8px; }
+            .site-title { font-size: 0.9rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Loading Screen -->
+    <div id="loader">
+        <div class="spinner"></div>
+        <div style="font-weight: 900; text-transform: uppercase; letter-spacing: 0.2em;">Loading Database</div>
+    </div>
+
+    <header>
+        <div class="header-container glass-panel">
+            <div class="logo-section" onclick="window.location.href='/'">
+                <div class="logo-box">
+                    <i data-lucide="gamepad-2" style="width: 20px; height: 20px;"></i>
+                </div>
+                <span class="site-title">Steam Backlog</span>
+            </div>
+
+            <div class="header-actions">
+                <button onclick="toggleTheme()" class="brutal-btn bg-neon-cyan" style="padding: 10px; border-radius: 12px; box-shadow: 2px 2px 0 var(--shadow-color);">
+                    <i data-lucide="sun" id="theme-icon" style="width: 18px; height: 18px;"></i>
+                </button>
+                <button onclick="window.location.href='/'" class="brutal-btn bg-neon-yellow" style="padding: 8px 16px; border-radius: 12px; font-size: 0.7rem;">
+                    <i data-lucide="users" style="width: 14px; height: 14px; margin-right: 6px;"></i>
+                    PROFILES
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Modals -->
+    <div id="recentModal" class="modal-overlay" onclick="closeOnOutside(event, 'recentModal')">
+        <div class="glass-panel modal-content" style="max-width: 600px; width: 90%; max-height: 85vh; overflow-y: auto; padding: 40px; position: relative;">
+            <button onclick="closeModal('recentModal')" class="brutal-btn bg-neon-pink" style="position: absolute; top: 20px; right: 20px; width: 40px; height: 40px; border-radius: 12px; font-size: 1.5rem;">
+                <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+            </button>
+            <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 32px;">
+                <div style="background: var(--neon-pink); padding: 12px; border-radius: 12px; box-shadow: 4px 4px 0 #000; border: 2px solid #000;">
+                    <i data-lucide="sparkles" style="color: #000; width: 24px; height: 24px;"></i>
+                </div>
+                <div>
+                    <h3 style="text-transform: uppercase; font-weight: 950; font-size: 1.6rem; letter-spacing: -0.02em;">Recently Added</h3>
+                    <div id="recentlyAddedDate" style="font-size: 0.85rem; font-weight: 900; color: var(--neon-cyan); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 2px;"></div>
+                </div>
+            </div>
+            <div id="newlyAddedContainer"></div>
+        </div>
+    </div>
+
+    <div id="watchModal" class="modal-overlay" onclick="closeOnOutside(event, 'watchModal')">
+        <div class="glass-panel modal-content" style="max-width: 900px; width: 95%; max-height: 85vh; overflow-y: auto; padding: 40px; position: relative;">
+            <button onclick="closeModal('watchModal')" class="brutal-btn bg-neon-pink" style="position: absolute; top: 20px; right: 20px; width: 40px; height: 40px; border-radius: 12px; font-size: 1.5rem;">
+                <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+            </button>
+            <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
+                <div style="background: var(--neon-green); padding: 12px; border-radius: 12px; box-shadow: 4px 4px 0 #000; border: 2px solid #000;">
+                    <i data-lucide="bookmark" style="color: #000; width: 24px; height: 24px;"></i>
+                </div>
+                <div>
+                    <h3 style="text-transform: uppercase; font-weight: 950; font-size: 1.6rem; letter-spacing: -0.02em;">Watchlist / In-Development</h3>
+                    <p style="font-size: 0.85rem; font-weight: 800; opacity: 0.6; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px;">Curated mods and official updates on the radar</p>
+                </div>
+            </div>
+            <div id="watchlistModalContainer"></div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        
+        <div class="hero-section">
+            <div class="hero-badge">DATABASE ACTIVE</div>
+            <h1 class="hero-title">Co-Op Mods <span class="text-neon-cyan">DB</span></h1>
+            <p class="hero-subtitle">Exploring community integrations for the world's best games. Your ultimate multiplayer source.</p>
+        </div>
+
+        <div class="controls-grid">
+            <div class="primary-toolbar">
+                <!-- REFRESH -->
+                <button onclick="fetchAndConvert()" class="brutal-btn bg-neon-green icon-btn-small" title="Refresh">
+                    <i data-lucide="refresh-cw" style="width: 20px; height: 20px;"></i>
+                </button>
+
+                <!-- SEARCH -->
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Search Database..." oninput="renderApp()">
+                    <div class="result-badge" id="resultCount">
+                        <img src="https://aadishcounter.vercel.app/@mod?theme=random-animation-digit&padding=0&count=0&crop=true&darkmode=1" alt="Count">
+                    </div>
+                </div>
+
+                <!-- SORT -->
+                <div class="sort-select-small">
+                    <select id="sortSelect" onchange="renderApp()">
+                        <option value="none">Sort: Default</option>
+                        <option value="az">Sort: A-Z</option>
+                        <option value="za">Sort: Z-A</option>
+                    </select>
+                </div>
+
+                <!-- VIEW TOGGLE -->
+                <button id="viewToggleBtn" onclick="toggleView()" class="brutal-btn bg-neon-purple icon-btn-small" title="Switch View">
+                    <i data-lucide="layout-grid" id="viewIcon" style="width: 20px; height: 20px;"></i>
+                </button>
+
+                <!-- NEW FILTER (With Text) -->
+                <button id="newFilterBtn" onclick="toggleNewFilter()" class="brutal-btn bg-neon-purple new-filter-btn">
+                    <i data-lucide="sparkles" style="width: 20px; height: 20px;"></i>
+                    <span>NEW</span>
+                </button>
+            </div>
+
+            <div class="secondary-actions">
+                <button onclick="openModal('recentModal')" class="brutal-btn bg-neon-yellow highlight-btn">
+                    <i data-lucide="history" style="width: 24px; height: 24px; margin-right: 12px;"></i>
+                    <span>RECENTLY ADDED</span>
+                </button>
+
+                <button onclick="openModal('watchModal')" class="brutal-btn bg-neon-green highlight-btn">
+                    <i data-lucide="bookmark" style="width: 24px; height: 24px; margin-right: 12px;"></i>
+                    <span>WATCHLIST / IN-DEV</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="mainUI">
+            <!-- Populated via JS -->
+        </div>
+    </div>
+
+    <footer class="mt-auto">
+        <div class="footer-pill glass-panel" style="background: rgba(255,255,255,0.05); border-radius: 9999px; padding: 10px 24px; display: flex; align-items: center; gap: 8px; margin: 20px auto; max-width: max-content;">
+            <i data-lucide="gamepad-2" style="width: 14px; height: 14px; opacity: 0.5;"></i>
+            <span>Made with <span style="background: var(--neon-pink); padding: 2px 6px; border: 1px solid #000; border-radius: 4px; box-shadow: 2px 2px 0 #000; margin: 0 4px;"><i data-lucide="heart" style="width: 10px; height: 10px; fill: #000;"></i></span> by Aadish</span>
+        </div>
+    </footer>
+
+    <script>
+        /* Lucide Init */
+        lucide.createIcons();
+
+        /* GLOBAL STATE */
+        let parsedData = [];
+        let currentView = 'table'; 
+        let showOnlyNew = false;
+        let extractedDate = "Pending Refresh...";
+        let recentlyAddedHTML = "";
+        
+        // Theme Management
+        let currentTheme = localStorage.getItem('steam-tracker-theme') || 'dark';
+        applyTheme();
+
+        function toggleTheme() {
+            currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            localStorage.setItem('steam-tracker-theme', currentTheme);
+            applyTheme();
+        }
+
+        function applyTheme() {
+            const html = document.documentElement;
+            const icon = document.getElementById('theme-icon');
+            
+            // Clean state transition
+            if (currentTheme === 'light') {
+                html.setAttribute('data-theme', 'light');
+                if (icon) icon.setAttribute('data-lucide', 'moon');
+            } else {
+                html.setAttribute('data-theme', 'dark');
+                if (icon) icon.setAttribute('data-lucide', 'sun');
+            }
+            
+            // Force re-render of icons
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }
+        
+        const MEGA_KEY = "⢾░█ Multiplayer Mods █░⡷\n▁ ▂ ▄ ▅ ▆ █▓▒­░⠂MΞGA-LIST⠐░▒▓█ ▆ ▅ ▄ ▂ ▁";
+
+        // SVG Icons
+        const ICONS = {
+            grid: `<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>`,
+            table: `<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>`,
+            pc: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>`,
+            eye: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`,
+            sparkle: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>`,
+            searchX: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>`
+        };
+
+        // Scroll and Escape Key Event Listeners
+        window.addEventListener('scroll', () => {
+            const btn = document.getElementById('backToTopBtn');
+            if (btn) {
+                if (window.scrollY > 400) btn.style.display = 'flex';
+                else btn.style.display = 'none';
+            }
+        });
+
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-overlay.active').forEach(modal => {
+                    modal.classList.remove('active');
+                });
+            }
+        });
+
+        // Modal Functions
+        function openModal(id) { document.getElementById(id).classList.add('active'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+        function closeOnOutside(event, id) {
+            // Ensure clicking children inside modal-content doesn't trigger close
+            if (event.target.id === id) closeModal(id);
+        }
+
+        function extractText(cell) {
+            if (!cell) return "";
+            if (typeof cell === 'object' && cell.text) return cell.text.toString();
+            return cell.toString();
+        }
+
+        function renderCell(cell, query = "") {
+            if (!cell) return "-";
+            let textValue = (typeof cell === 'object' && cell.text) ? cell.text.toString() : cell.toString();
+            let url = (typeof cell === 'object' && cell.url) ? cell.url : null;
+
+            // XSS Prevention & Line Breaks
+            let safeText = textValue.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            let displayHtml = safeText.replace(/\n/g, "<br>");
+
+            // Search Term Highlighting
+            if (query) {
+                const safeQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const regex = new RegExp(`(${safeQuery})`, 'gi');
+                displayHtml = displayHtml.replace(regex, '<mark>$1</mark>');
+            }
+
+            if (url) {
+                // Secure link attributes
+                let safeUrl = url.replace(/"/g, "&quot;");
+                return `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${displayHtml}</a>`;
+            }
+            return displayHtml;
+        }
+
+        async function fetchAndConvert() {
+            document.getElementById('loader').style.display = 'flex';
+            const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSV41AswEt3EpzSyd85YRVtoJaIIXWjtBy347dISJg4fs6xSNPqcgfsh76TxX_l-mnT7pjMlSqTW-87/pub?output=xlsx";
+            
+            try {
+                const response = await fetch(sheetUrl);
+                if (!response.ok) throw new Error("Network response was not ok");
+                const arrayBuffer = await response.arrayBuffer();
+                
+                const workbook = XLSX.read(arrayBuffer, { type: 'array', cellFormula: true });
+                let rawJsonArray = [];
+
+                workbook.SheetNames.forEach(sheetName => {
+                    const worksheet = workbook.Sheets[sheetName];
+                    if (!worksheet['!ref']) return; 
+                    
+                    const range = XLSX.utils.decode_range(worksheet['!ref']);
+                    const headers = [];
+
+                    for (let C = range.s.c; C <= range.e.c; ++C) {
+                        const cell = worksheet[XLSX.utils.encode_cell({ c: C, r: range.s.r })];
+                        headers[C] = cell ? (cell.w || cell.v) : `Column_${C + 1}`;
+                    }
+
+                    for (let R = range.s.r + 1; R <= range.e.r; ++R) {
+                        const rowData = {};
+                        let rowHasData = false;
+                        for (let C = range.s.c; C <= range.e.c; ++C) {
+                            const cell = worksheet[XLSX.utils.encode_cell({ c: C, r: R })];
+                            if (!cell || cell.v === undefined) continue;
+                            rowHasData = true;
+                            const header = headers[C];
+                            const textValue = cell.w || cell.v;
+                            let targetUrl = null;
+
+                            if (cell.l && cell.l.Target) targetUrl = cell.l.Target;
+                            else if (cell.f && cell.f.toUpperCase().includes('HYPERLINK(')) {
+                                const match = cell.f.match(/HYPERLINK\(\s*"([^"]+)"/i);
+                                if (match && match[1]) targetUrl = match[1];
+                            }
+
+                            if (targetUrl) rowData[header] = { text: textValue, url: targetUrl };
+                            else rowData[header] = textValue;
+                        }
+                        if (rowHasData) rawJsonArray.push(rowData);
+                    }
+                });
+
+                let currentCategory = "Uncategorized";
+                let processedItems = [];
+                recentlyAddedHTML = ""; 
+
+                rawJsonArray.forEach(row => {
+                    const megaVal = extractText(row[MEGA_KEY]);
+
+                    // Extract Recently Added text blob
+                    if (megaVal && megaVal.includes("Last Updated")) {
+                        const dateMatch = megaVal.match(/Last Updated\s*—\s*([^\n]+)/);
+                        if (dateMatch && dateMatch[1]) {
+                            extractedDate = `[${dateMatch[1].trim()}]`;
+                        }
+
+                        let lines = megaVal.split('\n');
+                        let currentSec = null;
+                        let htmlChunk = `<div class="recently-added-log">`;
+
+                        lines.forEach(line => {
+                            let trimmed = line.trim();
+                            if (!trimmed || trimmed.startsWith('Last Updated')) return;
+
+                            if (trimmed.toLowerCase().startsWith('added to')) {
+                                let label = trimmed;
+                                let color = "var(--neon-cyan)";
+                                let icon = "plus-circle";
+                                
+                                if (trimmed.toLowerCase().includes('windows pc')) {
+                                    currentSec = 'Windows PC';
+                                    label = "Windows PC Additions";
+                                    color = "var(--neon-cyan)";
+                                } else if (trimmed.toLowerCase().includes('watchlist')) {
+                                    currentSec = 'watchlist';
+                                    label = "New to Watchlist";
+                                    color = "var(--neon-purple)";
+                                    icon = "bookmark";
+                                } else {
+                                    currentSec = 'ignored'; 
+                                }
+                                
+                                if (currentSec !== 'ignored') {
+                                    htmlChunk += `<div class="recently-added-category" style="background: ${color};"><i data-lucide="${icon}" style="width:14px;height:14px;"></i>${label}</div>`;
+                                }
+                            } else {
+                                if (currentSec === 'Windows PC' || currentSec === 'watchlist') {
+                                    htmlChunk += `<div class="recently-added-game">${trimmed}</div>`;
+                                }
+                            }
+                        });
+                        htmlChunk += `</div>`;
+                        recentlyAddedHTML = htmlChunk;
+                    }
+
+                    if (megaVal && !row['Column_4'] && !row['Column_5']) {
+                        const valUpper = megaVal.toUpperCase();
+                        if (valUpper.includes("WINDOWS PC")) currentCategory = "Windows PC";
+                        else if (valUpper.includes("NINTENDO SWITCH")) currentCategory = "Nintendo Switch";
+                        else if (valUpper.includes("NINTENDO WII")) currentCategory = "Nintendo Wii";
+                        else if (valUpper.includes("NINTENDO DS")) currentCategory = "Nintendo DS";
+                        else if (valUpper.includes("GAMECUBE")) currentCategory = "Gamecube";
+                        else if (valUpper.includes("GAME BOY ADVANCE")) currentCategory = "Game Boy Advance";
+                        else if (valUpper.includes("PLAYSTATION 2")) currentCategory = "Playstation 2";
+                        else if (valUpper.includes("NINTENDO 64")) currentCategory = "Nintendo 64";
+                        else if (valUpper.includes("PLAYSTATION")) currentCategory = "Playstation";
+                        else if (valUpper.includes("SUPER NINTENDO")) currentCategory = "Super Nintendo";
+                        else if (valUpper.includes("GAME BOY")) currentCategory = "Game Boy";
+                        else if (valUpper.includes("MEGA DRIVE")) currentCategory = "Mega Drive";
+                        else if (valUpper.includes("NINTENDO ENTERTAINMENT SYSTEM")) currentCategory = "NES";
+                        else if (valUpper.includes("ARCADE")) currentCategory = "Arcade";
+                        else if (valUpper.includes("TOOLS")) currentCategory = "Tools";
+                        else if (valUpper.includes("WATCHLIST")) currentCategory = "Watchlist";
+                        else if (valUpper.includes("HIDDEN SPLITS")) currentCategory = "Hidden Splits";
+                    }
+
+                    if (row['Column_4'] && row['Column_5']) {
+                        let gameStr = extractText(row['Column_4']);
+                        if (gameStr.toLowerCase() === 'game(s)' || gameStr.toLowerCase() === 'game') return;
+
+                        let isNew = false;
+                        if (megaVal.includes("🆕") || extractText(row['Column_3']).includes("🆕")) {
+                            isNew = true;
+                        }
+
+                        processedItems.push({
+                            gameObj: row['Column_4'],
+                            modObj: row['Column_5'],
+                            notesObj: row['Column_6'] || "",
+                            gameText: gameStr,
+                            isNew: isNew,
+                            category: currentCategory,
+                            searchString: JSON.stringify(row).toLowerCase() 
+                        });
+                    }
+                });
+
+                parsedData = processedItems;
+
+                document.getElementById('newlyAddedContainer').innerHTML = recentlyAddedHTML;
+                document.getElementById('recentlyAddedDate').innerText = extractedDate;
+                
+                // Hide loader
+                const loader = document.getElementById('loader');
+                loader.classList.add('loader-hidden');
+                setTimeout(() => loader.style.display = 'none', 600);
+
+                // Refresh icons 
+                if (window.lucide) {
+                    window.lucide.createIcons();
+                }
+
+                updateViewIcon();
+                renderApp();
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById('loader').innerHTML = `<div style="color:var(--main-accent); background:var(--surface-color); padding:30px; border:4px solid var(--border-color);">Database connection error.<br><br>${error.message}</div>`;
+            }
+        }
+
+        function updateViewIcon() {
+            const iconEl = document.getElementById('viewIcon');
+            if(iconEl) {
+                iconEl.innerHTML = currentView === 'table' ? ICONS.grid : ICONS.table;
+            }
+        }
+
+        function toggleView() {
+            // Mobile restriction removed so user can manually toggle table/box anywhere
+            currentView = currentView === 'table' ? 'box' : 'table';
+            updateViewIcon();
+            renderApp();
+        }
+
+        function clearFilters() {
+            document.getElementById('searchInput').value = '';
+            showOnlyNew = false;
+            const newBtn = document.getElementById('newFilterBtn');
+            if (newBtn) newBtn.classList.remove('active-toggle');
+            renderApp();
+        }
+
+        function toggleNewFilter() {
+            showOnlyNew = !showOnlyNew;
+            const btn = document.getElementById('newFilterBtn');
+            if(showOnlyNew) {
+                btn.classList.add('active-toggle');
+            } else {
+                btn.classList.remove('active-toggle');
+            }
+            renderApp();
+        }
+
+        function processData(dataArray) {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const sortMethod = document.getElementById('sortSelect').value;
+
+            let filtered = dataArray.filter(item => {
+                let matchesSearch = !query || item.searchString.includes(query);
+                let matchesNew = !showOnlyNew || item.isNew;
+                return matchesSearch && matchesNew;
+            });
+
+            // Default Alpha Sorting logic (trim spaces to ensure clean A-Z)
+            filtered.sort((a, b) => {
+                let textA = a.gameText.trim();
+                let textB = b.gameText.trim();
+                if (sortMethod === 'za') return textB.localeCompare(textA);
+                return textA.localeCompare(textB); 
+            });
+
+            return filtered;
+        }
+
+        function generateHTML(dataArray, query = "") {
+            if (dataArray.length === 0) {
+                return `
+                    <div class="empty-state-container">
+                        <div class="empty-state-icon">
+                            <i data-lucide="search-x" style="width: 40px; height: 40px;"></i>
+                        </div>
+                        <h2 style="font-size: 1.8rem; font-weight: 950; text-transform: uppercase;">No Match Found</h2>
+                        <p style="opacity: 0.6; margin: 12px 0 32px; font-weight: 700;">We couldn't find anything matching your search. Try different keywords or clear filters.</p>
+                        <button onclick="clearFilters()" class="brutal-btn bg-neon-pink" style="padding: 12px 32px; border-radius: 12px; font-weight: 900;">
+                            RESET ALL FILTERS
+                        </button>
+                    </div>
+                `;
+            }
+
+            // HTML Snippets for Tags
+            const badgeNew = `<span class="new-badge" style="background: var(--neon-yellow); color: #000; padding: 4px 8px; border: 2px solid #000; font-size: 0.6rem; font-weight: 900; border-radius: 6px; box-shadow: 2px 2px 0 #000; display: inline-flex; align-items: center; gap: 4px; margin-bottom: 8px;">
+                <i data-lucide="sparkles" style="width: 10px; height: 10px;"></i> NEW
+            </span>`;
+
+            if (currentView === 'table') {
+                let html = `
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Game</th>
+                                <th>Mod / Status</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+                
+                dataArray.forEach((item, index) => {
+                    let delay = (index * 0.02 > 0.5) ? 0.5 : index * 0.02; 
+                    
+                    let gameColHtml = renderCell(item.gameObj, query);
+                    if (item.isNew) gameColHtml = `<div>${badgeNew}</div>` + gameColHtml;
+                    
+                    html += `
+                        <tr style="animation: slideIn 0.3s ease-out forwards; animation-delay: ${delay}s; opacity: 0;">
+                            <td style="width: 35%; font-weight: 800; font-size: 1.05rem; color: var(--text-main);">${gameColHtml}</td>
+                            <td style="width: 30%; color: var(--neon-cyan);">${renderCell(item.modObj, query)}</td>
+                            <td style="width: 35%; font-size: 0.9rem; opacity: 0.9; color: var(--text-main);">${renderCell(item.notesObj, query)}</td>
+                        </tr>`;
+                });
+                html += `</tbody></table></div>`;
+                return html;
+
+            } else {
+                let html = `<div class="box-view">`;
+                dataArray.forEach((item, index) => {
+                    let delay = (index * 0.02 > 0.4) ? 0.4 : index * 0.02; 
+
+                    html += `
+                        <div class="game-card glass-panel" style="animation: slideIn 0.3s ease-out forwards; animation-delay: ${delay}s; opacity: 0; color: var(--text-main);">
+                            <div>
+                                ${item.isNew ? badgeNew : ''}
+                                <div class="card-title" style="color: var(--text-main);">${renderCell(item.gameObj, query)}</div>
+                            </div>
+                            
+                            <div style="display: flex; flex-direction: column; gap: 16px; margin-top: auto;">
+                                <div class="card-section">
+                                    <div class="card-label"><i data-lucide="cog" style="width:12px"></i> Mod Information</div>
+                                    <div style="font-size: 1.1rem; color: var(--neon-cyan); font-weight: 800;">${renderCell(item.modObj, query)}</div>
+                                </div>
+                                
+                                <div style="padding-top: 16px; border-top: 2px solid var(--border-main);">
+                                    <div class="card-label"><i data-lucide="message-square" style="width:12px"></i> Developer Notes</div>
+                                    <div style="font-size: 0.95rem; line-height: 1.5; color: var(--text-secondary); font-weight: 500;">${renderCell(item.notesObj, query)}</div>
+                                </div>
+                            </div>
+                        </div>`;
+                });
+                html += `</div>`;
+                return html;
+            }
+        }
+
+        function renderApp() {
+            // 1. WATCHLIST Modal Content 
+            const watchlistContainer = document.getElementById('watchlistModalContainer');
+            if (watchlistContainer) {
+                const watchItems = parsedData.filter(item => item.category === "Watchlist");
+                watchlistContainer.innerHTML = generateHTML(watchItems);
+            }
+
+            // 2. MAIN UI LOGIC
+            const mainPool = parsedData.filter(item => item.category === "Windows PC" || item.category === "Watchlist");
+            const rawQuery = document.getElementById('searchInput').value;
+            const mainUI = document.getElementById('mainUI');
+
+            let filteredItems = processData(mainPool);
+            
+            // Result Count Badge
+            const badgeUrl = `https://aadishcounter.vercel.app/@mod?theme=random-animation-digit&padding=0&count=${filteredItems.length}&crop=true&darkmode=${currentTheme === 'dark' ? 1 : 0}`;
+            const counterEl = document.getElementById('resultCount');
+            if (counterEl) {
+                counterEl.innerHTML = `<img src="${badgeUrl}" alt="${filteredItems.length} Results">`;
+            }
+
+            mainUI.innerHTML = generateHTML(filteredItems, rawQuery.trim());
+            
+            // Re-init icons for dynamic content
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+        }
+
+        function closeOnOutside(event, id) {
+            if (event.target.id === id) {
+                closeModal(id);
+            }
+        }
+
+        window.onload = fetchAndConvert;
+    </script>
+    <button id="backToTopBtn" onclick="scrollToTop()" class="brutal-btn bg-neon-cyan" style="position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; border-radius: 16px; z-index: 1000; display: none; box-shadow: 6px 6px 0 var(--shadow-color); display: flex; align-items: center; justify-content: center;">
+        <i data-lucide="arrow-up" style="width: 28px; height: 28px; color: #000;"></i>
+    </button>
+</body>
+</html>
