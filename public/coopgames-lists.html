@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Co-Op Games API — JSON List</title>
+    <meta name="description" content="JSON API endpoint for the Co-Op Mods Database. Returns all parsed game data as structured JSON." />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📡</text></svg>" />
+    <!-- SheetJS for processing the XLSX -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0a0f;
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Loading State */
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: #0a0a0f;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            transition: opacity 0.5s ease;
+        }
+        #loader.hidden { opacity: 0; pointer-events: none; }
+        .spinner {
+            width: 40px; height: 40px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: #06b6d4;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loader-text {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+            color: rgba(255,255,255,0.4);
+        }
+
+        /* Header Bar */
+        .api-header {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border-bottom: 1px solid rgba(6, 182, 212, 0.3);
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .api-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .api-badge {
+            background: #06b6d4;
+            color: #000;
+            padding: 4px 10px;
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            border-radius: 4px;
+        }
+        .api-title h1 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+        }
+        .api-meta {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+        }
+        .api-meta .stat {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .api-meta .stat-value {
+            color: #06b6d4;
+            font-weight: 700;
+        }
+
+        /* Actions */
+        .actions-bar {
+            background: rgba(255,255,255,0.02);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            padding: 10px 24px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .action-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #e0e0e0;
+            padding: 6px 14px;
+            font-size: 11px;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .action-btn:hover {
+            background: rgba(6, 182, 212, 0.15);
+            border-color: rgba(6, 182, 212, 0.4);
+            color: #06b6d4;
+        }
+        .action-btn.primary {
+            background: rgba(6, 182, 212, 0.15);
+            border-color: rgba(6, 182, 212, 0.3);
+            color: #06b6d4;
+        }
+
+        /* JSON Output */
+        .json-container {
+            flex: 1;
+            padding: 24px;
+            overflow: auto;
+        }
+        #jsonOutput {
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #c9d1d9;
+            tab-size: 2;
+        }
+
+        /* Syntax Highlighting */
+        .json-key { color: #7ee787; }
+        .json-string { color: #a5d6ff; }
+        .json-number { color: #f8c555; }
+        .json-boolean { color: #ff7b72; }
+        .json-null { color: #8b949e; }
+        .json-bracket { color: #8b949e; }
+
+        /* Error State */
+        .error-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 60px 40px;
+            text-align: center;
+        }
+        .error-state .emoji { font-size: 48px; }
+        .error-state h2 { color: #ff7b72; font-size: 18px; }
+        .error-state p { color: rgba(255,255,255,0.4); font-size: 13px; max-width: 400px; }
+    </style>
+</head>
+<body>
+
+    <!-- Loader -->
+    <div id="loader">
+        <div class="spinner"></div>
+        <div class="loader-text">Fetching Co-Op Database...</div>
+    </div>
+
+    <!-- Header -->
+    <div class="api-header">
+        <div class="api-title">
+            <span class="api-badge">GET</span>
+            <h1>/coopgames.json (RAW API)</h1>
+        </div>
+        <div class="api-meta">
+            <div class="stat">
+                Endpoint: <a href="/coopgames.json" style="color: #06b6d4; text-decoration: underline;">/coopgames.json</a>
+            </div>
+            <div class="stat">
+                Items: <span class="stat-value" id="itemCount">—</span>
+            </div>
+            <div class="stat">
+                Generated: <span class="stat-value" id="timestamp">—</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions-bar">
+        <button class="action-btn primary" onclick="copyJSON()" id="copyBtn">📋 Copy JSON</button>
+        <button class="action-btn" onclick="downloadJSON()">⬇ Download .json</button>
+        <button class="action-btn" onclick="toggleRaw()">⚡ Toggle Raw / Pretty</button>
+        <button class="action-btn" onclick="location.reload()">🔄 Refresh</button>
+    </div>
+
+    <!-- JSON Output -->
+    <div class="json-container">
+        <pre id="jsonOutput"></pre>
+    </div>
+
+    <script>
+        const MEGA_KEY = "⢾░█ Multiplayer Mods █░⡷\n▁ ▂ ▄ ▅ ▆ █▓▒­░⠂MΞGA-LIST⠐░▒▓█ ▆ ▅ ▄ ▂ ▁";
+        const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSV41AswEt3EpzSyd85YRVtoJaIIXWjtBy347dISJg4fs6xSNPqcgfsh76TxX_l-mnT7pjMlSqTW-87/pub?output=xlsx";
+
+        let jsonData = null;
+        let isPretty = true;
+
+        function extractText(cell) {
+            if (!cell) return "";
+            if (typeof cell === 'object' && cell.text) return cell.text.toString();
+            return cell.toString();
+        }
+
+        function syntaxHighlight(json) {
+            json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return json.replace(
+                /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
+                function (match) {
+                    let cls = 'json-number';
+                    if (/^"/.test(match)) {
+                        if (/:$/.test(match)) {
+                            cls = 'json-key';
+                        } else {
+                            cls = 'json-string';
+                        }
+                    } else if (/true|false/.test(match)) {
+                        cls = 'json-boolean';
+                    } else if (/null/.test(match)) {
+                        cls = 'json-null';
+                    }
+                    return '<span class="' + cls + '">' + match + '</span>';
+                }
+            );
+        }
+
+        function displayJSON(data) {
+            const output = document.getElementById('jsonOutput');
+            const raw = isPretty ? JSON.stringify(data, null, 2) : JSON.stringify(data);
+            output.innerHTML = isPretty ? syntaxHighlight(raw) : raw;
+        }
+
+        function toggleRaw() {
+            isPretty = !isPretty;
+            if (jsonData) displayJSON(jsonData);
+        }
+
+        function copyJSON() {
+            if (!jsonData) return;
+            const raw = JSON.stringify(jsonData, null, 2);
+            navigator.clipboard.writeText(raw).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.textContent = '✅ Copied!';
+                setTimeout(() => btn.textContent = '📋 Copy JSON', 2000);
+            });
+        }
+
+        function downloadJSON() {
+            if (!jsonData) return;
+            const blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `coopgames_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        async function fetchAndParse() {
+            try {
+                const response = await fetch(SHEET_URL);
+                if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                const arrayBuffer = await response.arrayBuffer();
+
+                const workbook = XLSX.read(arrayBuffer, { type: 'array', cellFormula: true });
+                let rawJsonArray = [];
+
+                workbook.SheetNames.forEach(sheetName => {
+                    const worksheet = workbook.Sheets[sheetName];
+                    if (!worksheet['!ref']) return;
+
+                    const range = XLSX.utils.decode_range(worksheet['!ref']);
+                    const headers = [];
+
+                    for (let C = range.s.c; C <= range.e.c; ++C) {
+                        const cell = worksheet[XLSX.utils.encode_cell({ c: C, r: range.s.r })];
+                        headers[C] = cell ? (cell.w || cell.v) : `Column_${C + 1}`;
+                    }
+
+                    for (let R = range.s.r + 1; R <= range.e.r; ++R) {
+                        const rowData = {};
+                        let rowHasData = false;
+                        for (let C = range.s.c; C <= range.e.c; ++C) {
+                            const cell = worksheet[XLSX.utils.encode_cell({ c: C, r: R })];
+                            if (!cell || cell.v === undefined) continue;
+                            rowHasData = true;
+                            const header = headers[C];
+                            const textValue = cell.w || cell.v;
+                            let targetUrl = null;
+
+                            if (cell.l && cell.l.Target) targetUrl = cell.l.Target;
+                            else if (cell.f && cell.f.toUpperCase().includes('HYPERLINK(')) {
+                                const match = cell.f.match(/HYPERLINK\(\s*"([^"]+)"/i);
+                                if (match && match[1]) targetUrl = match[1];
+                            }
+
+                            if (targetUrl) rowData[header] = { text: textValue, url: targetUrl };
+                            else rowData[header] = textValue;
+                        }
+                        if (rowHasData) rawJsonArray.push(rowData);
+                    }
+                });
+
+                // Process into structured game entries
+                let currentCategory = "Uncategorized";
+                let games = [];
+                let metadata = {
+                    lastUpdated: null,
+                    recentlyAdded: [],
+                    watchlist: []
+                };
+
+                rawJsonArray.forEach(row => {
+                    const megaVal = extractText(row[MEGA_KEY]);
+
+                    // Extract last updated date & recently added info
+                    if (megaVal && megaVal.includes("Last Updated")) {
+                        const dateMatch = megaVal.match(/Last Updated\s*—\s*([^\n]+)/);
+                        if (dateMatch && dateMatch[1]) {
+                            metadata.lastUpdated = dateMatch[1].trim();
+                        }
+
+                        let lines = megaVal.split('\n');
+                        let currentSec = null;
+
+                        lines.forEach(line => {
+                            let trimmed = line.trim();
+                            if (!trimmed || trimmed.startsWith('Last Updated')) return;
+
+                            if (trimmed.toLowerCase().startsWith('added to')) {
+                                if (trimmed.toLowerCase().includes('windows pc')) {
+                                    currentSec = 'pc';
+                                } else if (trimmed.toLowerCase().includes('watchlist')) {
+                                    currentSec = 'watchlist';
+                                } else {
+                                    currentSec = 'ignored';
+                                }
+                            } else {
+                                if (currentSec === 'pc') {
+                                    metadata.recentlyAdded.push(trimmed);
+                                } else if (currentSec === 'watchlist') {
+                                    metadata.watchlist.push(trimmed);
+                                }
+                            }
+                        });
+                    }
+
+                    // Detect category headers
+                    if (megaVal && !row['Column_4'] && !row['Column_5']) {
+                        const valUpper = megaVal.toUpperCase();
+                        if (valUpper.includes("WINDOWS PC")) currentCategory = "Windows PC";
+                        else if (valUpper.includes("NINTENDO SWITCH")) currentCategory = "Nintendo Switch";
+                        else if (valUpper.includes("NINTENDO WII")) currentCategory = "Nintendo Wii";
+                        else if (valUpper.includes("NINTENDO DS")) currentCategory = "Nintendo DS";
+                        else if (valUpper.includes("GAMECUBE")) currentCategory = "Gamecube";
+                        else if (valUpper.includes("GAME BOY ADVANCE")) currentCategory = "Game Boy Advance";
+                        else if (valUpper.includes("PLAYSTATION 2")) currentCategory = "Playstation 2";
+                        else if (valUpper.includes("NINTENDO 64")) currentCategory = "Nintendo 64";
+                        else if (valUpper.includes("PLAYSTATION")) currentCategory = "Playstation";
+                        else if (valUpper.includes("SUPER NINTENDO")) currentCategory = "Super Nintendo";
+                        else if (valUpper.includes("GAME BOY")) currentCategory = "Game Boy";
+                        else if (valUpper.includes("MEGA DRIVE")) currentCategory = "Mega Drive";
+                        else if (valUpper.includes("NINTENDO ENTERTAINMENT SYSTEM")) currentCategory = "NES";
+                        else if (valUpper.includes("ARCADE")) currentCategory = "Arcade";
+                        else if (valUpper.includes("TOOLS")) currentCategory = "Tools";
+                        else if (valUpper.includes("WATCHLIST")) currentCategory = "Watchlist";
+                        else if (valUpper.includes("HIDDEN SPLITS")) currentCategory = "Hidden Splits";
+                    }
+
+                    // Parse actual game entries
+                    if (row['Column_4'] && row['Column_5']) {
+                        let gameStr = extractText(row['Column_4']);
+                        if (gameStr.toLowerCase() === 'game(s)' || gameStr.toLowerCase() === 'game') return;
+
+                        let isNew = false;
+                        if (megaVal.includes("🆕") || extractText(row['Column_3']).includes("🆕")) {
+                            isNew = true;
+                        }
+
+                        // Build a clean game object
+                        const gameObj = row['Column_4'];
+                        const modObj = row['Column_5'];
+                        const notesObj = row['Column_6'] || null;
+
+                        const entry = {
+                            game: typeof gameObj === 'object' ? { name: gameObj.text, url: gameObj.url } : gameObj,
+                            mod: typeof modObj === 'object' ? { name: modObj.text, url: modObj.url } : modObj,
+                            notes: notesObj ? (typeof notesObj === 'object' ? { text: notesObj.text, url: notesObj.url } : notesObj) : null,
+                            category: currentCategory,
+                            isNew: isNew
+                        };
+
+                        games.push(entry);
+                    }
+                });
+
+                // Sort alphabetically by game name
+                games.sort((a, b) => {
+                    const nameA = (typeof a.game === 'object' ? a.game.name : a.game).trim();
+                    const nameB = (typeof b.game === 'object' ? b.game.name : b.game).trim();
+                    return nameA.localeCompare(nameB);
+                });
+
+                // Build final response
+                const now = new Date().toISOString();
+                jsonData = {
+                    status: "ok",
+                    generated_at: now,
+                    source: "Co-Op Mods Database (Google Sheets)",
+                    metadata: {
+                        last_updated: metadata.lastUpdated,
+                        total_games: games.length,
+                        categories: [...new Set(games.map(g => g.category))],
+                        recently_added: metadata.recentlyAdded,
+                        watchlist_additions: metadata.watchlist
+                    },
+                    games: games
+                };
+
+                // Update UI
+                document.getElementById('statusCode').textContent = '200 OK';
+                document.getElementById('statusCode').style.color = '#7ee787';
+                document.getElementById('itemCount').textContent = games.length;
+                document.getElementById('timestamp').textContent = now.split('T')[0] + ' ' + now.split('T')[1].split('.')[0];
+
+                displayJSON(jsonData);
+
+                // Hide loader
+                const loader = document.getElementById('loader');
+                loader.classList.add('hidden');
+                setTimeout(() => loader.style.display = 'none', 500);
+
+            } catch (error) {
+                console.error(error);
+
+                document.getElementById('statusCode').textContent = '500 ERROR';
+                document.getElementById('statusCode').style.color = '#ff7b72';
+
+                const loader = document.getElementById('loader');
+                loader.classList.add('hidden');
+                setTimeout(() => loader.style.display = 'none', 500);
+
+                document.getElementById('jsonOutput').innerHTML = `
+                    <div class="error-state">
+                        <div class="emoji">💥</div>
+                        <h2>Failed to fetch database</h2>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        window.onload = fetchAndParse;
+    </script>
+</body>
+</html>
