@@ -175,17 +175,22 @@ export default function ProfileSelector({ loginAs, theme, toggleTheme }) {
 
       {/* Out of box PWA Install section */}
       {!isStandalone && (
-        <div className="mt-8 relative z-10 animate-fade-scale flex flex-col items-center text-center max-w-sm px-4" style={{ animationDelay: '600ms' }}>
+        <div className="mt-12 mb-8 relative z-10 animate-fade-scale flex flex-col items-center text-center max-w-sm px-4" style={{ animationDelay: '600ms' }}>
           <button 
             onClick={handleInstallClick}
-            className="flex items-center gap-2 px-5 py-2.5 bg-black/10 dark:bg-white/10 hover:bg-neon-pink hover:text-black dark:hover:bg-neon-pink dark:hover:text-black text-black dark:text-white border-2 border-black/20 dark:border-white/20 hover:border-black rounded-full backdrop-blur-md transition-all active:scale-95 shadow-sm group"
+            className="flex items-center gap-2.5 px-6 py-2.5 bg-black/20 dark:bg-white/5 hover:bg-neon-pink hover:text-black dark:hover:bg-neon-pink dark:hover:text-black text-black dark:text-white border-2 border-black/30 dark:border-white/20 hover:border-black rounded-full backdrop-blur-md transition-all active:scale-95 shadow-lg group"
           >
-            <Download className="w-4 h-4 group-hover:-translate-y-0.5 transition-transform" />
-            <span className="font-extrabold text-[11px] uppercase tracking-widest">Install App</span>
+            <Download className="w-3.5 h-3.5 group-hover:animate-bounce" />
+            <span className="font-extrabold text-[10px] uppercase tracking-[0.2em]">Deploy Local Instance</span>
           </button>
-          <span className="mt-4 text-[9px] font-black text-black/50 dark:text-white/40 uppercase tracking-[0.2em] leading-relaxed">
-            Download the desktop/mobile application for a seamless fullscreen experience
-          </span>
+          <div className="mt-5 flex flex-col items-center gap-1 opacity-40 hover:opacity-100 transition-opacity">
+            <span className="text-[8px] font-black text-black dark:text-white uppercase tracking-[0.3em]">
+              Launch natively for a premium fullscreen experience
+            </span>
+            <span className="text-[7px] font-bold text-black/50 dark:text-white/30 uppercase tracking-[0.4em]">
+              Version 1.0.8 • Cloud Sync Active
+            </span>
+          </div>
         </div>
       )}
     </div>
