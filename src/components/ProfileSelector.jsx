@@ -181,7 +181,7 @@ export default function ProfileSelector({ loginAs, theme, toggleTheme }) {
             className="flex items-center gap-2.5 px-6 py-2.5 bg-black/20 dark:bg-white/5 hover:bg-neon-pink hover:text-black dark:hover:bg-neon-pink dark:hover:text-black text-black dark:text-white border-2 border-black/30 dark:border-white/20 hover:border-black rounded-full backdrop-blur-md transition-all active:scale-95 shadow-lg group"
           >
             <Download className="w-3.5 h-3.5 group-hover:animate-bounce" />
-            <span className="font-extrabold text-[10px] uppercase tracking-[0.2em]">Deploy Local Instance</span>
+            <span className="font-extrabold text-[10px] uppercase tracking-[0.2em]">Install App</span>
           </button>
           <div className="mt-5 flex flex-col items-center gap-1 opacity-40 hover:opacity-100 transition-opacity">
             <span className="text-[8px] font-black text-black dark:text-white uppercase tracking-[0.3em]">
