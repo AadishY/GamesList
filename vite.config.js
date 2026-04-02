@@ -1,5 +1,6 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
+import { VitePWA } from 'vite-plugin-pwa'
 import * as XLSX from 'xlsx'
 
 export default defineConfig(({ mode }) => {
@@ -147,6 +148,36 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [
       react(),
+      VitePWA({
+        registerType: 'autoUpdate',
+        includeAssets: ['icon.svg'],
+        devOptions: {
+          enabled: true
+        },
+        manifest: {
+          name: 'Steam Backlog Tracker',
+          short_name: 'Backlog',
+          start_url: '/',
+          description: 'A premium, gaming-themed backlog tracker for Steam users.',
+          theme_color: '#000000',
+          background_color: '#000000',
+          display: 'standalone',
+          icons: [
+            {
+              src: 'icon.svg',
+              sizes: '192x192',
+              type: 'image/svg+xml',
+              purpose: 'any maskable'
+            },
+            {
+              src: 'icon.svg',
+              sizes: '512x512',
+              type: 'image/svg+xml',
+              purpose: 'any maskable'
+            }
+          ]
+        }
+      }),
       {
         name: 'full-api',
         configureServer(server) {
