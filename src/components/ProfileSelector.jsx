@@ -1,12 +1,46 @@
-import { useState } from 'react';
-import { Gamepad2, User, Users, Sun, Moon, Sword, Trophy, Target, Zap, Dices, Ghost, Joystick, Rocket, Star, Crown } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Gamepad2, User, Users, Sun, Moon, Sword, Trophy, Target, Zap, Dices, Ghost, Joystick, Rocket, Star, Crown, Download } from 'lucide-react';
 
 export default function ProfileSelector({ loginAs, theme, toggleTheme }) {
   const [clicked, setClicked] = useState(null);
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [isStandalone, setIsStandalone] = useState(
+    window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone
+  );
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    
+    const mediaQuery = window.matchMedia('(display-mode: standalone)');
+    const handleDisplayModeChange = (e) => setIsStandalone(e.matches);
+    
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    mediaQuery.addEventListener('change', handleDisplayModeChange);
+    
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      mediaQuery.removeEventListener('change', handleDisplayModeChange);
+    };
+  }, []);
 
   const handleLogin = (profile) => {
     setClicked(profile);
     setTimeout(() => loginAs(profile), 150);
+  };
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) {
+      alert("Installation prompt is not available right now. You may have already installed the app or it's available via the browser address bar icon.");
+      return;
+    }
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setDeferredPrompt(null);
+    }
   };
 
   return (
@@ -138,6 +172,22 @@ export default function ProfileSelector({ loginAs, theme, toggleTheme }) {
           </button>
         </div>
       </div>
+
+      {/* Out of box PWA Install section */}
+      {!isStandalone && (
+        <div className="mt-8 relative z-10 animate-fade-scale flex flex-col items-center text-center max-w-sm px-4" style={{ animationDelay: '600ms' }}>
+          <button 
+            onClick={handleInstallClick}
+            className="flex items-center gap-2 px-5 py-2.5 bg-black/10 dark:bg-white/10 hover:bg-neon-pink hover:text-black dark:hover:bg-neon-pink dark:hover:text-black text-black dark:text-white border-2 border-black/20 dark:border-white/20 hover:border-black rounded-full backdrop-blur-md transition-all active:scale-95 shadow-sm group"
+          >
+            <Download className="w-4 h-4 group-hover:-translate-y-0.5 transition-transform" />
+            <span className="font-extrabold text-[11px] uppercase tracking-widest">Install App</span>
+          </button>
+          <span className="mt-4 text-[9px] font-black text-black/50 dark:text-white/40 uppercase tracking-[0.2em] leading-relaxed">
+            Download the desktop/mobile application for a seamless fullscreen experience
+          </span>
+        </div>
+      )}
     </div>
   );
 }

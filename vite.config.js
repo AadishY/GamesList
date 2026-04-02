@@ -150,13 +150,19 @@ export default defineConfig(({ mode }) => {
       react(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['icon.svg'],
+        includeAssets: ['icon.svg', 'pwa-icon-192.png', 'pwa-icon-512.png'],
+        workbox: {
+          globPatterns: ['**/*.{js,css,html,ico,png,jpg,jpeg,svg,webp}'],
+          navigateFallback: 'index.html',
+          navigateFallbackAllowlist: [/^\/$/],
+        },
         devOptions: {
-          enabled: true
+          enabled: true,
+          type: 'module',
         },
         manifest: {
-          name: 'Steam Backlog Tracker',
-          short_name: 'Backlog',
+          name: 'Steam Backlog',
+          short_name: 'Steam Backlog',
           start_url: '/',
           description: 'A premium, gaming-themed backlog tracker for Steam users.',
           theme_color: '#000000',
@@ -164,16 +170,29 @@ export default defineConfig(({ mode }) => {
           display: 'standalone',
           icons: [
             {
-              src: 'icon.svg',
+              src: 'pwa-icon-192.png',
               sizes: '192x192',
-              type: 'image/svg+xml',
-              purpose: 'any maskable'
+              type: 'image/png',
+              purpose: 'any'
             },
             {
-              src: 'icon.svg',
+              src: 'pwa-icon-512.png',
               sizes: '512x512',
-              type: 'image/svg+xml',
-              purpose: 'any maskable'
+              type: 'image/png',
+              purpose: 'any'
+            }
+          ],
+          screenshots: [
+            {
+              src: "screenshot-desktop.webp",
+              sizes: "1280x720",
+              type: "image/webp",
+              form_factor: "wide"
+            },
+            {
+              src: "screenshot-mobile.webp",
+              sizes: "720x1280",
+              type: "image/webp"
             }
           ]
         }

@@ -4,11 +4,15 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './App.jsx'
 import './index.css'
 
+// Let vite-plugin-pwa handle service worker registration automatically
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(err => {
-      console.log('SW registration failed: ', err);
-    });
+  // Clears out legacy static worker caches if any
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
+    for (let registration of registrations) {
+      if (registration.active && registration.active.scriptURL.endsWith('sw.js') && !registration.active.scriptURL.includes('dev-dist')) {
+        registration.unregister();
+      }
+    }
   });
 }
 
