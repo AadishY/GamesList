@@ -5,17 +5,15 @@ import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-
 import { collection, onSnapshot, doc, setDoc, deleteDoc } from 'firebase/firestore';
 import { db } from './firebase';
 
-// Extracted Components
-import ProfileSelector from './components/ProfileSelector';
-import Header from './components/Header';
-import DeleteModal from './components/DeleteModal';
-import GameModal from './components/GameModal';
-import AddGameSection from './components/AddGameSection';
-import FilterSection from './components/FilterSection';
-import GameCard from './components/GameCard';
-import Footer from './components/Footer';
-
-// Lazy-loaded route components for code splitting
+// Lazy-loaded components
+const ProfileSelector = lazy(() => import('./components/ProfileSelector'));
+const Header = lazy(() => import('./components/Header'));
+const DeleteModal = lazy(() => import('./components/DeleteModal'));
+const GameModal = lazy(() => import('./components/GameModal'));
+const AddGameSection = lazy(() => import('./components/AddGameSection'));
+const FilterSection = lazy(() => import('./components/FilterSection'));
+const GameCard = lazy(() => import('./components/GameCard'));
+const Footer = lazy(() => import('./components/Footer'));
 const SharedList = lazy(() => import('./components/SharedList'));
 const ModsList = lazy(() => import('./components/ModsList'));
 
@@ -39,6 +37,7 @@ export default function App() {
   
   // Real-Time Search State
   const [searchResults, setSearchResults] = useState([]);
+  const [totalSearchResultsCount, setTotalSearchResultsCount] = useState(0);
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const searchTimeoutRef = useRef(null);
@@ -77,8 +76,7 @@ export default function App() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Profile State will be derived from URL params or maintained closely
-  // For simplicity, we define activeProfile from App state, but update it based on route change.
+  // Profile State
   const getInitialProfile = () => {
     const path = window.location.pathname;
     const parts = path.split('/').filter(Boolean);
@@ -276,7 +274,8 @@ export default function App() {
     if (!rawgKey) return;
     
     if (searchCache.current[query]) {
-      setSearchResults(searchCache.current[query]);
+      setSearchResults(searchCache.current[query].results);
+      setTotalSearchResultsCount(searchCache.current[query].count);
       setShowDropdown(true);
       setIsSearching(false);
       return;
@@ -289,16 +288,18 @@ export default function App() {
     setIsSearching(true);
     try {
       const response = await fetch(
-        `https://api.rawg.io/api/games?search=${encodeURIComponent(query)}&key=${rawgKey}&page_size=3`,
+        `https://api.rawg.io/api/games?search=${encodeURIComponent(query)}&key=${rawgKey}&page_size=20`,
         { signal: controller.signal }
       );
       if (response.ok) {
         const data = await response.json();
         const results = data.results || [];
+        const totalCount = data.count || 0;
         const keys = Object.keys(searchCache.current);
         if (keys.length > 50) delete searchCache.current[keys[0]];
-        searchCache.current[query] = results;
+        searchCache.current[query] = { results, count: totalCount };
         setSearchResults(results);
+        setTotalSearchResultsCount(totalCount);
         setShowDropdown(true);
       }
     } catch (err) {
@@ -315,8 +316,9 @@ export default function App() {
 
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
 
-    if (!val.trim() || val.includes('steampowered.com')) {
+    if (val.trim().length < 3 || val.includes('steampowered.com')) {
       setSearchResults([]);
+      setTotalSearchResultsCount(0);
       setShowDropdown(false);
       setIsSearching(false);
       return;
@@ -636,6 +638,7 @@ export default function App() {
               activeProfile={activeProfile} 
               goBack={() => navigate(`/${activeProfile}`)} 
               updateFirebaseGame={updateFirebaseGame}
+              theme={theme}
             />
           </Suspense>
         } />
@@ -658,6 +661,7 @@ export default function App() {
               deleteFirebaseMod={async (modId) => {
                 await deleteDoc(doc(db, 'mods', String(modId)));
               }}
+              theme={theme}
             />
           </Suspense>
         } />
@@ -675,10 +679,12 @@ export default function App() {
             setShowDropdown={setShowDropdown}
             setUrlInput={setUrlInput}
             searchResults={searchResults}
+            totalSearchResultsCount={totalSearchResultsCount}
             handleSelectSearchResult={handleSelectSearchResult}
             getExistingGame={getExistingGame}
             error={error}
             dropdownRef={dropdownRef}
+            theme={theme}
           />
 
           <FilterSection 
@@ -687,6 +693,8 @@ export default function App() {
             sortOption={sortOption} setSortOption={setSortOption}
             searchQuery={searchQuery} setSearchQuery={setSearchQuery}
             viewMode={viewMode} setViewMode={handleSetViewMode}
+            filteredCount={filteredGames.length}
+            theme={theme}
           />
 
           {/* Games Grid */}
@@ -764,7 +772,7 @@ export default function App() {
         </div>
       )}
 
-      <Footer />
+      <Footer activeProfile={activeProfile} isModPage={location.pathname.includes('/mods')} theme={theme} />
     </div>
   );
 }

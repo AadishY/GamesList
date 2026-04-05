@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Search, X, CheckCircle2 } from 'lucide-react';
 
-export default function SharedListAddModal({ games, updateFirebaseGame, activeProfile, onClose }) {
+export default function SharedListAddModal({ games, updateFirebaseGame, activeProfile, onClose, theme }) {
   const [search, setSearch] = useState('');
   
   const myGames = useMemo(() => {
@@ -19,6 +19,8 @@ export default function SharedListAddModal({ games, updateFirebaseGame, activePr
     onClose();
   };
 
+  const badgeUrl = `https://aadishcounter.vercel.app/@mod?theme=random-animation&padding=7&count=${filteredGames.length || 0}&crop=true&darkmode=${theme === 'dark' ? 1 : 0}`;
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-black/60 dark:bg-black/80 backdrop-blur-xl">
       <div className="glass-panel w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
@@ -31,12 +33,15 @@ export default function SharedListAddModal({ games, updateFirebaseGame, activePr
         </div>
 
         <div className="p-4 sm:p-6 pb-2 shrink-0 border-b-2 border-black/5 dark:border-white/5">
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-black/70 dark:text-white/40" />
+          <div className="relative group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-black/70 dark:text-white/40 group-focus-within:text-neon-pink transition-colors" />
             <input type="text" value={search} onChange={e => setSearch(e.target.value)}
               placeholder="SEARCH YOUR GAMES..."
-              className="w-full bg-white/50 dark:bg-black/80 border-2 border-black/10 dark:border-white/20 rounded-2xl pl-12 pr-4 py-4 sm:py-3 text-base sm:text-lg font-black outline-none focus:border-black dark:focus:border-white focus:bg-white focus:shadow-brutal transition-all placeholder-black/60 dark:placeholder-white/30"
+              className="w-full bg-white/50 dark:bg-black/80 border-2 border-black/10 dark:border-white/20 rounded-2xl pl-12 pr-24 py-4 sm:py-3 text-base sm:text-lg font-black outline-none focus:border-black dark:focus:border-white focus:bg-white dark:focus:text-black focus:text-black focus:placeholder-black/40 focus:shadow-brutal transition-all placeholder-black/60 dark:placeholder-white/30 text-black dark:text-white"
             />
+            <div className="absolute right-2 top-[-10px] pointer-events-none select-none z-50">
+              <img src={badgeUrl} alt="Results" className="h-12 sm:h-16 drop-shadow-[1.5px_-1.5px_0px_rgba(0,0,0,1)] dark:drop-shadow-[1.5px_-1.5px_0px_rgba(255,255,255,0.4)]" />
+            </div>
           </div>
         </div>
 

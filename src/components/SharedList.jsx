@@ -3,7 +3,7 @@ import { ArrowLeft, Plus, Gamepad2 } from 'lucide-react';
 import SharedListGameCard from './SharedListGameCard';
 import SharedListAddModal from './SharedListAddModal';
 
-export default function SharedList({ games, updateFirebaseGame, activeProfile, goBack }) {
+export default function SharedList({ games, updateFirebaseGame, activeProfile, goBack, theme }) {
   const [filter, setFilter] = useState('Main');
   const [showAddModal, setShowAddModal] = useState(false);
   
@@ -83,7 +83,7 @@ export default function SharedList({ games, updateFirebaseGame, activeProfile, g
       )}
 
       {showAddModal && (
-        <SharedListAddModal games={games} updateFirebaseGame={updateFirebaseGame} activeProfile={activeProfile} onClose={() => setShowAddModal(false)} />
+        <SharedListAddModal games={games} updateFirebaseGame={updateFirebaseGame} activeProfile={activeProfile} onClose={() => setShowAddModal(false)} theme={theme} />
       )}
     </div>
   );

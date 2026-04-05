@@ -360,14 +360,14 @@
         .result-badge {
             position: absolute;
             right: 8px;
-            top: 50%;
-            transform: translateY(-50%);
+            top: -6px;
             pointer-events: none;
+            z-index: 50;
         }
 
         .result-badge img {
-            height: 60px;
-            filter: drop-shadow(2px 2px 0px var(--border-main));
+            height: 48px;
+            filter: drop-shadow(1.5px -1.5px 0px var(--border-main));
         }
 
         /* --- TABLE --- */
@@ -818,7 +818,7 @@
                 <div class="search-box">
                     <input type="text" id="searchInput" placeholder="Search Database..." oninput="renderApp()">
                     <div class="result-badge" id="resultCount">
-                        <img src="https://aadishcounter.vercel.app/@mod?theme=random-animation-digit&padding=0&count=0&crop=true&darkmode=1" alt="Count">
+                        <img src="https://aadishcounter.vercel.app/@mod?theme=random-animation&padding=7&count=0&crop=true&darkmode=1" alt="Count">
                     </div>
                 </div>
 
@@ -862,10 +862,21 @@
     </div>
 
     <footer class="mt-auto">
-        <div class="footer-pill glass-panel" style="background: rgba(255,255,255,0.05); border-radius: 9999px; padding: 10px 24px; display: flex; align-items: center; gap: 8px; margin: 20px auto; max-width: max-content;">
-            <i data-lucide="gamepad-2" style="width: 14px; height: 14px; opacity: 0.5;"></i>
-            <span>Made with <span style="background: var(--neon-pink); padding: 2px 6px; border: 1px solid #000; border-radius: 4px; box-shadow: 2px 2px 0 #000; margin: 0 4px;"><i data-lucide="heart" style="width: 10px; height: 10px; fill: #000;"></i></span> by Aadish</span>
-            <span style="margin: 0 8px; opacity: 0.3;">|</span>
+        <div class="footer-pill glass-panel" style="background: rgba(255,255,255,0.05); border-radius: 9999px; padding: 10px 24px; display: flex; align-items: center; gap: 16px; margin: 20px auto; max-width: max-content; box-shadow: 8px 8px 0px var(--shadow-color); border: 2px solid var(--border-main);">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="gamepad-2" style="width: 14px; height: 14px; opacity: 0.5;"></i>
+                <span style="font-size: 0.75rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em;">Made with <span style="background: var(--neon-pink); padding: 2px 6px; border: 1px solid #000; border-radius: 4px; box-shadow: 2px 2px 0 #000; margin: 0 4px;"><i data-lucide="heart" style="width: 10px; height: 10px; fill: #000;"></i></span> by Aadish</span>
+            </div>
+            
+            <div style="width: 1.5px; height: 16px; background: rgba(var(--text-main-rgb, 255, 255, 255), 0.15);"></div>
+            
+            <div style="display: flex; align-items: center; gap: 8px; user-select: none;">
+                <img src="https://aadishcounter.vercel.app/@coopmod:4422?theme=random-animation&padding=7&crop=true&count-view=true" alt="Views" style="height: 40px; filter: drop-shadow(1.5px -1.5px 0px var(--border-main));">
+                <span style="font-size: 10px; font-weight: 950; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-secondary); opacity: 0.6;">VIEWS</span>
+            </div>
+            
+            <div style="width: 1.5px; height: 16px; background: rgba(var(--text-main-rgb, 255, 255, 255), 0.15);"></div>
+            
             <a href="/api/coopgames" style="font-size: 0.65rem; color: var(--neon-cyan); border: none; padding: 0;">RAW API</a>
         </div>
     </footer>
@@ -1298,7 +1309,7 @@
             let filteredItems = processData(mainPool);
             
             // Result Count Badge
-            const badgeUrl = `https://aadishcounter.vercel.app/@mod?theme=random-animation-digit&padding=0&count=${filteredItems.length}&crop=true&darkmode=${currentTheme === 'dark' ? 1 : 0}`;
+            const badgeUrl = `https://aadishcounter.vercel.app/@mod?theme=random-animation&padding=7&count=${filteredItems.length}&crop=true&darkmode=${currentTheme === 'dark' ? 1 : 0}`;
             const counterEl = document.getElementById('resultCount');
             if (counterEl) {
                 counterEl.innerHTML = `<img src="${badgeUrl}" alt="${filteredItems.length} Results">`;

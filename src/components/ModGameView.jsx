@@ -1,16 +1,20 @@
 import { useState, useMemo } from 'react';
-import { ArrowLeft, Plus, Settings2, Link as LinkIcon, Calendar, Info, Trash2 } from 'lucide-react';
+import { ArrowLeft, Plus, Settings2, Link as LinkIcon, Calendar, Info, Trash2, Search, Settings } from 'lucide-react';
 import OptimizedImage from './OptimizedImage';
 import ModAddModal from './ModAddModal'; 
 import DeleteWarningModal from './DeleteWarningModal';
 
-export default function ModGameView({ gameEntry, goBack, updateFirebaseMod }) {
+export default function ModGameView({ gameEntry, goBack, updateFirebaseMod, theme }) {
   const [showAddMod, setShowAddMod] = useState(false);
   const [changelogMod, setChangelogMod] = useState(null);
   const [modToDelete, setModToDelete] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const modsList = useMemo(() => {
-    const list = [...(gameEntry.modsList || [])];
+    const list = [...(gameEntry.modsList || [])].filter(m => 
+      m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (m.description || '').toLowerCase().includes(searchQuery.toLowerCase())
+    );
     return list.sort((a, b) => {
       // Prioritize numeric epoch comparison if available
       if (a.lastUpdatedEpoch && b.lastUpdatedEpoch) {
@@ -21,7 +25,9 @@ export default function ModGameView({ gameEntry, goBack, updateFirebaseMod }) {
       const dateB = new Date(b.lastUpdated).getTime() || 0;
       return dateB - dateA;
     });
-  }, [gameEntry.modsList]);
+  }, [gameEntry.modsList, searchQuery]);
+
+  const badgeUrl = `https://aadishcounter.vercel.app/@mod?theme=random-animation&padding=7&count=${modsList.length || 0}&crop=true&darkmode=${theme === 'dark' ? 1 : 0}`;
 
   const sortedChangelogText = useMemo(() => {
     if (!changelogMod?.changelog) return 'No changelog details.';
@@ -51,7 +57,7 @@ export default function ModGameView({ gameEntry, goBack, updateFirebaseMod }) {
       <div className="max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 pb-32">
         
         {/* Header styling similar to SharedList */}
-        <div className="glass-panel-flat p-4 sm:p-5 rounded-[2rem] flex flex-col sm:flex-row items-stretch sm:items-center gap-5 mb-8 relative overflow-hidden">
+        <div className="glass-panel-flat p-4 sm:p-5 rounded-[2rem] flex flex-col xl:flex-row items-stretch xl:items-center gap-5 mb-8 relative overflow-hidden">
           <div className="absolute inset-0 opacity-10 pointer-events-none">
             <OptimizedImage src={gameEntry.gameImageUrl} alt="bg" width={640} className="blur-md" />
           </div>
@@ -62,18 +68,31 @@ export default function ModGameView({ gameEntry, goBack, updateFirebaseMod }) {
               ><ArrowLeft className="w-5 h-5 pointer-events-none" /></button>
               <div className="flex flex-col">
                 <h2 className="text-xl sm:text-2xl font-black tracking-tighter uppercase leading-none text-black dark:text-white">{gameEntry.gameName} Mods</h2>
-                <p className="text-[10px] text-black/70 dark:text-white/50 font-black uppercase tracking-[0.2em] mt-1.5 ml-0.5">{modsList.length} Installed</p>
+                <p className="text-[10px] text-black/70 dark:text-white/50 font-black uppercase tracking-[0.2em] mt-1.5 ml-0.5">{modsList.length} Mods Showing</p>
               </div>
             </div>
-            
+
+            <div className="relative group w-full sm:w-64 xl:ml-auto">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-black/70 dark:text-white/40 pointer-events-none group-focus-within:text-neon-pink transition-colors" />
+              <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="SEARCH MODS..."
+                className="w-full bg-white/50 dark:bg-black/80 border-2 border-black/10 dark:border-white/20 rounded-xl pl-11 pr-20 py-3 text-[10px] sm:text-xs font-black uppercase tracking-widest placeholder-black/60 dark:placeholder-white/40 outline-none focus:border-black dark:focus:border-white focus:bg-white dark:focus:text-black focus:text-black focus:shadow-brutal transition-all text-black dark:text-white"
+              />
+              <div className="absolute right-2 top-[-6px] pointer-events-none select-none z-50">
+                <img src={badgeUrl} alt="Results" className="h-10 sm:h-12 drop-shadow-[1.5px_-1.5px_0px_rgba(0,0,0,1)] dark:drop-shadow-[1.5px_-1.5px_0px_rgba(255,255,255,0.4)]" />
+              </div>
+            </div>
           </div>
         </div>
 
         {modsList.length === 0 ? (
           <div className="text-center py-20 glass-panel rounded-[2rem] border-dashed">
             <Settings2 className="w-16 h-16 mx-auto text-black/50 dark:text-white/20 mb-5" />
-            <h3 className="text-2xl font-black text-black/60 dark:text-white/60 uppercase tracking-tighter">No mods installed</h3>
-            <p className="text-black/60 dark:text-white/40 font-black mt-2 text-xs uppercase tracking-widest max-w-[200px] mx-auto leading-relaxed">Add a mod to enhance your game.</p>
+            <h3 className="text-2xl font-black text-black/60 dark:text-white/60 uppercase tracking-tighter">
+              {searchQuery ? 'No mod found' : 'No mods installed'}
+            </h3>
+            <p className="text-black/60 dark:text-white/40 font-black mt-2 text-xs uppercase tracking-widest max-w-[200px] mx-auto leading-relaxed">
+              {searchQuery ? 'Try a different search term.' : 'Add a mod to enhance your game.'}
+            </p>
           </div>
         ) : (
           <div className="flex flex-col gap-4">
@@ -139,6 +158,7 @@ export default function ModGameView({ gameEntry, goBack, updateFirebaseMod }) {
            gameEntry={gameEntry}
            updateFirebaseMod={updateFirebaseMod}
            onClose={() => setShowAddMod(false)}
+           theme={theme}
          />
       )}
 

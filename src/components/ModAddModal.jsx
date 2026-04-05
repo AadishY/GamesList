@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Search, Loader2, X, AlertCircle } from 'lucide-react';
 
-export default function ModAddModal({ gameEntry, updateFirebaseMod, onClose }) {
+export default function ModAddModal({ gameEntry, updateFirebaseMod, onClose, theme }) {
   const [inputVal, setInputVal] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -14,7 +14,30 @@ export default function ModAddModal({ gameEntry, updateFirebaseMod, onClose }) {
     setError('');
 
     const isNexusLink = inputVal.includes('nexusmods.com');
+    const normalizedInput = inputVal.toLowerCase().trim().replace(/\/$/, ""); 
     
+    // Check for duplicates before proceeding
+    const existingMods = gameEntry.modsList || [];
+    
+    // Modified Stage 1 check
+    const preFetchDuplicate = existingMods.some(mod => {
+      if (isNexusLink) {
+        if (!mod.link) return false;
+        const existingLink = mod.link.toLowerCase().trim().replace(/\/$/, "");
+        const modIdMatch = normalizedInput.match(/nexusmods\.com\/[^/]+\/mods\/(\d+)/i);
+        const existingIdMatch = existingLink.match(/nexusmods\.com\/[^/]+\/mods\/(\d+)/i);
+        return (modIdMatch && existingIdMatch && modIdMatch[1] === existingIdMatch[1]) || existingLink === normalizedInput;
+      } else {
+        return mod.name.toLowerCase().trim() === inputVal.toLowerCase().trim();
+      }
+    });
+
+    if (preFetchDuplicate) {
+      setError(`This mod is already in your list!`);
+      setLoading(false);
+      return;
+    }
+
     if (isNexusLink) {
       try {
         // Parse link: https://www.nexusmods.com/skyrimspecialedition/mods/12345
@@ -42,6 +65,18 @@ export default function ModAddModal({ gameEntry, updateFirebaseMod, onClose }) {
 
         const data = await res.json();
         
+        // Post-fetch duplicate check by Name
+        const fetchedName = data.name || `Nexus Mod ${modId}`;
+        const nameDuplicate = existingMods.some(mod => 
+          mod.name.toLowerCase().trim() === fetchedName.toLowerCase().trim()
+        );
+
+        if (nameDuplicate) {
+          setError(`A mod named "${fetchedName}" is already in your list!`);
+          setLoading(false);
+          return;
+        }
+
         // Fetch changelog separately
         let changelogText = "View full changelog on Nexus mods page.";
         try {
@@ -118,11 +153,14 @@ export default function ModAddModal({ gameEntry, updateFirebaseMod, onClose }) {
         </div>
 
         <form onSubmit={handleFetchOrAdd} className="p-4 sm:p-6 flex flex-col gap-4">
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-black/70 dark:text-white/40" />
-            <input type="text" value={inputVal} onChange={e => setInputVal(e.target.value)}
-              placeholder="Paste Nexus Mod Link OR type mod name..."
-              className="w-full bg-white/50 dark:bg-black/80 border-2 border-black/10 dark:border-white/20 rounded-2xl pl-12 pr-4 py-4 sm:py-3 text-base sm:text-lg font-black outline-none focus:border-black dark:focus:border-white focus:bg-white focus:shadow-brutal transition-all placeholder-black/60 dark:placeholder-white/30"
+          <div className="relative group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-black/70 dark:text-white/40 group-focus-within:text-neon-pink transition-colors" />
+            <input 
+              type="text" 
+              value={inputVal} 
+              onChange={(e) => setInputVal(e.target.value)} 
+              placeholder="Paste Nexus Mods link or type mod name..."
+              className="w-full bg-white/50 dark:bg-black/80 border-2 border-black/10 dark:border-white/20 rounded-2xl pl-12 pr-12 py-4 sm:py-3 text-base sm:text-lg font-black outline-none focus:border-black dark:focus:border-white focus:bg-white dark:focus:text-black focus:text-black focus:placeholder-black/60 dark:focus:placeholder-white/30 focus:shadow-brutal transition-all text-black dark:text-white"
               disabled={loading}
             />
           </div>

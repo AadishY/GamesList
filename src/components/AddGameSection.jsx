@@ -4,9 +4,14 @@ import OptimizedImage from './OptimizedImage';
 export default function AddGameSection({
   activeProfile, urlInput, handleInputChange, handleFetchGameDetails,
   loading, isSearching, showDropdown, setShowDropdown,
-  setUrlInput, searchResults, handleSelectSearchResult, getExistingGame, error, dropdownRef
+  setUrlInput, searchResults, totalSearchResultsCount, handleSelectSearchResult, getExistingGame, error, dropdownRef,
+  theme
 }) {
   if (activeProfile === 'Combined') return null;
+
+  // Use the total count from RAWG if we're searching, otherwise 0
+  const displayCount = (urlInput && !urlInput.includes('steampowered.com')) ? totalSearchResultsCount : 0;
+  const badgeUrl = `https://aadishcounter.vercel.app/@mod?theme=random-animation&padding=7&count=${displayCount}&crop=true&darkmode=${theme === 'dark' ? 1 : 0}`;
 
   return (
     <section className="glass-panel p-5 sm:p-8 relative z-40 mb-6 animate-stagger-enter" style={{ animationDelay: '40ms' }}>
@@ -23,14 +28,17 @@ export default function AddGameSection({
             <Search className={`absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors ${isSearching ? 'text-neon-pink' : 'text-black/60 dark:text-white/40 group-focus-within:text-neon-purple'}`} />
             <input type="text" value={urlInput} onChange={handleInputChange}
               placeholder="Search game name or paste Steam URL..."
-              className="w-full bg-white/50 dark:bg-black/80 border-2 border-black/20 dark:border-white/20 rounded-2xl pl-12 pr-12 py-4 text-base sm:text-lg font-black outline-none focus:border-black dark:focus:border-white focus:bg-white dark:focus:bg-black focus:shadow-brutal transition-[border-color,background-color,box-shadow] placeholder-black/50 dark:placeholder-white/30 text-black dark:text-white"
+              className="w-full bg-white/50 dark:bg-black/80 border-2 border-black/20 dark:border-white/20 rounded-2xl pl-12 pr-32 py-4 text-base sm:text-lg font-black outline-none focus:border-black dark:focus:border-white focus:bg-white dark:focus:text-black focus:text-black focus:shadow-brutal transition-[border-color,background-color,box-shadow] placeholder-black/50 dark:placeholder-white/30 text-black dark:text-white"
               disabled={loading} autoComplete="off"
             />
-            {urlInput && (
-              <button type="button" onClick={() => { setUrlInput(''); setShowDropdown(false); }} className="absolute right-4 top-1/2 -translate-y-1/2 text-black/55 hover:text-black dark:text-white/40 dark:hover:text-white transition-colors p-2 rounded-lg bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20">
+            {urlInput && !loading && (
+              <button type="button" onClick={() => { setUrlInput(''); setShowDropdown(false); }} className="absolute right-16 top-1/2 -translate-y-1/2 text-black/55 hover:text-black dark:text-white/40 dark:hover:text-white transition-colors p-2 rounded-lg bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20">
                 <X className="w-5 h-5" />
               </button>
             )}
+            <div className="absolute right-2 top-[-10px] pointer-events-none select-none z-50">
+              <img src={badgeUrl} alt="Results" className="h-10 sm:h-12 drop-shadow-[1.5px_-1.5px_0px_rgba(0,0,0,1)] dark:drop-shadow-[1.5px_-1.5px_0px_rgba(255,255,255,0.4)]" />
+            </div>
           </div>
 
           {showDropdown && searchResults.length > 0 && (
