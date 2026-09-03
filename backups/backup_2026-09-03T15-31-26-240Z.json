@@ -2,8 +2,7 @@
   "games": [
     {
       "firebaseId": "0536a411-1446-4be3-bda4-20d837de67b2",
-      "addedAt": 1774014349508,
-      "id": "0536a411-1446-4be3-bda4-20d837de67b2",
+      "mode": "Multiplayer",
       "sharedList": {
         "type": "Main",
         "upvotes": [
@@ -12,27 +11,21 @@
         "addedBy": "Aadish",
         "order": 2
       },
+      "appId": "elden-ring-nightreign",
       "addedBy": [
         "Aadish"
       ],
-      "status": "Played",
       "name": "Elden Ring Nightreign",
-      "appId": "elden-ring-nightreign",
-      "steamUrl": "https://store.steampowered.com/search/?term=Elden%20Ring%20Nightreign",
       "imageUrl": "https://media.rawg.io/media/games/a14/a143ef815d323a3000840fc774d834c7.jpg",
-      "mode": "Multiplayer"
+      "status": "Played",
+      "steamUrl": "https://store.steampowered.com/search/?term=Elden%20Ring%20Nightreign",
+      "addedAt": 1774014349508,
+      "id": "0536a411-1446-4be3-bda4-20d837de67b2"
     },
     {
       "firebaseId": "1190d8db-bb27-4b84-81fa-0d055118fd94",
-      "addedAt": 1774078976219,
-      "id": "1190d8db-bb27-4b84-81fa-0d055118fd94",
-      "addedBy": [
-        "Aadish"
-      ],
-      "status": "Played",
-      "name": "Phasmophobia",
-      "appId": "phasmophobia",
       "steamUrl": "https://store.steampowered.com/search/?term=Phasmophobia",
+      "mode": "Multiplayer",
       "imageUrl": "https://media.rawg.io/media/screenshots/370/370895ff725d74e26b8d30389222b397.jpg",
       "sharedList": {
         "upvotes": [
@@ -42,40 +35,55 @@
         "order": 2,
         "addedBy": "Aadish"
       },
-      "mode": "Multiplayer"
+      "addedBy": [
+        "Aadish"
+      ],
+      "name": "Phasmophobia",
+      "id": "1190d8db-bb27-4b84-81fa-0d055118fd94",
+      "addedAt": 1774078976219,
+      "appId": "phasmophobia",
+      "status": "Played"
     },
     {
       "firebaseId": "1c3a6bcf-bb3b-42bd-90db-87a88e0a84a6",
       "appId": "grand-theft-auto-v",
-      "addedBy": [
-        "Aadish"
-      ],
-      "steamUrl": "https://store.steampowered.com/search/?term=Grand%20Theft%20Auto%20V",
       "name": "Grand Theft Auto V",
       "addedAt": 1774019061795,
+      "mode": "Singleplayer",
       "imageUrl": "https://media.rawg.io/media/games/20a/20aa03a10cda45239fe22d035c0ebe64.jpg",
-      "status": "Played",
+      "steamUrl": "https://store.steampowered.com/search/?term=Grand%20Theft%20Auto%20V",
       "id": "1c3a6bcf-bb3b-42bd-90db-87a88e0a84a6",
-      "mode": "Singleplayer"
-    },
-    {
-      "firebaseId": "1f54b1f3-9f50-48e7-b580-b2a34219edac",
-      "id": "1f54b1f3-9f50-48e7-b580-b2a34219edac",
-      "mode": "Multiplayer",
-      "appId": "kletka",
-      "status": "Wanted",
-      "name": "Kletka",
-      "addedAt": 1775571767008,
-      "imageUrl": "https://media.rawg.io/media/games/8ba/8babaff8b2c2ea8d6943f27dd38c6d5f.jpg",
-      "steamUrl": "https://store.steampowered.com/search/?term=Kletka",
+      "status": "Played",
       "addedBy": [
         "Aadish"
       ]
     },
     {
+      "firebaseId": "1f54b1f3-9f50-48e7-b580-b2a34219edac",
+      "status": "Wanted",
+      "appId": "kletka",
+      "name": "Kletka",
+      "addedBy": [
+        "Aadish"
+      ],
+      "mode": "Multiplayer",
+      "steamUrl": "https://store.steampowered.com/search/?term=Kletka",
+      "imageUrl": "https://media.rawg.io/media/games/8ba/8babaff8b2c2ea8d6943f27dd38c6d5f.jpg",
+      "id": "1f54b1f3-9f50-48e7-b580-b2a34219edac",
+      "addedAt": 1775571767008
+    },
+    {
       "firebaseId": "2b72e1da-901b-4854-b336-1004d5c6573d",
+      "mode": "Multiplayer",
+      "addedBy": [
+        "Aadish"
+      ],
       "name": "SIDE EFFECTS",
-      "status": "Played",
+      "steamUrl": "https://store.steampowered.com/app/3799100/SIDE_EFFECTS/",
+      "addedAt": 1774078952798,
+      "imageUrl": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3799100/header.jpg",
+      "id": "2b72e1da-901b-4854-b336-1004d5c6573d",
+      "appId": "3799100",
       "sharedList": {
         "upvotes": [
           "Aadish"
@@ -84,39 +92,28 @@
         "order": 3,
         "addedBy": "Aadish"
       },
-      "addedBy": [
-        "Aadish"
-      ],
-      "id": "2b72e1da-901b-4854-b336-1004d5c6573d",
-      "mode": "Multiplayer",
-      "imageUrl": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3799100/header.jpg",
-      "addedAt": 1774078952798,
-      "steamUrl": "https://store.steampowered.com/app/3799100/SIDE_EFFECTS/",
-      "appId": "3799100"
+      "status": "Played"
     },
     {
       "firebaseId": "34ef8aec-7270-49bc-ad86-c579b6cc624a",
-      "imageUrl": "https://media.rawg.io/media/games/fee/fee0100afd87b52bfbd33e26689fa26c.jpg",
-      "steamUrl": "https://store.steampowered.com/search/?term=Resident%20Evil%204%20(2005)",
-      "appId": "resident-evil-4",
-      "status": "Played",
-      "addedAt": 1774018513404,
-      "id": "34ef8aec-7270-49bc-ad86-c579b6cc624a",
-      "name": "Resident Evil 4 (2005)",
       "addedBy": [
         "Aditya"
       ],
+      "status": "Played",
+      "steamUrl": "https://store.steampowered.com/search/?term=Resident%20Evil%204%20(2005)",
+      "imageUrl": "https://media.rawg.io/media/games/fee/fee0100afd87b52bfbd33e26689fa26c.jpg",
+      "name": "Resident Evil 4 (2005)",
+      "id": "34ef8aec-7270-49bc-ad86-c579b6cc624a",
+      "appId": "resident-evil-4",
+      "addedAt": 1774018513404,
       "mode": "Singleplayer"
     },
     {
       "firebaseId": "3ddc4bf9-e53b-4fe2-930a-1c41692a595f",
-      "appId": "split-fiction",
-      "status": "Played",
+      "addedBy": [
+        "Aadish"
+      ],
       "addedAt": 1774078836335,
-      "steamUrl": "https://store.steampowered.com/search/?term=Split%20Fiction",
-      "mode": "Multiplayer",
-      "imageUrl": "https://media.rawg.io/media/games/02a/02ac22b3b90717dabaa535640c38534c.jpg",
-      "name": "Split Fiction",
       "sharedList": {
         "upvotes": [
           "Aadish"
@@ -125,17 +122,23 @@
         "type": "Main",
         "order": 3
       },
+      "mode": "Multiplayer",
+      "steamUrl": "https://store.steampowered.com/search/?term=Split%20Fiction",
       "id": "3ddc4bf9-e53b-4fe2-930a-1c41692a595f",
-      "addedBy": [
-        "Aadish"
-      ]
+      "appId": "split-fiction",
+      "imageUrl": "https://media.rawg.io/media/games/02a/02ac22b3b90717dabaa535640c38534c.jpg",
+      "status": "Played",
+      "name": "Split Fiction"
     },
     {
       "firebaseId": "4dfa982e-9ee1-437a-803d-e9c7a82193c1",
-      "id": "4dfa982e-9ee1-437a-803d-e9c7a82193c1",
-      "imageUrl": "https://media.rawg.io/media/games/779/77988e89f7862afeede524420aa251b0.jpg",
+      "mode": "Singleplayer",
       "steamUrl": "https://store.steampowered.com/search/?term=Black%20Myth%3A%20Wukong",
+      "imageUrl": "https://media.rawg.io/media/games/779/77988e89f7862afeede524420aa251b0.jpg",
+      "addedAt": 1774705436941,
+      "status": "Played",
       "name": "Black Myth: Wukong",
+      "id": "4dfa982e-9ee1-437a-803d-e9c7a82193c1",
       "sharedList": {
         "type": "Main",
         "addedBy": "Aadish",
@@ -144,45 +147,53 @@
         ],
         "order": 0
       },
-      "mode": "Singleplayer",
-      "addedAt": 1774705436941,
-      "appId": "black-myth-wu-kong",
-      "status": "Played",
       "addedBy": [
         "Aadish"
-      ]
+      ],
+      "appId": "black-myth-wu-kong"
     },
     {
       "firebaseId": "4f773162-265f-4a1b-b750-0094dbe0bdf0",
+      "steamUrl": "https://store.steampowered.com/app/3894440/NO_BACKUP/",
       "mode": "Multiplayer",
-      "id": "4f773162-265f-4a1b-b750-0094dbe0bdf0",
-      "appId": "3894440",
-      "status": "Wanted",
-      "name": "NO BACKUP",
       "addedAt": 1778577435419,
       "imageUrl": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3894440/6de96d936887a99c647dc5fbfc5a66852dc9c86f/header.jpg?t=1778346012",
-      "steamUrl": "https://store.steampowered.com/app/3894440/NO_BACKUP/",
+      "name": "NO BACKUP",
+      "id": "4f773162-265f-4a1b-b750-0094dbe0bdf0",
+      "appId": "3894440",
       "addedBy": [
         "Aadish"
-      ]
+      ],
+      "status": "Wanted"
     },
     {
       "firebaseId": "5792f327-4e94-45a9-a580-50e2eddd6eef",
+      "status": "Played",
+      "appId": "elden-ring",
       "addedBy": [
         "Aadish",
         "Aditya"
       ],
       "name": "Elden Ring",
-      "id": "5792f327-4e94-45a9-a580-50e2eddd6eef",
-      "steamUrl": "https://store.steampowered.com/search/?term=Elden%20Ring",
       "imageUrl": "https://media.rawg.io/media/games/b29/b294fdd866dcdb643e7bab370a552855.jpg",
+      "steamUrl": "https://store.steampowered.com/search/?term=Elden%20Ring",
       "mode": "Multiplayer",
-      "addedAt": 1774014212791,
-      "status": "Played",
-      "appId": "elden-ring"
+      "id": "5792f327-4e94-45a9-a580-50e2eddd6eef",
+      "addedAt": 1774014212791
     },
     {
       "firebaseId": "5d6bdcb3-c2fb-40a6-95c0-49cb1894dac8",
+      "addedBy": [
+        "Aadish"
+      ],
+      "mode": "Multiplayer",
+      "id": "5d6bdcb3-c2fb-40a6-95c0-49cb1894dac8",
+      "status": "Wanted",
+      "name": "Lies Of P",
+      "appId": "lies-of-p",
+      "addedAt": 1774079096811,
+      "steamUrl": "https://store.steampowered.com/search/?term=Lies%20Of%20P",
+      "imageUrl": "https://media.rawg.io/media/games/458/45838becd01e929b6be8b88d655cebfc.jpg",
       "sharedList": {
         "order": 1,
         "addedBy": "Aadish",
@@ -190,66 +201,52 @@
           "Aadish"
         ],
         "type": "Main"
-      },
-      "addedBy": [
-        "Aadish"
-      ],
-      "mode": "Multiplayer",
-      "appId": "lies-of-p",
-      "id": "5d6bdcb3-c2fb-40a6-95c0-49cb1894dac8",
-      "name": "Lies Of P",
-      "steamUrl": "https://store.steampowered.com/search/?term=Lies%20Of%20P",
-      "imageUrl": "https://media.rawg.io/media/games/458/45838becd01e929b6be8b88d655cebfc.jpg",
-      "addedAt": 1774079096811,
-      "status": "Wanted"
+      }
     },
     {
       "firebaseId": "626c3e69-e64a-4549-a3eb-b61344c83e4f",
-      "name": "Nioh 3",
-      "status": "Wanted",
-      "mode": "Multiplayer",
-      "addedAt": 1775214180700,
+      "steamUrl": "https://store.steampowered.com/search/?term=Nioh%203",
       "imageUrl": "https://media.rawg.io/media/games/18f/18f1e09f98c9a0e822b616d68d73c956.jpg",
       "id": "626c3e69-e64a-4549-a3eb-b61344c83e4f",
-      "steamUrl": "https://store.steampowered.com/search/?term=Nioh%203",
+      "addedAt": 1775214180700,
+      "status": "Wanted",
+      "name": "Nioh 3",
       "addedBy": [
         "Aadish"
       ],
+      "mode": "Multiplayer",
       "appId": "nioh-3"
     },
     {
       "firebaseId": "63deb755-1479-49d1-ad9e-81c1ff692d5b",
-      "id": "63deb755-1479-49d1-ad9e-81c1ff692d5b",
-      "imageUrl": "https://media.rawg.io/media/games/71d/71df9e759b2246f9769126c98ac997fc.jpg",
-      "steamUrl": "https://store.steampowered.com/search/?term=The%20Last%20of%20Us%20Part%20I",
-      "name": "The Last of Us Part I",
       "mode": "Singleplayer",
-      "addedAt": 1774113347846,
-      "appId": "the-last-of-us-part-i",
-      "status": "Played",
-      "addedBy": [
-        "Aadish"
-      ]
-    },
-    {
-      "firebaseId": "665118f5-96be-4b0a-ae5e-718828478776",
-      "name": "Warhammer 40,000: Darktide",
+      "id": "63deb755-1479-49d1-ad9e-81c1ff692d5b",
       "addedBy": [
         "Aadish"
       ],
+      "name": "The Last of Us Part I",
+      "addedAt": 1774113347846,
+      "appId": "the-last-of-us-part-i",
+      "steamUrl": "https://store.steampowered.com/search/?term=The%20Last%20of%20Us%20Part%20I",
+      "status": "Played",
+      "imageUrl": "https://media.rawg.io/media/games/71d/71df9e759b2246f9769126c98ac997fc.jpg"
+    },
+    {
+      "firebaseId": "665118f5-96be-4b0a-ae5e-718828478776",
       "mode": "Multiplayer",
+      "addedBy": [
+        "Aadish"
+      ],
+      "name": "Warhammer 40,000: Darktide",
       "addedAt": 1776787977768,
-      "imageUrl": "https://media.rawg.io/media/games/63e/63ee51f2fc8c78ff3a4fa8f60d5898b4.jpg",
       "steamUrl": "https://store.steampowered.com/search/?term=Warhammer%2040%2C000%3A%20Darktide",
-      "status": "Wanted",
+      "imageUrl": "https://media.rawg.io/media/games/63e/63ee51f2fc8c78ff3a4fa8f60d5898b4.jpg",
       "id": "665118f5-96be-4b0a-ae5e-718828478776",
-      "appId": "warhammer-40000-darktide"
+      "appId": "warhammer-40000-darktide",
+      "status": "Wanted"
     },
     {
       "firebaseId": "86edace2-3729-49d4-9919-9a64e555ca3c",
-      "id": "86edace2-3729-49d4-9919-9a64e555ca3c",
-      "name": "Lords of the Fallen",
-      "addedAt": 1774079067374,
       "sharedList": {
         "type": "Main",
         "order": 4,
@@ -258,14 +255,17 @@
         ],
         "addedBy": "Aadish"
       },
-      "mode": "Multiplayer",
-      "appId": "lords-of-the-fallen-2",
+      "addedAt": 1774079067374,
+      "status": "Played",
       "steamUrl": "https://store.steampowered.com/search/?term=Lords%20of%20the%20Fallen",
       "imageUrl": "https://media.rawg.io/media/games/12c/12c2fd04262732cb5e2e6ff378e1cc2d.jpg",
       "addedBy": [
         "Aadish"
       ],
-      "status": "Played"
+      "name": "Lords of the Fallen",
+      "id": "86edace2-3729-49d4-9919-9a64e555ca3c",
+      "appId": "lords-of-the-fallen-2",
+      "mode": "Multiplayer"
     },
     {
       "firebaseId": "8fe44583-2ebd-45db-b526-2964b57bc9c2",
@@ -273,17 +273,18 @@
         "Aadish"
       ],
       "steamUrl": "https://store.steampowered.com/search/?term=Buckshot%20Roulette",
-      "id": "8fe44583-2ebd-45db-b526-2964b57bc9c2",
+      "status": "Played",
       "imageUrl": "https://media.rawg.io/media/games/fdf/fdfeaffbe45ecab2b2eca5b058432989.jpg",
       "name": "Buckshot Roulette",
-      "mode": "Multiplayer",
+      "id": "8fe44583-2ebd-45db-b526-2964b57bc9c2",
+      "appId": "buckshot-roulette",
       "addedAt": 1774164206287,
-      "status": "Played",
-      "appId": "buckshot-roulette"
+      "mode": "Multiplayer"
     },
     {
       "firebaseId": "a14fe2c9-f311-4d90-8512-df5c8d0b0db2",
-      "id": "a14fe2c9-f311-4d90-8512-df5c8d0b0db2",
+      "imageUrl": "https://media.rawg.io/media/screenshots/5d7/5d754e1dc0084cc9b1b36c1f087cf21f.jpg",
+      "appId": "repo-2",
       "sharedList": {
         "type": "Side",
         "addedBy": "Aadish",
@@ -293,57 +294,56 @@
         "order": 0
       },
       "name": "R.E.P.O.",
-      "status": "Played",
+      "id": "a14fe2c9-f311-4d90-8512-df5c8d0b0db2",
       "steamUrl": "https://store.steampowered.com/search/?term=R.E.P.O.",
       "addedAt": 1774078797186,
       "mode": "Multiplayer",
-      "imageUrl": "https://media.rawg.io/media/screenshots/5d7/5d754e1dc0084cc9b1b36c1f087cf21f.jpg",
+      "status": "Played",
       "addedBy": [
         "Aadish"
-      ],
-      "appId": "repo-2"
+      ]
     },
     {
       "firebaseId": "a58e6673-fd8b-4e63-83e6-a2f8631d6863",
-      "mode": "Multiplayer",
-      "appId": "enshrouded-2",
-      "name": "Enshrouded",
       "imageUrl": "https://media.rawg.io/media/games/23a/23a1c71366aea4341aec483c9dd08a59.jpg",
-      "status": "Wanted",
+      "appId": "enshrouded-2",
       "steamUrl": "https://store.steampowered.com/search/?term=Enshrouded",
       "addedBy": [
         "Aadish"
       ],
+      "status": "Wanted",
+      "name": "Enshrouded",
+      "addedAt": 1775571745232,
       "id": "a58e6673-fd8b-4e63-83e6-a2f8631d6863",
-      "addedAt": 1775571745232
+      "mode": "Multiplayer"
     },
     {
       "firebaseId": "a60b641f-4754-4175-b25b-52ff44b34d28",
-      "steamUrl": "https://store.steampowered.com/search/?term=Crimson%20Desert",
-      "mode": "Singleplayer",
-      "imageUrl": "https://media.rawg.io/media/games/dac/dacfcdeaef957a36416f4e6d5ec76229.jpg",
-      "addedAt": 1774705422291,
-      "id": "a60b641f-4754-4175-b25b-52ff44b34d28",
-      "appId": "crimson-desert",
-      "name": "Crimson Desert",
       "addedBy": [
         "Aadish"
       ],
-      "status": "Wanted"
+      "addedAt": 1774705422291,
+      "mode": "Singleplayer",
+      "steamUrl": "https://store.steampowered.com/search/?term=Crimson%20Desert",
+      "id": "a60b641f-4754-4175-b25b-52ff44b34d28",
+      "imageUrl": "https://media.rawg.io/media/games/dac/dacfcdeaef957a36416f4e6d5ec76229.jpg",
+      "status": "Wanted",
+      "name": "Crimson Desert",
+      "appId": "crimson-desert"
     },
     {
       "firebaseId": "c0066169-0be5-47f7-ba34-639baee5e029",
-      "status": "Played",
       "addedBy": [
         "Aadish"
       ],
-      "imageUrl": "https://media.rawg.io/media/games/b20/b2055f1b6d12a6342deec3565e465852.jpg",
+      "status": "Played",
       "steamUrl": "https://store.steampowered.com/search/?term=Dying%20Light%3A%20The%20Beast",
+      "id": "c0066169-0be5-47f7-ba34-639baee5e029",
+      "imageUrl": "https://media.rawg.io/media/games/b20/b2055f1b6d12a6342deec3565e465852.jpg",
+      "name": "Dying Light: The Beast",
       "appId": "dying-light-the-beast",
       "mode": "Multiplayer",
       "addedAt": 1774078856888,
-      "name": "Dying Light: The Beast",
-      "id": "c0066169-0be5-47f7-ba34-639baee5e029",
       "sharedList": {
         "upvotes": [
           "Aadish"
@@ -355,68 +355,69 @@
     },
     {
       "firebaseId": "c74b8f9c-639f-4149-b4c0-839a03b0c45f",
-      "name": "The Last of Us Part II",
-      "imageUrl": "https://media.rawg.io/media/games/909/909974d1c7863c2027241e265fe7011f.jpg",
-      "steamUrl": "https://store.steampowered.com/search/?term=The%20Last%20of%20Us%20Part%20II",
-      "mode": "Singleplayer",
-      "appId": "the-last-of-us-part-2",
-      "status": "Wanted",
       "addedBy": [
         "Aadish"
       ],
       "id": "c74b8f9c-639f-4149-b4c0-839a03b0c45f",
+      "status": "Wanted",
+      "name": "The Last of Us Part II",
+      "steamUrl": "https://store.steampowered.com/search/?term=The%20Last%20of%20Us%20Part%20II",
+      "imageUrl": "https://media.rawg.io/media/games/909/909974d1c7863c2027241e265fe7011f.jpg",
+      "appId": "the-last-of-us-part-2",
+      "mode": "Singleplayer",
       "addedAt": 1774113352774
     },
     {
       "firebaseId": "cda62ce8-6bf9-4a27-99eb-91fe2e5ae0e5",
-      "steamUrl": "https://store.steampowered.com/search/?term=Red%20Dead%20Redemption%202",
       "name": "Red Dead Redemption 2",
-      "imageUrl": "https://media.rawg.io/media/games/511/5118aff5091cb3efec399c808f8c598f.jpg",
-      "mode": "Singleplayer",
-      "appId": "red-dead-redemption-2",
-      "status": "Played",
-      "addedAt": 1774018035786,
-      "id": "cda62ce8-6bf9-4a27-99eb-91fe2e5ae0e5",
       "addedBy": [
         "Aditya",
         "Aadish"
-      ]
+      ],
+      "mode": "Singleplayer",
+      "addedAt": 1774018035786,
+      "id": "cda62ce8-6bf9-4a27-99eb-91fe2e5ae0e5",
+      "appId": "red-dead-redemption-2",
+      "status": "Played",
+      "steamUrl": "https://store.steampowered.com/search/?term=Red%20Dead%20Redemption%202",
+      "imageUrl": "https://media.rawg.io/media/games/511/5118aff5091cb3efec399c808f8c598f.jpg"
     },
     {
       "firebaseId": "d1acb574-a89f-4b39-bbbb-5622f57ad2f6",
-      "status": "Wanted",
       "addedBy": [
         "Aadish"
       ],
-      "id": "d1acb574-a89f-4b39-bbbb-5622f57ad2f6",
+      "mode": "Multiplayer",
+      "status": "Wanted",
       "name": "Evil West",
-      "appId": "evil-west",
-      "addedAt": 1776787950328,
-      "steamUrl": "https://store.steampowered.com/search/?term=Evil%20West",
+      "id": "d1acb574-a89f-4b39-bbbb-5622f57ad2f6",
       "imageUrl": "https://media.rawg.io/media/games/1b5/1b5182c76448fc3ffcbb16b3a55392ee.jpg",
-      "mode": "Multiplayer"
+      "steamUrl": "https://store.steampowered.com/search/?term=Evil%20West",
+      "appId": "evil-west",
+      "addedAt": 1776787950328
     },
     {
       "firebaseId": "d927bb7f-c2b3-4105-abec-daa12a651a56",
+      "id": "d927bb7f-c2b3-4105-abec-daa12a651a56",
+      "status": "Wanted",
+      "appId": "lords-of-the-fallen-2-2",
+      "addedAt": 1775129794075,
+      "mode": "Multiplayer",
+      "imageUrl": "https://media.rawg.io/media/screenshots/887/887f377d7e4fc503bb345aac6e62eb2a.jpg",
+      "steamUrl": "https://store.steampowered.com/search/?term=Lords%20of%20the%20Fallen%202",
       "addedBy": [
         "Aadish"
       ],
-      "imageUrl": "https://media.rawg.io/media/screenshots/887/887f377d7e4fc503bb345aac6e62eb2a.jpg",
-      "steamUrl": "https://store.steampowered.com/search/?term=Lords%20of%20the%20Fallen%202",
-      "addedAt": 1775129794075,
-      "name": "Lords of the Fallen 2",
-      "status": "Wanted",
-      "appId": "lords-of-the-fallen-2-2",
-      "id": "d927bb7f-c2b3-4105-abec-daa12a651a56",
-      "mode": "Multiplayer"
+      "name": "Lords of the Fallen 2"
     },
     {
       "firebaseId": "dc383dc3-de82-437f-b721-45845764f195",
-      "addedBy": [
-        "Aadish"
-      ],
+      "addedAt": 1774078995278,
       "appId": "demonologist-2",
+      "mode": "Multiplayer",
+      "name": "Demonologist",
       "id": "dc383dc3-de82-437f-b721-45845764f195",
+      "status": "Played",
       "sharedList": {
         "upvotes": [
           "Aadish"
@@ -425,31 +426,34 @@
         "addedBy": "Aadish",
         "type": "Side"
       },
-      "name": "Demonologist",
-      "addedAt": 1774078995278,
-      "status": "Played",
-      "imageUrl": "https://media.rawg.io/media/screenshots/739/739cb7963f74b31eea450baf642d19d1.jpg",
       "steamUrl": "https://store.steampowered.com/search/?term=Demonologist",
-      "mode": "Multiplayer"
+      "addedBy": [
+        "Aadish"
+      ],
+      "imageUrl": "https://media.rawg.io/media/screenshots/739/739cb7963f74b31eea450baf642d19d1.jpg"
     },
     {
       "firebaseId": "e2c1456b-9a1a-4990-8c05-2ce1e2cd49a0",
-      "id": "e2c1456b-9a1a-4990-8c05-2ce1e2cd49a0",
       "appId": "the-elder-scrolls-v-skyrim",
-      "steamUrl": "https://store.steampowered.com/search/?term=The%20Elder%20Scrolls%20V%3A%20Skyrim",
       "status": "Played",
+      "name": "The Elder Scrolls V: Skyrim",
+      "imageUrl": "https://media.rawg.io/media/games/7cf/7cfc9220b401b7a300e409e539c9afd5.jpg",
+      "steamUrl": "https://store.steampowered.com/search/?term=The%20Elder%20Scrolls%20V%3A%20Skyrim",
+      "mode": "Singleplayer",
+      "addedAt": 1775130248200,
+      "id": "e2c1456b-9a1a-4990-8c05-2ce1e2cd49a0",
       "addedBy": [
         "Aditya"
-      ],
-      "imageUrl": "https://media.rawg.io/media/games/7cf/7cfc9220b401b7a300e409e539c9afd5.jpg",
-      "name": "The Elder Scrolls V: Skyrim",
-      "addedAt": 1775130248200,
-      "mode": "Singleplayer"
+      ]
     },
     {
       "firebaseId": "eda53063-3989-4669-aa53-ce4ff290f940",
-      "appId": "lethal-company",
+      "imageUrl": "https://media.rawg.io/media/screenshots/2fa/2faa93b7882a018ac21a1f9cc5176579.jpg",
+      "steamUrl": "https://store.steampowered.com/search/?term=Lethal%20Company",
+      "id": "eda53063-3989-4669-aa53-ce4ff290f940",
       "addedAt": 1774078908256,
+      "appId": "lethal-company",
+      "mode": "Multiplayer",
       "sharedList": {
         "upvotes": [
           "Aadish"
@@ -458,25 +462,16 @@
         "order": 4,
         "type": "Side"
       },
-      "mode": "Multiplayer",
-      "addedBy": [
-        "Aadish"
-      ],
-      "id": "eda53063-3989-4669-aa53-ce4ff290f940",
       "status": "Played",
       "name": "Lethal Company",
-      "steamUrl": "https://store.steampowered.com/search/?term=Lethal%20Company",
-      "imageUrl": "https://media.rawg.io/media/screenshots/2fa/2faa93b7882a018ac21a1f9cc5176579.jpg"
+      "addedBy": [
+        "Aadish"
+      ]
     }
   ],
   "mods": [
     {
       "firebaseId": "0094e6ef-abc1-4c0b-996e-8f9060c95d6f",
-      "gameId": "black-myth-wu-kong",
-      "gameName": "Black Myth: Wukong",
-      "addedBy": "Aadish",
-      "gameImageUrl": "https://media.rawg.io/media/games/779/77988e89f7862afeede524420aa251b0.jpg",
-      "id": "0094e6ef-abc1-4c0b-996e-8f9060c95d6f",
       "modsList": [
         {
           "id": "670933c9-647a-41c8-9e94-3f10be8b929e",
@@ -489,13 +484,19 @@
           "lastUpdatedEpoch": 1767104112,
           "lastUpdated": "12/30/2025"
         }
-      ]
+      ],
+      "id": "0094e6ef-abc1-4c0b-996e-8f9060c95d6f",
+      "gameId": "black-myth-wu-kong",
+      "gameName": "Black Myth: Wukong",
+      "gameImageUrl": "https://media.rawg.io/media/games/779/77988e89f7862afeede524420aa251b0.jpg",
+      "addedBy": "Aadish"
     },
     {
       "firebaseId": "5943e05a-67f5-40c6-86a6-7216ec5768e6",
+      "addedBy": "Aadish",
       "gameName": "Elden Ring Nightreign",
       "gameImageUrl": "https://media.rawg.io/media/games/a14/a143ef815d323a3000840fc774d834c7.jpg",
-      "gameId": "elden-ring-nightreign",
+      "id": "5943e05a-67f5-40c6-86a6-7216ec5768e6",
       "modsList": [
         {
           "id": "9c969b65-c6be-4de3-b0f3-c12b1577f934",
@@ -637,13 +638,12 @@
           "image": "https://staticdelivery.nexusmods.com/mods/7800/images/3/3-1748613196-728917240.png"
         }
       ],
-      "id": "5943e05a-67f5-40c6-86a6-7216ec5768e6",
-      "addedBy": "Aadish"
+      "gameId": "elden-ring-nightreign"
     },
     {
       "firebaseId": "9b5425db-b807-4211-99b2-56c35132d65b",
+      "gameId": "lies-of-p",
       "addedBy": "Aadish",
-      "id": "9b5425db-b807-4211-99b2-56c35132d65b",
       "modsList": [
         {
           "id": "00b3fa03-eaba-40ac-b568-9a61446ebdee",
@@ -657,17 +657,17 @@
           "lastUpdated": "12/1/2025"
         }
       ],
-      "gameId": "lies-of-p",
       "gameImageUrl": "https://media.rawg.io/media/games/458/45838becd01e929b6be8b88d655cebfc.jpg",
-      "gameName": "Lies Of P"
+      "gameName": "Lies Of P",
+      "id": "9b5425db-b807-4211-99b2-56c35132d65b"
     },
     {
       "firebaseId": "dc9bebb4-2b82-4e32-8988-e05eadfac459",
-      "gameId": "the-elder-scrolls-v-skyrim",
-      "addedBy": "Aditya",
-      "gameName": "The Elder Scrolls V: Skyrim",
-      "gameImageUrl": "https://media.rawg.io/media/games/7cf/7cfc9220b401b7a300e409e539c9afd5.jpg",
       "id": "dc9bebb4-2b82-4e32-8988-e05eadfac459",
+      "gameName": "The Elder Scrolls V: Skyrim",
+      "addedBy": "Aditya",
+      "gameImageUrl": "https://media.rawg.io/media/games/7cf/7cfc9220b401b7a300e409e539c9afd5.jpg",
+      "gameId": "the-elder-scrolls-v-skyrim",
       "modsList": [
         {
           "id": "cb799e8b-3ec0-406d-8eb7-f82de0829387",
@@ -702,5 +702,5 @@
       ]
     }
   ],
-  "timestamp": "2026-08-28T21:36:26.180Z"
+  "timestamp": "2026-09-03T15:31:26.240Z"
 }
